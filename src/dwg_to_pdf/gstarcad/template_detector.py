@@ -34,6 +34,9 @@ def _validated_point(snapshot: dict[str, object]) -> tuple[float, float]:
 
 
 def _bounded_text_and_insert_snapshots(document: Any, limits: DetectionLimits) -> list[dict[str, object]]:
+    detection_view = getattr(document, "for_scale_detection", None)
+    if detection_view is not None:
+        document = detection_view()
     initial = list(document.filtered_snapshots(("TEXT", "MTEXT", "INSERT"), bounds=None))
     top_level_ratios: list[dict[str, object]] = []
     for item in initial:

@@ -74,6 +74,60 @@ def test_scale_cell_preserves_blank_or_na_for_fallback(text, expected_state) -> 
     assert cell.token is None
 
 
+@pytest.mark.parametrize("token,state", [("1:50", "valid"), ("", "blank"), ("N/A", "na")])
+def test_conversion_scale_detection_does_not_request_registration_bounds(token, state):
+    def unused_bounds():
+        pytest.fail("conversion must not request registration-only text bounds")
+    label = _text("Scale", (100, 50, 0), "L")
+    value = _text(token, (100, 40, 0), "V")
+    label.GetBoundingBox = value.GetBoundingBox = unused_bounds
+    selection = FakeSelection([label, value])
+    doc = GstarDocument(SimpleNamespace(SelectionSets=FakeSelectionSets(selection)))
+    cell = detect_scale_cell(doc, DetectionLimits(64, 5000), (_profile(),))
+    assert cell.state == state
+    assert selection.deleted
+
+
+def test_default_snapshot_keeps_measured_bounds_for_registration():
+    label = _text("Scale", (100, 50, 0), "L")
+    label.GetBoundingBox = lambda: ((99, 49, 0), (104, 52, 0))
+    selection = FakeSelection([label])
+    doc = GstarDocument(SimpleNamespace(SelectionSets=FakeSelectionSets(selection)))
+    assert doc.filtered_snapshots(("TEXT",))[0]["bbox"] == ((99, 49), (104, 52))
+
+
+@pytest.mark.parametrize("token,error", [("ABC", "E305"), ("1:50", "E304")])
+def test_lightweight_detection_keeps_invalid_and_duplicate_cell_text(token, error):
+    label = _text("Scale", (100, 50, 0), "L")
+    values = [_text(token, (100, 40, 0), "V")]
+    if error == "E304":
+        values.append(_text("", (100, 40, 0), "EMPTY"))
+    selection = FakeSelection([label, *values])
+    doc = GstarDocument(SimpleNamespace(SelectionSets=FakeSelectionSets(selection)))
+    with pytest.raises(AppError) as raised:
+        detect_scale_cell(doc, DetectionLimits(64, 5000), (_profile(),))
+    assert raised.value.code == error
+
+
+def test_lightweight_nested_detection_avoids_nontext_property_probe_but_validates_line():
+    class Line:
+        ObjectName = "AcDbLine"
+        StartPoint = (1, 2, 0)
+        EndPoint = (3, 4, 0)
+        Handle = "LINE"
+        @property
+        def TextString(self):
+            pytest.fail("LINE has no TextString; do not probe it")
+    line = Line()
+    blocks = BlockCollection({"B": IndexedCollection([line])})
+    doc = GstarDocument(SimpleNamespace(Blocks=blocks)).for_scale_detection()
+    reference = {"block_name": "B", "point": (0, 0), "handle": "R"}
+    assert doc.nested_text_snapshots(reference, 4, 10)[0]["text"] == ""
+    line.EndPoint = (math.nan, 4, 0)
+    with pytest.raises(AppError, match="non-finite"):
+        doc.nested_text_snapshots(reference, 4, 10)
+
+
 def test_scale_cell_accepts_valid_ratio_only_at_learned_value_geometry() -> None:
     document = ScaleCellDocument([
         {"type": "TEXT", "text": "Scale", "point": (100.0, 50.0), "handle": "L"},
@@ -449,14 +503,18 @@ def _insert(name, point, handle, *, rotation=0.0, sx=1.0, sy=1.0, attributes=())
     )
 
 
-def test_nested_traversal_reaches_anonymous_definition_and_transforms_quarter_turn() -> None:
+@pytest.mark.parametrize("lightweight", [False, True])
+def test_nested_traversal_reaches_anonymous_definition_and_transforms_quarter_turn(lightweight) -> None:
     blocks = BlockCollection({"*U1": IndexedCollection([_text("1:25", (2.0, 0.0, 0.0), "T")])})
     raw = SimpleNamespace(Blocks=blocks)
     reference = {
         "type": "INSERT", "block_name": "*U1", "point": (10.0, 20.0), "handle": "I",
         "rotation": math.pi / 2, "x_scale": 1.0, "y_scale": 1.0,
     }
-    snapshots = GstarDocument(raw).nested_text_snapshots(reference, 4, 10)
+    document = GstarDocument(raw)
+    if lightweight:
+        document = document.for_scale_detection()
+    snapshots = document.nested_text_snapshots(reference, 4, 10)
     assert snapshots[0]["point"] == pytest.approx((10.0, 22.0))
     assert snapshots[0]["text"] == "1:25"
 
@@ -669,7 +727,8 @@ def test_geometry_snapshots_are_cached_for_the_same_bounds() -> None:
     assert document.calls == 1
 
 
-def test_nested_traversal_skips_attribute_definitions_when_instance_has_attributes() -> None:
+@pytest.mark.parametrize("lightweight", [False, True])
+def test_nested_traversal_skips_attribute_definitions_when_instance_has_attributes(lightweight) -> None:
     definition = SimpleNamespace(
         ObjectName="AcDbAttributeDefinition",
         TextString="Scale",
@@ -682,7 +741,10 @@ def test_nested_traversal_skips_attribute_definitions_when_instance_has_attribut
         "rotation": 0.0, "x_scale": 1.0, "y_scale": 1.0, "has_attributes": True,
     }
 
-    assert GstarDocument(raw).nested_text_snapshots(reference, 4, 10) == []
+    document = GstarDocument(raw)
+    if lightweight:
+        document = document.for_scale_detection()
+    assert document.nested_text_snapshots(reference, 4, 10) == []
 
 
 def test_detector_skips_line_only_roots_before_enforcing_nested_root_limit() -> None:
@@ -881,17 +943,22 @@ def test_detector_passes_one_shared_budget_to_every_root() -> None:
     assert len(seen) == 2 and seen[0] is seen[1]
 
 
-def test_nested_traversal_is_cycle_guarded_and_bounded() -> None:
+@pytest.mark.parametrize("lightweight", [False, True])
+def test_nested_traversal_is_cycle_guarded_and_bounded(lightweight) -> None:
     blocks = BlockCollection({"A": IndexedCollection([_insert("A", (1.0, 0.0, 0.0), "I")])})
     raw = SimpleNamespace(Blocks=blocks)
     reference = {
         "type": "INSERT", "block_name": "A", "point": (0.0, 0.0), "handle": "R",
         "rotation": 0.0, "x_scale": 1.0, "y_scale": 1.0,
     }
-    assert GstarDocument(raw).nested_text_snapshots(reference, 2, 2) == []
+    document = GstarDocument(raw)
+    if lightweight:
+        document = document.for_scale_detection()
+    assert document.nested_text_snapshots(reference, 2, 2) == []
 
 
-def test_nested_traversal_enforces_entity_limit() -> None:
+@pytest.mark.parametrize("lightweight", [False, True])
+def test_nested_traversal_enforces_entity_limit(lightweight) -> None:
     blocks = BlockCollection({"B": IndexedCollection([_text("Scale", (0, 0, 0), "1"), _text("1:1", (1, 0, 0), "2")])})
     raw = SimpleNamespace(Blocks=blocks)
     reference = {
@@ -899,10 +966,14 @@ def test_nested_traversal_enforces_entity_limit() -> None:
         "rotation": 0.0, "x_scale": 1.0, "y_scale": 1.0,
     }
     with pytest.raises(AppError, match="entity limit"):
-        GstarDocument(raw).nested_text_snapshots(reference, 2, 1)
+        document = GstarDocument(raw)
+        if lightweight:
+            document = document.for_scale_detection()
+        document.nested_text_snapshots(reference, 2, 1)
 
 
-def test_nested_traversal_reads_attached_attribute_values_in_parent_coordinates() -> None:
+@pytest.mark.parametrize("lightweight", [False, True])
+def test_nested_traversal_reads_attached_attribute_values_in_parent_coordinates(lightweight) -> None:
     attribute = SimpleNamespace(
         ObjectName="AcDbAttribute", TextString="1:125", InsertionPoint=(3.0, 0.0, 0.0), Handle="A"
     )
@@ -914,9 +985,31 @@ def test_nested_traversal_reads_attached_attribute_values_in_parent_coordinates(
         "rotation": 0.0, "x_scale": 1.0, "y_scale": 1.0,
     }
 
-    snapshots = GstarDocument(raw).nested_text_snapshots(reference, 4, 10)
+    document = GstarDocument(raw)
+    if lightweight:
+        document = document.for_scale_detection()
+    snapshots = document.nested_text_snapshots(reference, 4, 10)
 
     assert snapshots == [{
         "type": "ATTRIB", "text": "1:125", "point": (13.0, 0.0), "handle": "A",
         "instance_path": ("R", "I"),
     }]
+
+
+@pytest.mark.parametrize("profile_path", sorted((Path(__file__).parents[2] / "template_profiles").glob("*.json")), ids=lambda p: p.stem)
+@pytest.mark.parametrize("rotation", [0, 90, 180, 270])
+@pytest.mark.parametrize("state", ["valid", "blank", "na"])
+def test_all_registered_scale_cells_survive_nested_rigid_transforms(profile_path, rotation, state):
+    from dwg_to_pdf.templates.profile_store import load_profile
+    profiles = tuple(load_profile(p) for p in sorted(profile_path.parent.glob("*.json")))
+    profile = next(p for p in profiles if p.profile_id == load_profile(profile_path).profile_id)
+    label = _text("Scale", (profile.scale_anchor.x, profile.scale_anchor.y, 0), "LABEL")
+    token = f"{profile.scale.numerator}:{profile.scale.denominator}" if state == "valid" else "N/A" if state == "na" else ""
+    value = _text(token, (profile.scale_anchor.x + profile.scale_value_offset.x, profile.scale_anchor.y + profile.scale_value_offset.y, 0), "VALUE")
+    reference = _insert("TITLE", (1234, -567, 0), "ROOT", rotation=math.radians(rotation))
+    raw = SimpleNamespace(SelectionSets=FakeSelectionSets(FakeSelection([reference])), Blocks=BlockCollection({"TITLE": IndexedCollection([label, value])}))
+    cell = detect_scale_cell(GstarDocument(raw), DetectionLimits(64, 5000), profiles)
+    assert cell.state == state
+    assert cell.token == (token if state == "valid" else None)
+    if state == "valid":
+        assert cell.rotation_hint == rotation

@@ -25,27 +25,34 @@ def require_plot_environment(
         if "monochrome.ctb" not in styles:
             raise AppError("E212", "monochrome.ctb is not installed")
 
-        matches: list[str] = []
-        for raw_name in layout.GetCanonicalMediaNames():
-            name = str(raw_name)
+        names = tuple(str(name) for name in layout.GetCanonicalMediaNames())
+        inspected: dict[str, bool] = {}
+
+        def is_a4(name: str) -> bool:
+            if name in inspected:
+                return inspected[name]
             layout.CanonicalMediaName = name
             width, height = (float(value) for value in layout.GetPaperSize())
             if not (math.isfinite(width) and math.isfinite(height)):
                 raise AppError("E211", f"media {name} reported a non-finite paper size")
             landscape_a4 = abs(width - 297.0) <= tolerance_mm and abs(height - 210.0) <= tolerance_mm
             portrait_a4 = abs(width - 210.0) <= tolerance_mm and abs(height - 297.0) <= tolerance_mm
-            if landscape_a4 or portrait_a4:
-                matches.append(name)
+            inspected[name] = landscape_a4 or portrait_a4
+            return inspected[name]
+
+        # Check every installed preference so ambiguity remains an error. A
+        # localized/canonical label alone never proves the actual paper size.
+        preferred = [name for name in preferred_names if name in names and is_a4(name)]
+        if len(preferred) == 1:
+            return preferred[0]
+        if len(preferred) > 1:
+            raise AppError("E211", "multiple preferred A4 media are installed")
+        matches = [name for name in names if is_a4(name)]
     except AppError:
         raise
     except Exception as exc:
         raise AppError("E211", "could not inspect GstarCAD plot media") from exc
 
-    preferred = [name for name in preferred_names if name in matches]
-    if len(preferred) == 1:
-        return preferred[0]
-    if len(preferred) > 1:
-        raise AppError("E211", "multiple preferred A4 media are installed")
     if len(matches) != 1:
         raise AppError("E211", f"expected one A4 media by dimensions, found {len(matches)}")
     return matches[0]

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from copy import copy
 import math
 from typing import Any, Iterable
 import uuid
@@ -102,7 +103,7 @@ def _is_permitted_annotation_only_entity(entity: Any) -> bool:
         raise AppError("E303", "could not snapshot entity type") from exc
 
 
-def _snapshot(entity: Any, kind: str | None = None) -> dict[str, object]:
+def _snapshot(entity: Any, kind: str | None = None, *, lightweight: bool = False) -> dict[str, object]:
     kind = _entity_type(entity) if kind is None else kind
     try:
         start = entity.StartPoint if kind == "LINE" else None
@@ -110,11 +111,11 @@ def _snapshot(entity: Any, kind: str | None = None) -> dict[str, object]:
         point = _point_values(start if start is not None else coordinates) if kind in {"LINE", "LWPOLYLINE"} else _point(entity)
         result: dict[str, object] = {
             "type": kind,
-            "text": str(getattr(entity, "TextString", "")),
+            "text": str(getattr(entity, "TextString", "")) if not lightweight or kind in {"TEXT", "MTEXT", "ATTRIB"} else "",
             "point": point,
             "handle": str(entity.Handle),
         }
-        if kind in {"TEXT", "MTEXT", "ATTRIB"} and hasattr(entity, "GetBoundingBox"):
+        if not lightweight and kind in {"TEXT", "MTEXT", "ATTRIB"} and hasattr(entity, "GetBoundingBox"):
             lower, upper = entity.GetBoundingBox()
             result["bbox"] = (
                 (_finite_number(lower[0], "text bbox lower x"), _finite_number(lower[1], "text bbox lower y")),
@@ -266,12 +267,12 @@ def _collection_count(collection: Any, description: str) -> int:
     return count
 
 
-def _attribute_snapshots(reference: Any) -> list[dict[str, object]]:
+def _attribute_snapshots(reference: Any, *, lightweight: bool = False) -> list[dict[str, object]]:
     try:
         if not bool(getattr(reference, "HasAttributes", False)):
             return []
         attributes: Iterable[Any] = reference.GetAttributes()
-        return [_snapshot(attribute) for attribute in attributes]
+        return [_snapshot(attribute, lightweight=lightweight) for attribute in attributes]
     except AppError:
         raise
     except Exception as exc:
@@ -281,9 +282,22 @@ def _attribute_snapshots(reference: Any) -> list[dict[str, object]]:
 @dataclass
 class GstarDocument:
     raw: Any
+    _lightweight_text: bool = field(default=False, repr=False, kw_only=True)
     _geometry_cache: dict[
         tuple[Rect, int, int], tuple[dict[str, object], ...]
     ] = field(default_factory=dict, init=False, repr=False)
+
+    def for_scale_detection(self) -> GstarDocument:
+        """Create a conversion-only view without changing registration snapshots.
+
+        Geometry validation, blank/invalid text and instance identities are kept.
+        Only unused text bounds and nonexistent non-text TextString reads go away.
+        The view owns no COM session and stores no cross-document state.
+        """
+        view = copy(self)
+        view._lightweight_text = True
+        view._geometry_cache = {}
+        return view
 
     def approved_reference_window(self) -> tuple[tuple[float, float], tuple[float, float]]:
         """Read the saved Plot Window; callers must restrict this to approved references."""
@@ -364,10 +378,10 @@ class GstarDocument:
             snapshots: list[dict[str, object]] = []
             for index in range(_collection_count(selection, "selection")):
                 entity = selection.Item(index)
-                snapshot = _snapshot(entity)
+                snapshot = _snapshot(entity, lightweight=self._lightweight_text)
                 snapshots.append(snapshot)
                 if snapshot["type"] == "INSERT":
-                    snapshots.extend(_attribute_snapshots(entity))
+                    snapshots.extend(_attribute_snapshots(entity, lightweight=self._lightweight_text))
             return snapshots
         except AppError as exc:
             pending_error = exc
@@ -428,11 +442,11 @@ class GstarDocument:
                     if "unsupported filtered entity type" in str(exc):
                         continue
                     raise
-                local = _snapshot(entity, kind)
+                local = _snapshot(entity, kind, lightweight=self._lightweight_text)
                 if kind == "ATTRIB" and suppress_attribute_definitions:
                     continue
                 if kind == "INSERT":
-                    for attribute in _attribute_snapshots(entity):
+                    for attribute in _attribute_snapshots(entity, lightweight=self._lightweight_text):
                         budget.visit_entity()
                         attribute["point"] = _apply(matrix, attribute["point"])
                         if "bbox" in attribute:
