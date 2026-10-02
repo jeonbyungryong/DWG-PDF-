@@ -1,0 +1,23 @@
+[build-system]
+requires = ["setuptools>=75", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "dwg-to-pdf"
+version = "0.1.0"
+requires-python = ">=3.11,<3.14"
+dependencies = ["pywin32", "jsonschema", "pypdf", "pypdfium2", "Pillow"]
+
+[project.optional-dependencies]
+dev = ["pytest", "pytest-cov", "pyinstaller", "pip-tools"]
+
+[project.scripts]
+dwg-to-pdf = "dwg_to_pdf.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "--strict-markers"
+markers = ["gstarcad: requires an installed licensed GstarCAD"]

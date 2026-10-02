@@ -1,0 +1,82 @@
+PROFILE_SCHEMA = {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "type": "object",
+    "required": [
+        "profile_id",
+        "scale",
+        "source",
+        "approved",
+        "frame",
+        "scale_anchor",
+        "scale_value_offset",
+        "scale_value_tolerance",
+        "orientation_anchor",
+        "reference_window",
+        "position_tolerance",
+        "structural_signature",
+    ],
+    "properties": {
+        "profile_id": {"type": "string", "minLength": 1},
+        "scale": {
+            "type": "object",
+            "required": ["numerator", "denominator"],
+            "properties": {
+                "numerator": {"type": "string", "pattern": r"^\d+(?:\.\d+)?$"},
+                "denominator": {"type": "string", "pattern": r"^\d+(?:\.\d+)?$"},
+            },
+            "additionalProperties": False,
+        },
+        "source": {
+            "type": "object",
+            "required": ["path", "sha256"],
+            "properties": {
+                "path": {"type": "string", "minLength": 1},
+                "sha256": {"type": "string", "pattern": r"^[0-9A-Fa-f]{64}$"},
+            },
+            "additionalProperties": False,
+        },
+        "approved": {"const": True},
+        "frame": {"$ref": "#/$defs/rect"},
+        "scale_anchor": {"$ref": "#/$defs/point"},
+        "scale_value_offset": {"$ref": "#/$defs/point"},
+        "scale_value_tolerance": {"type": "number", "exclusiveMinimum": 0},
+        "orientation_anchor": {"$ref": "#/$defs/point"},
+        "reference_window": {"$ref": "#/$defs/rect"},
+        "position_tolerance": {"type": "number", "exclusiveMinimum": 0},
+        "structural_signature": {
+            "type": "object",
+            "required": ["segments", "frame_segment_count", "title_segment_count", "orientation_anchor"],
+            "properties": {
+                "segments": {"type": "array", "minItems": 5, "items": {"$ref": "#/$defs/segment"}},
+                "frame_segment_count": {"type": "integer", "minimum": 4},
+                "title_segment_count": {"type": "integer", "minimum": 1},
+                "orientation_anchor": {"$ref": "#/$defs/point"},
+            },
+            "additionalProperties": False,
+        },
+    },
+    "$defs": {
+        "point": {
+            "type": "array",
+            "prefixItems": [{"type": "number"}, {"type": "number"}],
+            "minItems": 2,
+            "maxItems": 2,
+        },
+        "rect": {
+            "type": "array",
+            "prefixItems": [
+                {"$ref": "#/$defs/point"},
+                {"$ref": "#/$defs/point"},
+            ],
+            "minItems": 2,
+            "maxItems": 2,
+        },
+        "segment": {
+            "type": "array",
+            "prefixItems": [{"$ref": "#/$defs/point"}, {"$ref": "#/$defs/point"}],
+            "minItems": 2,
+            "maxItems": 2,
+        },
+    },
+    "additionalProperties": False,
+}
