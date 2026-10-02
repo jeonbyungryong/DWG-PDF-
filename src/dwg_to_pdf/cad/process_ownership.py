@@ -27,7 +27,11 @@ def _all_pids() -> frozenset[int]:
 
 
 def _product_pids(candidate: CadCandidate) -> frozenset[int]:
-    name = {"gstarcad": "gcad", "autocad": "acad"}[candidate.provider]
+    return provider_pids(candidate.provider)
+
+
+def provider_pids(provider: str) -> frozenset[int]:
+    name = {"gstarcad": "gcad", "autocad": "acad"}[provider]
     command = ["powershell.exe", "-NoProfile", "-NonInteractive", "-Command",
                f"Get-Process -Name {name} -ErrorAction SilentlyContinue | ForEach-Object {{ $_.Id }}"]
     result = subprocess.run(command, capture_output=True, text=True, timeout=10,

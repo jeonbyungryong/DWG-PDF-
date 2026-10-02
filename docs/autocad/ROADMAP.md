@@ -2,7 +2,7 @@
 
 명세: [REV01](../superpowers/specs/2026-10-02-autocad-support-design.md)
 
-상세 계획: [T1~T9 구현/검증 계획](../superpowers/plans/2026-10-02-autocad-support.md). G0 승인 완료, AC-01 산출물 작성 완료/G1 검토 대기. AC-02 이후 제품 구현은 아직 시작하지 않았다.
+상세 계획: [T1~T9 구현/검증 계획](../superpowers/plans/2026-10-02-autocad-support.md). G0/G1 승인 완료. 개발 브랜치에서 AC-02~04 구현과 AC-05 오프라인 시험을 진행했으며 실기/번들 게이트는 미통과다. [검증 현황](VALIDATION.md)을 확인한다.
 
 이 문서는 업무 범위와 완료 기준이다. **상세 구현 계획이나 착수 승인이 아니다.** 현재 담당자·진행 상태·다음 작업은 [개발 허브](README.md)에 연결된 관리 이슈에서 확인한다.
 

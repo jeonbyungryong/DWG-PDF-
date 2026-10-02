@@ -29,10 +29,10 @@ git log -1 --oneline
 ```powershell
 $env:PYTHONPATH = "$PWD\src"
 $env:DWG_TO_PDF_TEMPLATE_SOURCE_ROOT = "$PWD\template_profiles"
-.\.venv\Scripts\python.exe -m pytest -m 'not gstarcad'
+.\.venv\Scripts\python.exe -m pytest -m 'not gstarcad and not autocad' -q
 ```
 
-위 명령은 현재 저장소 기준이다. 향후 AutoCAD 표식이 도입되면 해당 구현 PR에서 명령도 함께 갱신한다. 기존 `gstarcad` 외 표식을 현재 있다고 가정하지 않는다. 일부 pytest 통합 테스트는 모의 객체를 사용하므로 폴더 이름만으로 실기 시험이라고 판단하지 않는다.
+AutoCAD 표식은 개발 브랜치에 도입되었으며 추가 환경 opt-in도 필요하다. 일부 pytest 통합 테스트는 모의 객체를 사용하므로 폴더 이름만으로 실기 시험이라고 판단하지 않는다. 검증되지 않은 개발 브랜치를 main/배포본과 혼동하지 않는다.
 
 ## 충돌 방지와 인계
 

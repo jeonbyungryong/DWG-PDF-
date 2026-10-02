@@ -20,4 +20,4 @@ where = ["src"]
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 addopts = "--strict-markers"
-markers = ["gstarcad: requires an installed licensed GstarCAD"]
+markers = ["gstarcad: requires an installed licensed GstarCAD", "autocad: requires explicit opt-in and installed licensed Windows full AutoCAD"]

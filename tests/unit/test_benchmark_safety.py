@@ -28,3 +28,21 @@ def test_benchmark_never_claims_success_for_no_inputs_or_a_conversion_error():
     assert benchmark().benchmark_passed(data) is False
     data["outcomes"] = [{"error": "conversion failed"}]
     assert benchmark().benchmark_passed(data) is False
+
+
+def test_benchmark_uses_selected_config_provider_without_starting_cad(monkeypatch, tmp_path):
+    from types import SimpleNamespace
+    from dwg_to_pdf.cad.selection import CadCandidate
+    import dwg_to_pdf.configuration as configuration
+    import dwg_to_pdf.cad.discovery as discovery
+    import dwg_to_pdf.cad.factory as factory
+    config = SimpleNamespace(cad_provider="autocad", prog_id="AutoCAD.Application.25", allow_experimental_autocad=True)
+    selected = CadCandidate("autocad", config.prog_id, "id", tmp_path / "acad.exe", "AutoCAD", None)
+    paths, candidates = [], []
+    monkeypatch.setattr(configuration, "load_config", lambda path: paths.append(path) or config)
+    monkeypatch.setattr(discovery, "discover_candidates", lambda provider: (selected,) if provider == "autocad" else ())
+    monkeypatch.setattr(factory, "create_session", lambda candidate: candidates.append(candidate) or object())
+    explicit = tmp_path / "operator.toml"
+    received, candidate, session = benchmark().prepare_session(tmp_path, explicit)
+    assert paths == [explicit] and candidates == [selected]
+    assert received is config and candidate.provider == "autocad"

@@ -12,10 +12,20 @@ py -3.12 -m venv .venv
 $env:PYTHONPATH = "$PWD\src"
 $env:DWG_TO_PDF_TEMPLATE_SOURCE_ROOT = "$PWD\template_profiles"
 .\.venv\Scripts\python.exe -m dwg_to_pdf 'D:\input' --output 'D:\output' --template-source-root "$PWD\template_profiles"
-.\.venv\Scripts\python.exe -m pytest -m 'not gstarcad'
+.\.venv\Scripts\python.exe -m pytest -m 'not gstarcad and not autocad' -q
 ```
 
 설치에는 인터넷이 필요합니다. `gstarcad` 표식 시험은 실제 CAD와 별도 시험 도면·환경변수를 요구합니다. 고객 도면을 저장소에 올리지 않습니다.
+
+AutoCAD는 실험적이며 실제 버전/출력 호환성이 확인되지 않았습니다. 개발 브랜치의 소스 실행만 준비된 상태이며 기존 릴리스 ZIP에는 포함되지 않습니다.
+
+```powershell
+python -m dwg_to_pdf --list-cad
+python -m dwg_to_pdf 'D:\input' --output 'D:\output' --cad autocad --allow-experimental-autocad
+# 설치 후보가 여러 개면 목록에서 확인한 정확한 --cad-prog-id도 지정합니다.
+```
+
+실제 AutoCAD 시험은 `AUTOCAD_TEST_ENABLED=1`, `AUTOCAD_TEST_CONFIG`(절대경로), `AUTOCAD_TEST_DWGS`(절대경로를 세미콜론으로 구분)가 모두 있어야 시작됩니다. 설정은 `[cad] provider="autocad"`, `allow_experimental_autocad=true`를 사용하며 기존 `[gstarcad]` 절은 제거합니다. 나머지 설정은 기존 승인값을 유지합니다. `python -m pytest -m autocad -q`의 SKIP는 지원 통과가 아닙니다. [검증 현황](autocad/VALIDATION.md)을 확인하십시오.
 
 ## 배포 빌드
 
