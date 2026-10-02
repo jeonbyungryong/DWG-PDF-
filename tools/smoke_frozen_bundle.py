@@ -36,7 +36,8 @@ def main():
     pids_after = _gstar_pids()
     result = {"exit_code": completed.returncode, "expected_exit_code": args.expected_exit, "seconds": seconds, "stdout": completed.stdout.decode("utf-8", errors="replace"), "stderr": completed.stderr.decode("utf-8", errors="replace"), "source_unchanged": before == {str(path): identity(path) for path in inputs}, "pids_before": sorted(pids_before), "pids_after": sorted(pids_after), "no_new_cad_left": pids_after == pids_before, "pdfs": {name: asdict(validate_pdf(output / name)) for name in args.expected_pdfs}}
     (output / "smoke-result.json").write_text(json.dumps(result, ensure_ascii=False, indent=2), encoding="utf-8")
-    print(json.dumps(result, ensure_ascii=False), flush=True)
+    # Console code pages may not represent replacement characters in child output.
+    print(json.dumps(result, ensure_ascii=True), flush=True)
     return int(completed.returncode != args.expected_exit or not result["source_unchanged"] or not result["no_new_cad_left"])
 
 
