@@ -1,16 +1,18 @@
 # AutoCAD 확장 기획·요구사항 명세 REV01
 
 - 작성일: 2026-10-02 (Asia/Seoul)
-- 상태: **DRAFT / 사용자 명세 검토 대기**
+- 상태: **G0 승인 / 상세 구현 계획 G1 검토 대기**
 - 기준 제품 커밋: `d7df6c6d34c546c5f2fb8622a5ab3039bdb2355d`
-- 승인 범위: 기획·명세 작성 및 GitHub 게시. 제품 코드 구현·지원 완료 선언은 포함하지 않는다.
+- 승인 범위: REV01 기반 상세 계획 작성 및 GitHub 게시. 제품 코드 구현·지원 완료 선언은 포함하지 않는다.
+- 승인 기록: 2026-10-02 사용자 `go` 및 후속 계획 작성/게시 요청. 대상은 게시 커밋 `32e3400173efd537f8eaa191eb9ad9d6a02c9046`의 REV01이다.
+- 상세 계획: [AutoCAD Support Implementation Plan](../plans/2026-10-02-autocad-support.md)
 - 개발 관리 시작점: [AutoCAD 개발 허브](../../autocad/README.md)
 
 ## 1. 결론과 목표
 
 현재 GstarCAD 기반 DWG→PDF APP의 판정·배치 처리 로직을 유지하면서 Windows용 일반 AutoCAD를 선택할 수 있는 구조를 준비한다. AutoCAD가 없는 PC에서도 모의 테스트와 공통 구조 개발은 가능하지만 실제 설치·버전·라이선스·PDF 결과 검증 전에는 AutoCAD 지원 완료로 표시하지 않는다.
 
-본 명세의 기능·인터페이스·기본값은 **설계 제안**이다. 사용자 승인 후 상세 구현 계획을 작성하고 작업 단위별로 구현한다. 개발 환경 부재를 이유로 테스트 결과를 추정하거나 NOT_RUN을 PASS로 처리하지 않는다.
+본 명세는 **승인된 설계 기준이며 아직 미구현**이다. 상세 구현 계획의 G1 승인 후 작업 단위별로 구현한다. 개발 환경 부재를 이유로 테스트 결과를 추정하거나 NOT_RUN을 PASS로 처리하지 않는다.
 
 ## 2. 근거와 확정/미확정 구분
 
@@ -117,8 +119,8 @@ allow_experimental_autocad = false
 
 | Gate | 증거 | 통과 의미 | 현재 상태 |
 |---|---|---|---|
-| G0 명세 승인 | 사용자 승인 문구/이슈 링크/명세 커밋 | 상세 구현 계획 작성 가능 | REVIEW_REQUIRED |
-| G1 계획 승인 | 정확한 인터페이스·테스트·작업 범위 및 사용자 확인 | 제품 코드 구현 시작 가능 | NOT_STARTED |
+| G0 명세 승인 | 사용자 승인 문구/이슈 링크/명세 커밋 | 상세 구현 계획 작성 가능 | APPROVED (2026-10-02) |
+| G1 계획 승인 | 정확한 인터페이스·테스트·작업 범위 및 사용자 확인 | 제품 코드 구현 시작 가능 | REVIEW_REQUIRED |
 | G2 CAD 없는 검증 | 후보0/1/N,LT제외,설정충돌,모의 COM,소유권 실패,PID재사용,오류 격리 테스트 | 공통 구조/모의 동작 확인 | NOT_RUN |
 | G3 GstarCAD 회귀 | 기존 테스트 및13종/변형 실제 출력·원본/PID 보호 | 기존 지원 유지 | 확장 코드 기준 NOT_RUN |
 | G4 AutoCAD 실기 | 제품/버전 식별+유효 환경,13종 및 파생30개,오류 배치,사용자 CAD 동시 실행 보호 | 해당 제품/버전의 실제 호환 근거 | BLOCKED_ENVIRONMENT |
@@ -150,3 +152,4 @@ allow_experimental_autocad = false
 - S2 (Autodesk 공식2024 문서, 확인2026-10-02): [ActiveX Technology / LT 제한](https://help.autodesk.com/cloudhelp/2024/CHS/AutoCAD-ActiveX/files/GUID-9C082B2D-015E-43C1-9168-623A2EA91D94.htm). LT는 초기 제외; 실제 제품 확보 시 해당 버전 공식 문서 재검토.
 - 코드 근거: [기준 커밋](https://github.com/jeonbyungryong/DWG-PDF-/tree/d7df6c6d34c546c5f2fb8622a5ab3039bdb2355d), `src/dwg_to_pdf/gstarcad/com_session.py`, `configuration.py`, `conversion_service.py`, `pdf_orientation.py`.
 - REV01: 기존 합의 방향을 문서화한 검토 초안. 작성·게시 승인과 제품 구현 승인을 구분함.
+- 2026-10-02 상태 갱신: G0 승인 기록 및 상세 계획 연결. 기능 범위 변경 없음, G1은 별도 승인 대기.
