@@ -1,5 +1,7 @@
 # 개발 작업 안내
 
+AutoCAD 확장 작업자는 먼저 [개발 허브](autocad/README.md)와 [다른 PC 인계 규칙](autocad/COLLABORATION.md)을 확인합니다. 기획 문서 게시만으로 제품 구현이 승인된 것은 아닙니다.
+
 실행 ZIP 이용자는 Python이 필요하지 않습니다. 개발·빌드는 Windows Python 3.12 x64를 기준으로 합니다.
 
 ## 소스 실행·시험

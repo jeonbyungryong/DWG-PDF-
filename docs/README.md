@@ -2,6 +2,7 @@
 
 | 자료 | 경로 |
 | --- | --- |
+| AutoCAD 확장 기획·개발 관리 | [개발 허브](autocad/README.md) |
 | 설치 | [INSTALL-KO.md](INSTALL-KO.md) |
 | 작업 흐름 | [USER_GUIDE_KO.md](USER_GUIDE_KO.md) |
 | 시험 결과·제한 | [TEST_REPORT.md](TEST_REPORT.md) |
