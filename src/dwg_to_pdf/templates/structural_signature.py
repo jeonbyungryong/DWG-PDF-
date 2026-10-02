@@ -56,11 +56,14 @@ class StructuralSignature:
 
 
 def _segment_distance(left: Segment, right: Segment) -> float:
-    left = _ordered(left)
-    right = _ordered(right)
-    return max(
-        math.hypot(left[0].x - right[0].x, left[0].y - right[0].y),
-        math.hypot(left[1].x - right[1].x, left[1].y - right[1].y),
+    # Segments are undirected. Sorting near-vertical endpoints by x can flip
+    # under harmless CAD floating-point rotation noise. Compare both pairings
+    # without changing the calibrated tolerance or one-to-one match budget.
+    def distance(a: Point, b: Point) -> float:
+        return math.hypot(a.x - b.x, a.y - b.y)
+    return min(
+        max(distance(left[0], right[0]), distance(left[1], right[1])),
+        max(distance(left[0], right[1]), distance(left[1], right[0])),
     )
 
 

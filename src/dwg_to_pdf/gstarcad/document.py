@@ -283,6 +283,8 @@ def _attribute_snapshots(reference: Any, *, lightweight: bool = False) -> list[d
 class GstarDocument:
     raw: Any
     _lightweight_text: bool = field(default=False, repr=False, kw_only=True)
+    _bulk_enabled: bool = field(default=False, repr=False, kw_only=True)
+    _bulk_raw: Any = field(default=None, init=False, repr=False)
     _geometry_cache: dict[
         tuple[Rect, int, int], tuple[dict[str, object], ...]
     ] = field(default_factory=dict, init=False, repr=False)
@@ -295,6 +297,15 @@ class GstarDocument:
         The view owns no COM session and stores no cross-document state.
         """
         view = copy(self)
+        if self._bulk_enabled:
+            from .bulk_snapshot import extract_snapshot, NativeExtractionUnavailable
+            try:
+                if self._bulk_raw is None:
+                    self._bulk_raw = extract_snapshot(self.raw)
+                view.raw = self._bulk_raw
+            except NativeExtractionUnavailable:
+                self._bulk_enabled = False
+            view._bulk_enabled = False
         view._lightweight_text = True
         view._geometry_cache = {}
         return view
@@ -563,6 +574,17 @@ class GstarDocument:
         cached = self._geometry_cache.get(cache_key)
         if cached is not None:
             return [dict(item) for item in cached]
+
+        if self._bulk_enabled:
+            from .bulk_snapshot import extract_snapshot, NativeExtractionUnavailable
+            try:
+                raw = extract_snapshot(self.raw, ("LINE", "LWPOLYLINE", "INSERT"), bounds)
+            except NativeExtractionUnavailable:
+                self._bulk_enabled = False
+                return self.filtered_geometry_snapshots(bounds, max_blocks, max_entities)
+            output = GstarDocument(raw).filtered_geometry_snapshots(bounds, max_blocks, max_entities)
+            self._geometry_cache[cache_key] = tuple(dict(item) for item in output)
+            return [dict(item) for item in output]
 
         snapshots = self.filtered_snapshots(("LINE", "LWPOLYLINE", "INSERT"), bounds)
         references = [item for item in snapshots if item["type"] == "INSERT"]

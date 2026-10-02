@@ -14,19 +14,19 @@
 | 전체 개발 자료 위치 | [문서 안내](docs/README.md) |
 | 최초 사용자 개발 지침 | [REV02 개발 지침](docs/reference/CODEX_DWG_TO_PDF_개발지침_260715_REV02.md) |
 | 배포 구성과 기준 버전 | [2026-10-02 배포 기록](docs/releases/2026-10-02-github-handoff.md) |
-| 최신 성능 개선 배포 | [2026-10-02 성능 개선 배포 기록](docs/releases/2026-10-02-performance.md) |
+| 최신 성능 개선 배포 | [2026-10-02 네이티브 추출 배포 기록](docs/releases/2026-10-02-native-extraction.md) |
 
 ## 현재 상태 요약
 
-2026-10-02 성능 개선을 반영했습니다. CAD 객체 종류·좌표·블록 이름의 중복 조회를 줄이고, 변환 탐색에서 미사용 문자 경계정보와 비문자 객체의 문자 속성 조회를 생략합니다. 선호 A4 용지는 실제 치수를 먼저 확인합니다. 등록용 데이터와 기존 기하 검증은 유지합니다.
+2026-10-02 추가 성능 개선을 반영했습니다. CAD 내부에서 문자·블록·후보 기하를 일괄 추출하여 외부 COM 왕복 호출을 줄입니다. 기존 검증 경로와 원본 보호, 단일 APP 소유 CAD 운영은 유지합니다.
 
-동일한 3개 템플릿의 소스 실행 비교에서 파일 처리시간 중앙값은 22.44초에서 18.03초로 약 19.7% 감소했습니다(CAD 시작 제외). 승인 템플릿 13개 변환 성공, 비교 PDF의 축척·회전·출력영역·144dpi 렌더 일치를 확인했습니다. 자동화 테스트는 628개 통과/10개 건너뜀입니다. PC/도면에 따라 처리시간은 달라집니다.
+동일한 13개 템플릿 비교에서 파일 처리시간 중앙값은 **18.04초 → 3.12초, 약82.7% 감소**했습니다(CAD 시작/종료 제외). 13개 PDF의 축척·회전·출력영역(좌표오차≤1e-9)·144dpi 렌더 픽셀 일치를 확인했습니다. 공란/N/A·회전 파생30개도 모두 예상 축척·회전으로 변환됐습니다. 자동화 테스트는 660개 통과/10개 건너뜀입니다. PC/도면에 따라 처리시간은 달라집니다.
 
-주의: 추가 시험에서 90°/270° 회전은 E420, Scale 공란/N/A는 E304로 실패했습니다. 기존 배포 소스에서도 재현되는 미해결 오류입니다. 과거 고객 도면 22개는 원본 경로가 없어 이번에 재시험하지 못했습니다. 자세한 내용은 [성능 개선 보고서](docs/PERFORMANCE_REPORT_20261002.md)를 참조하십시오.
+기존 90°/270° PDF 방향 오류와 Scale 공란/N/A 판정 오류를 수정했습니다. 화면 밖 도곽, 이동·회전 UCS, 다른 Layout 객체 혼입도 보완했습니다. 최종 EXE에서 정상7개 성공/비균일1개 예상 실패 후 계속 처리를 확인했습니다. 과거 고객 도면22개는 원본 경로가 없어 이번에 재시험하지 못했으며, 다른 PC 검증도 남아 있습니다. 자세한 내용은 [성능 개선 보고서](docs/PERFORMANCE_REPORT_20261002.md)를 참조하십시오.
 
 ## Windows 설치
 
-1. [성능 개선 배포 다운로드](https://github.com/jeonbyungryong/DWG-PDF-/releases/tag/windows-performance-20261002) 또는 [배포 폴더](releases/windows/)에서 `dwg-to-pdf-validation.zip`을 받습니다.
+1. [최신 배포 다운로드](https://github.com/jeonbyungryong/DWG-PDF-/releases/tag/windows-native-extraction-20261002) 또는 [배포 폴더](releases/windows/)에서 `dwg-to-pdf-validation.zip`을 받습니다.
 2. 대상 PC에 정식 GstarCAD 2026을 설치하고 한 번 실행합니다. `DWG To PDF.pc3`, A4 297×210 mm 용지, `monochrome.ctb` 사용 가능 여부를 확인합니다.
 3. ZIP을 로컬 폴더에 **전체 압축 해제**합니다. EXE와 `_internal` 폴더를 함께 유지합니다. Python 별도 설치는 필요하지 않습니다.
 4. `dwg-to-pdf.exe`를 더블클릭해 입력 DWG/폴더와 출력 폴더를 선택합니다.
@@ -56,7 +56,9 @@ EXE를 열고 입력 DWG/폴더 → PDF 출력 폴더 → 충돌 정책을 선�
 
 ## 자료와 백업
 
-`src/`, `tests/`, `tools/`, `packaging/`에는 구현·검증·빌드 도구가 있습니다. `template_profiles/`에는 13개 프로파일과 기준 DWG를, `docs/`에는 요구사항·설계·계획·검증 자료를 보관합니다. `.superpowers/sdd/`의 기존 tracked 개발 보고서도 유지합니다. 배포 ZIP과 SHA-256은 `releases/windows/`에 있습니다. 고객 작업 DWG와 변환 테스트 PDF는 포함하지 않습니다. 이전 로컬 작업 브랜치는 보존합니다.
+`src/`, `tests/`, `tools/`, `packaging/`에는 구현·검증·빌드 도구가 있습니다. `template_profiles/`에는 13개 프로파일과 기준 DWG를, `docs/`에는 요구사항·설계·계획·검증 자료를 보관합니다. `.superpowers/sdd/`의 기존 tracked 개발 보고서도 유지합니다. 배포 ZIP과 SHA-256은 `releases/windows/`에 있습니다. 고객 작업 DWG와 변환 테스트 PDF는 포함하지 않습니다.
+
+직전 main은 [backup/main-before-native-extraction-20261002](https://github.com/jeonbyungryong/DWG-PDF-/tree/backup/main-before-native-extraction-20261002)에 보존합니다. 기존 Release와 태그도 유지합니다.
 
 ## 꼭 지킬 사항
 
@@ -64,3 +66,4 @@ EXE를 열고 입력 DWG/폴더 → PDF 출력 폴더 → 충돌 정책을 선�
 - GstarCAD 설치 파일·라이선스·폰트는 별도 준비합니다. COM·PC3·CTB·폰트 환경 차이로 출력이 달라질 수 있습니다.
 - 13개 승인 축척 외 도면은 지원하지 않습니다. Scale blank/N/A는 구조 비교를 사용합니다.
 - `--self-check`는 런타임·프로파일 검사이며 실제 CAD 출력 성공을 보증하지 않습니다.
+- 네이티브 추출은 동봉 LISP를 사용합니다. 사내 정책으로 LISP 실행이 제한되면 보안 설정을 낮추지 말고 `[matching]`의 `use_native_extraction=false`로 기존 COM 방식을 사용하십시오(느려질 수 있음).

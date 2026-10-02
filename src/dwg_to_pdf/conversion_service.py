@@ -10,11 +10,13 @@ from .domain import ConvertedFrame, ConversionOutcome
 from .errors import AppError
 from .file_stability import require_stable
 from .gstarcad.com_session import GstarSession
+from .gstarcad.document import GstarDocument
 from .gstarcad.media_resolver import require_plot_environment
 from .gstarcad.plot_settings import apply_plot_settings
 from .gstarcad.plotter import plot_to_file
 from .gstarcad.template_detector import DetectionLimits, detect_scale_cell, verify_rotation
 from .output_planner import output_names
+from .pdf_orientation import normalize_portrait_plot
 from .temp_workspace import SourceWorkspace, publish_pdf
 from .templates.profile_store import ProfileStore
 from .templates.structural_fallback import choose_profile_by_structure, profiles_for_scale_cell
@@ -78,9 +80,23 @@ class ConversionService:
         try:
             with SourceWorkspace(source_path) as workspace:
                 with session.working_document(workspace) as document:
-                    cell = detect_scale_cell(document, DetectionLimits(64, 5000), self.profiles.all())
+                    if isinstance(document, GstarDocument):
+                        document._bulk_enabled = self.config.use_native_extraction
+                    structural = {}
+                    def resolve_missing_scale(provisional):
+                        structural["decision"] = choose_profile_by_structure(
+                            provisional, self.profiles.all(),
+                            lambda profile, candidate: verify_rotation(document, profile, candidate),
+                            self.config.matching_threshold, self.config.minimum_score_gap,
+                        )
+                        return structural["decision"]
+
+                    cell = detect_scale_cell(
+                        document, DetectionLimits(64, 5000), self.profiles.all(),
+                        resolve_missing_scale,
+                    )
                     matching_profiles = profiles_for_scale_cell(cell, self.profiles)
-                    decision = choose_profile_by_structure(
+                    decision = structural.get("decision") or choose_profile_by_structure(
                         cell,
                         matching_profiles,
                         lambda profile, candidate: verify_rotation(document, profile, candidate),
@@ -103,6 +119,7 @@ class ConversionService:
                     )
                     temporary = Path(output_dir) / f".{final_output.stem}.{uuid.uuid4().hex}.tmp.pdf"
                     plot_to_file(document.raw, temporary)
+                    normalize_portrait_plot(temporary, decision.candidate.rotation)
                     layout = None
             publish_pdf(temporary, final_output)
         except Exception as primary:

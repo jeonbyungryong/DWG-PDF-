@@ -96,6 +96,19 @@ def test_config_rejects_string_auto_match_boolean(tmp_path: Path) -> None:
     _assert_e001(path)
 
 
+@pytest.mark.parametrize("enabled", [True, False])
+def test_native_extraction_can_be_explicitly_selected(tmp_path, enabled):
+    path = tmp_path / "native.toml"
+    path.write_text(_config_text(matching="auto_match_enabled=false\nuse_native_extraction=" + str(enabled).lower()), encoding="utf-8")
+    assert load_config(path).use_native_extraction is enabled
+
+
+def test_native_extraction_rejects_a_string_boolean(tmp_path):
+    path = tmp_path / "native.toml"
+    path.write_text(_config_text(matching='auto_match_enabled=false\nuse_native_extraction="false"'), encoding="utf-8")
+    _assert_e001(path)
+
+
 @pytest.mark.parametrize("field", ["matching_threshold", "minimum_score_gap"])
 @pytest.mark.parametrize("value", ["true", "-0.1", "0.0", "nan", "inf", "1.1"])
 def test_config_rejects_invalid_enabled_score(

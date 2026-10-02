@@ -15,7 +15,7 @@ if ($LASTEXITCODE -ne 0) { throw 'Bundled --help failed.' }
 if ($LASTEXITCODE -ne 0) { throw 'Bundled --self-check failed.' }
 $dataRoot = Join-Path $bundle '_internal'
 if (-not (Test-Path -LiteralPath $dataRoot)) { $dataRoot = $bundle }
-foreach ($relative in @('config.toml','config.example.toml','README.md','docs\USER_GUIDE_KO.md','docs\TEST_REPORT.md','docs\PERFORMANCE_REPORT_20261002.md','third_party\THIRD_PARTY_NOTICES.md')) {
+foreach ($relative in @('config.toml','config.example.toml','README.md','docs\USER_GUIDE_KO.md','docs\TEST_REPORT.md','docs\PERFORMANCE_REPORT_20261002.md','dwg_to_pdf\gstarcad\bulk_extract.lsp','third_party\THIRD_PARTY_NOTICES.md')) {
     if (-not (Test-Path -LiteralPath (Join-Path $dataRoot $relative))) { throw "Missing bundled file: $relative" }
 }
 $profiles = Join-Path $dataRoot 'template_profiles'

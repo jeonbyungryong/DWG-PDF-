@@ -55,3 +55,19 @@ def test_signature_scores_wrong_frame_size_below_exact_match() -> None:
 def test_signature_rejects_nonfinite_geometry() -> None:
     with pytest.raises(ValueError):
         StructuralSignature(((Point(math.nan, 0), Point(1, 0)),), 1, 0, Point(0, 0))
+
+
+@pytest.mark.parametrize('rotation', [0, 90, 180, 270])
+def test_endpoint_pairing_is_stable_under_tiny_cad_rounding(rotation):
+    signature = _signature()
+    expected = signature.transformed(Point(123,456), Point(0,0), rotation)
+    # The CAD rotation can perturb one x-coordinate of a vertical segment,
+    # reversing lexicographic ordering despite geometrically identical lines.
+    observed = [(Point(a.x + 1e-11,a.y), b) for a,b in expected]
+    assert score_signature(signature,observed,Point(123,456),Point(0,0),rotation,.001) == 1.
+
+
+def test_duplicate_observed_line_cannot_cover_two_expected_segments():
+    signature = _signature()
+    line = signature.segments[0]
+    assert score_signature(signature,[line]*5,Point(0,0),Point(0,0),0,.01) == .2

@@ -1,10 +1,18 @@
 """Compare decisions and rendered PDFs from two benchmark JSON results."""
 import argparse
 import json
+import math
 from pathlib import Path
 import statistics
 import subprocess
 from PIL import Image, ImageChops
+
+
+def same_decision(a, b):
+    return (a["scale"] == b["scale"] and a["rotation"] == b["rotation"]
+            and all(math.isclose(a["plot_window"][corner][axis], b["plot_window"][corner][axis],
+                                 rel_tol=0.0, abs_tol=1e-9)
+                    for corner in ("lower_left", "upper_right") for axis in ("x", "y")))
 
 
 def main():
@@ -25,7 +33,7 @@ def main():
             rows.append({"source": old["source"], "same_error": old.get("code") == new.get("code"), "before": old.get("error"), "after": new.get("error")})
             continue
         a, b = old["outcome"]["frames"][0], new["outcome"]["frames"][0]
-        same_decision = all(a[key] == b[key] for key in ("scale", "rotation", "plot_window"))
+        decision_matches = same_decision(a, b)
         images = []
         for side, frame in (("before", a), ("after", b)):
             prefix = render_dir / f"{index}-{side}"
@@ -33,7 +41,7 @@ def main():
             with Image.open(prefix.with_suffix(".png")) as im:
                 images.append(im.convert("RGB"))
         same_pixels = images[0].size == images[1].size and ImageChops.difference(images[0], images[1]).getbbox() is None
-        rows.append({"source": old["source"], "same_decision": same_decision, "same_pixels_144dpi": same_pixels, "before_seconds": old["seconds"], "after_seconds": new["seconds"]})
+        rows.append({"source": old["source"], "same_decision": decision_matches, "same_pixels_144dpi": same_pixels, "before_seconds": old["seconds"], "after_seconds": new["seconds"]})
     timed = [x for x in rows if "before_seconds" in x]
     old_median = statistics.median(x["before_seconds"] for x in timed)
     new_median = statistics.median(x["after_seconds"] for x in timed)

@@ -33,3 +33,7 @@ ZIP 안의 `dwg-to-pdf-validation-checksums.csv`는 파일별 체크섬입니다
 | 출력 저장 실패 | 출력 폴더 권한, PDF 잠금, 충돌 정책 |
 
 파일명·실패 사유·로그와 사용한 버전을 보존해 담당자에게 전달합니다.
+
+### 네이티브 추출 호환 설정
+
+추가 개선본에는 `bulk_extract.lsp`가 포함되어 있습니다. APP은 자체 CAD의 임시 작업 복사본에서 이 파일을 로드합니다. LISP 로드를 제한하는 보안 정책은 임의 해제하지 마십시오. 필요한 경우 `_internal/config.toml`의 `[matching]` 아래 `use_native_extraction=false`로 기존 COM 경로를 사용합니다. 사용자 지정 설정은 `--config`로 지정할 수 있습니다. 다른 PC는 대표 도면으로 반드시 실제 출력을 확인하십시오.

@@ -262,7 +262,7 @@ class GstarSession(AbstractContextManager["GstarSession"]):
                     working_copy,
                 ) from close_exc
             raise AppError("E203", "temporary DWG copy was opened read-only", working_copy)
-        self._wrapped_document = GstarDocument(raw)
+        self._wrapped_document = GstarDocument(raw, _bulk_enabled=True)
         return self._wrapped_document
 
     @contextmanager

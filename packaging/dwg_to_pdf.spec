@@ -12,6 +12,7 @@ ASSETS = Path(os.environ["DWG_TO_PDF_BUNDLE_ASSETS"]).resolve(strict=True)
 PROFILE_ASSETS = ASSETS / "template_profiles"
 
 datas = [
+    (str(ROOT / "src" / "dwg_to_pdf" / "gstarcad" / "bulk_extract.lsp"), "dwg_to_pdf/gstarcad"),
     (str(ASSETS / "config.toml"), "."),
     (str(ASSETS / "config.example.toml"), "."),
     (str(ASSETS / "README.md"), "."),

@@ -13,5 +13,6 @@
 | 단계별 보고서 | [기존 보고서](../.superpowers/sdd/) |
 | GitHub 인계 | [2026-10-02](releases/2026-10-02-github-handoff.md) |
 | 성능 개선 배포 | [2026-10-02](releases/2026-10-02-performance.md) |
+| 최신 네이티브 추출 배포·백업 | [2026-10-02](releases/2026-10-02-native-extraction.md) |
 
 과거 문서는 당시 상태를 보존한 기록입니다. 현재 운영 기준은 루트 README·사용자 가이드·최신 시험 보고서를 우선합니다.

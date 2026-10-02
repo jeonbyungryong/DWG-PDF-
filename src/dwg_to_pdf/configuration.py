@@ -18,6 +18,7 @@ class AppConfig:
     preferred_media_names: tuple[str, ...]
     matching_threshold: float | None
     minimum_score_gap: float | None
+    use_native_extraction: bool = True
 
 
 def _require_string(value: Any, field: str) -> str:
@@ -55,6 +56,9 @@ def _parse_config(path: Path) -> AppConfig:
     enabled = matching["auto_match_enabled"]
     if not isinstance(enabled, bool):
         raise ValueError("matching.auto_match_enabled must be a boolean")
+    native = matching.get("use_native_extraction", True)
+    if not isinstance(native, bool):
+        raise ValueError("matching.use_native_extraction must be a boolean")
     threshold = _optional_score(
         matching.get("matching_threshold"), "matching.matching_threshold"
     )
@@ -89,6 +93,7 @@ def _parse_config(path: Path) -> AppConfig:
         preferred_media_names=tuple(preferred_media_names),
         matching_threshold=threshold,
         minimum_score_gap=gap,
+        use_native_extraction=native,
     )
 
 

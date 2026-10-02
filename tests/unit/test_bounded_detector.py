@@ -218,6 +218,50 @@ def test_scale_cell_rejects_invalid_non_na_text() -> None:
     assert raised.value.code == "E305"
 
 
+@pytest.mark.parametrize("token,state", [("", "blank"), ("N/A", "na")])
+def test_missing_ratio_uses_structure_before_other_profile_value_regions(token, state):
+    first = replace(_profile(), profile_id="chosen")
+    other = replace(_profile(offset=Point(20, 0)), profile_id="other")
+    items = [
+        {"type": "TEXT", "text": "Scale", "point": (100, 50), "handle": "L"},
+        {"type": "TEXT", "text": token, "point": (100, 40), "handle": "V"},
+        {"type": "MTEXT", "text": "GENERAL NOTE", "point": (120, 50), "handle": "N"},
+        {"type": "LINE", "text": "", "point": (100, 40), "handle": "G"},
+    ]
+    decision = SimpleNamespace(candidate=SimpleNamespace(profile_id="chosen", rotation=0))
+    cell = detect_scale_cell(
+        ScaleCellDocument(items), DetectionLimits(64, 5000), (first, other),
+        fallback_matcher=lambda cell: decision,
+    )
+    assert cell.state == state
+    assert cell.rotation_hint == 0
+
+
+@pytest.mark.parametrize("token,extra,error", [
+    ("INVALID", False, "E305"), ("N/A", True, "E304"),
+])
+def test_structure_does_not_silence_invalid_or_duplicate_value(token, extra, error):
+    doc = _cell_document(token)
+    if extra:
+        doc.snapshots.append({"type": "TEXT", "text": "", "point": (100, 40), "handle": "V2"})
+    decision = SimpleNamespace(candidate=SimpleNamespace(profile_id="test-profile", rotation=0))
+    with pytest.raises(AppError) as raised:
+        detect_scale_cell(doc, DetectionLimits(64, 5000), (_profile(),),
+                          fallback_matcher=lambda cell: decision)
+    assert raised.value.code == error
+
+
+def test_valid_ratio_in_another_profiles_value_cell_is_rejected():
+    first = _profile()
+    second = replace(_profile(offset=Point(0, -20),
+                     scale=ScaleRatio(Decimal('1'), Decimal('100'))), profile_id='other')
+    decision = SimpleNamespace(candidate=SimpleNamespace(profile_id=first.profile_id, rotation=0))
+    with pytest.raises(AppError) as raised:
+        detect_scale_cell(_cell_document('1:100'), DetectionLimits(64, 5000),
+                          (first, second), fallback_matcher=lambda cell: decision)
+    assert raised.value.code == 'E305'
+
+
 @pytest.mark.parametrize(
     "profile",
     [_profile(offset=Point(math.nan, 0.0)), _profile(tolerance=math.inf), _profile(tolerance=0.0)],

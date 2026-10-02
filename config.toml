@@ -8,6 +8,7 @@ shutdown_timeout_sec = 30
 
 [matching]
 auto_match_enabled = true
+use_native_extraction = true
 matching_threshold = 1.0
 minimum_score_gap = 1.0
 use_target_saved_window = false

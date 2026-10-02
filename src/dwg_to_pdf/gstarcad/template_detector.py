@@ -129,6 +129,7 @@ def detect_scale_cell(
     document: Any,
     limits: DetectionLimits,
     profiles: tuple[TemplateProfile, ...],
+    fallback_matcher=None,
 ) -> ScaleCell:
     """Read exactly one Scale cell at learned, quarter-turn value geometry."""
 
@@ -169,7 +170,7 @@ def detect_scale_cell(
     ] = {}
     for index, item in enumerate(snapshots):
         key = _object_key(item, index)
-        if key in label_keys or item.get("type") == "INSERT" or "text" not in item:
+        if key in label_keys or item.get("type") not in {"TEXT", "MTEXT", "ATTRIB"} or "text" not in item:
             continue
         x, y = _validated_point(item)
         matches = tuple(
@@ -190,6 +191,25 @@ def detect_scale_cell(
         )
         if token_matches:
             valid_by_key[key] = (item, token_matches)
+
+    fallback_rotation = None
+    if not valid_by_key and fallback_matcher is not None:
+        # Unknown scale must not merge the value regions of all 13 templates.
+        # Establish one frame from linework, then inspect only its own value cell.
+        provisional = ScaleCell(Point(lx, ly), "blank", None, str(label.get("handle", "")))
+        decision = fallback_matcher(provisional)
+        chosen = next((p for p in profiles if p.profile_id == decision.candidate.profile_id), None)
+        fallback_rotation = decision.candidate.rotation
+        if chosen is None or fallback_rotation not in (0, 90, 180, 270):
+            raise AppError("E303", "structural fallback returned an invalid frame")
+        offset = rotate(chosen.scale_value_offset, fallback_rotation)
+        targets = ((chosen.scale, lx + offset.x, ly + offset.y,
+                    float(chosen.scale_value_tolerance), fallback_rotation),)
+        value_by_key = {
+            key: item for key, item in value_by_key.items()
+            if any((_validated_point(item)[0] - t[1]) ** 2
+                   + (_validated_point(item)[1] - t[2]) ** 2 <= t[3] ** 2 for t in targets)
+        }
 
     if valid_by_key:
         if len(valid_by_key) > 1:
@@ -215,13 +235,15 @@ def detect_scale_cell(
     cell_anchor = Point(lx, ly)
     handle = str(label.get("handle", ""))
     if not raw:
-        return ScaleCell(cell_anchor, "blank", None, handle)
+        return ScaleCell(cell_anchor, "blank", None, handle, fallback_rotation)
     if raw.casefold() == "n/a":
-        return ScaleCell(cell_anchor, "na", None, handle)
+        return ScaleCell(cell_anchor, "na", None, handle, fallback_rotation)
     try:
         parse_internal_scale(raw)
     except AppError as exc:
         raise AppError("E305", f"unsupported Scale value: {raw}") from exc
+    if not valid_by_key:
+        raise AppError("E305", "Scale ratio does not match its learned value-cell geometry")
     rotations = {target[4] for target in chosen_targets}
     rotation_hint = next(iter(rotations)) if len(rotations) == 1 else None
     return ScaleCell(cell_anchor, "valid", raw, handle, rotation_hint)
