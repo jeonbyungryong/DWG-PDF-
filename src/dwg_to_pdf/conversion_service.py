@@ -10,6 +10,7 @@ from .domain import ConvertedFrame, ConversionOutcome
 from .errors import AppError
 from .file_stability import require_stable
 from .cad.contracts import CadSession
+from .cad.diagnostics import emit
 from .gstarcad.template_detector import DetectionLimits, detect_scale_cell, verify_rotation
 from .output_planner import output_names
 from .temp_workspace import SourceWorkspace, publish_pdf
@@ -72,10 +73,14 @@ class ConversionService:
         final_output = resolve_collision(final_base, conflict_policy)
 
         temporary: Path | None = None
+        stage = "open"
         try:
             with SourceWorkspace(source_path) as workspace:
+                emit(stage)
                 with session.working_document(workspace) as document:
                     document.configure_extraction(self.config.use_native_extraction)
+                    stage = "detect"
+                    emit(stage)
                     structural = {}
                     def resolve_missing_scale(provisional):
                         structural["decision"] = choose_profile_by_structure(
@@ -104,10 +109,15 @@ class ConversionService:
                     if profile is None:
                         raise AppError("E303", "chosen frame has no approved profile", source_path)
                     temporary = Path(output_dir) / f".{final_output.stem}.{uuid.uuid4().hex}.tmp.pdf"
+                    stage = "plot"
+                    emit(stage)
                     document.plot_pdf(temporary, decision.candidate.plot_window,
                                       decision.candidate.rotation, self.config.preferred_media_names)
+            stage = "validate"
+            emit(stage)
             publish_pdf(temporary, final_output)
         except Exception as primary:
+            emit(stage, getattr(primary, "code", "E900"))
             _cleanup_temporary_after_failure(temporary, primary)
             raise
 

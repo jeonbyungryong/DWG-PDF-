@@ -86,3 +86,20 @@ def test_failed_plot_never_publishes_pdf(conversion_case):
     assert error.value.code == "E410"
     assert list(output.iterdir()) == []
     assert source.read_bytes() == b"unchanged-source"
+
+
+def test_conversion_emits_stage_and_failure_code_without_private_paths(conversion_case, capsys):
+    import json
+    from dwg_to_pdf.cad.diagnostics import diagnostic_scope
+    from dwg_to_pdf.cad.selection import CadCandidate
+    service, source, output, _ = conversion_case
+    doc = ContractDocument(fail=True)
+    session = SimpleNamespace(working_document=lambda workspace: working_document(doc, workspace))
+    candidate = CadCandidate("autocad", "AutoCAD.Application.25", "id", Path("C:/acad.exe"), "AutoCAD", None)
+    with diagnostic_scope(candidate, "test"), pytest.raises(AppError):
+        service.convert_in_session(session, source, output, "copy")
+    lines = capsys.readouterr().err.splitlines()
+    records = [json.loads(line.removeprefix("CAD_DIAGNOSTIC ")) for line in lines]
+    assert [record["stage"] for record in records] == ["open", "detect", "plot", "plot"]
+    assert records[-1]["code"] == "E410"
+    assert str(source) not in " ".join(lines)

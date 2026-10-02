@@ -4,6 +4,7 @@ import argparse
 import os
 from pathlib import Path
 import sys
+import json
 from collections.abc import Sequence
 
 from .configuration import load_config
@@ -11,11 +12,14 @@ from .errors import AppError
 from .input_resolver import resolve_inputs
 from .result_presenter import build_result_report
 from .runtime_paths import default_config_path, default_profiles_path
+from .cad.discovery import discover_candidates
+from .cad.selection import select_candidate
+from .cad.factory import create_session, resolve_selection, EXPERIMENTAL_WARNING
+from .cad.diagnostics import diagnostic_scope
 
 # Keep --help and preflight import-safe in a frozen validation bundle. COM and
 # pywin32 are only required when an actual conversion is requested.
 ConversionService = None
-GstarSession = None
 run_jobs = None
 ProfileStore = None
 require_canonical_profiles = None
@@ -28,14 +32,13 @@ def _launch_desktop() -> int:
 
 
 def _conversion_dependencies() -> tuple[object, object, object]:
-    global ConversionService, GstarSession, run_jobs
+    global ConversionService, run_jobs
     if run_jobs is None:
         from .conversion_service import ConversionService as service
-        from .gstarcad.com_session import GstarSession as session
         from .orchestrator import run_jobs as jobs
 
-        ConversionService, GstarSession, run_jobs = service, session, jobs
-    return ConversionService, GstarSession, run_jobs
+        ConversionService, run_jobs = service, jobs
+    return ConversionService, create_session, run_jobs
 
 
 def _profile_dependencies() -> tuple[object, object]:
@@ -52,6 +55,10 @@ def _parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="승인된 템플릿으로 DWG를 PDF로 변환합니다.")
     parser.add_argument("inputs", nargs="*", type=Path, help="DWG 파일 또는 DWG가 있는 폴더")
     parser.add_argument("--output", type=Path, help="PDF 출력 폴더")
+    parser.add_argument("--cad", choices=("gstarcad", "autocad"))
+    parser.add_argument("--cad-prog-id")
+    parser.add_argument("--allow-experimental-autocad", action="store_true")
+    parser.add_argument("--list-cad", action="store_true", help="CAD를 실행하지 않고 설치 후보 표시")
     parser.add_argument(
         "--self-check",
         action="store_true",
@@ -130,29 +137,42 @@ def main(argv: Sequence[str] | None = None) -> int:
     args = parser.parse_args(argv)
     if args.self_check:
         return _run_self_check(args)
+    if args.list_cad:
+        try:
+            for provider in ((args.cad,) if args.cad else ("gstarcad", "autocad")):
+                for candidate in discover_candidates(provider):
+                    print(json.dumps(dict(provider=provider, prog_id=candidate.prog_id,
+                                          product=candidate.product_name, file_version=candidate.reported_version), ensure_ascii=False))
+            return 0
+        except (AppError, OSError, ValueError) as error:
+            print(f"CAD 탐지 실패: {error}", file=sys.stderr)
+            return 2
     if not args.inputs or args.output is None:
         if not args.inputs and args.output is None:
             return _launch_desktop()
         parser.error("inputs and --output must be provided together")
     try:
         config, sources, profiles, output_dir = _preflight(args)
+        selection = resolve_selection(config, args.cad, args.cad_prog_id, args.allow_experimental_autocad)
+        candidate = select_candidate(selection, discover_candidates(selection.provider))
     except (AppError, OSError, ValueError) as error:
         app_error = _initialization_error(error)
         print(f"초기화 실패 ({app_error.code}): {app_error}", file=sys.stderr)
         return 2
 
     service_type, session_type, jobs = _conversion_dependencies()
+    if candidate.provider == "autocad":
+        print(EXPERIMENTAL_WARNING, file=sys.stderr)
 
     def session_factory():
-        return session_type(config.prog_id)
+        return session_type(candidate)
 
-    results = jobs(
-        service_type(config, profiles),
-        sources,
-        output_dir,
-        args.conflict,
-        session_factory,
-    )
+    from . import __version__
+    with diagnostic_scope(candidate, __version__):
+        results = jobs(
+            service_type(config, profiles), sources, output_dir,
+            args.conflict, session_factory,
+        )
     report = build_result_report(results)
     print(report.summary_text)
     return 0 if all(result.status == "success" for result in results) else 1

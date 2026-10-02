@@ -212,7 +212,7 @@ def test_working_document_close_only_failure_remains_e203_not_e900(tmp_path: Pat
 
     assert result.status == "failed"
     assert result.code == "E203"
-    assert result.reason == "GstarCAD 문서 종료에 실패했습니다."
+    assert result.reason == "선택한 CAD의 문서 열기 또는 종료에 실패했습니다."
     assert "E203: AppError: CAD could not close the current document" in (result.log_detail or "")
     assert "RuntimeError: close failed" in (result.log_detail or "")
 

@@ -18,6 +18,7 @@ from ..errors import AppError
 from .contracts import CadDocument
 from .selection import CadCandidate
 from .process_ownership import OwnedProcess, _all_pids, capture_owned_process
+from .diagnostics import emit
 
 _MUTEX_NAME = "Local\\DWG_TO_PDF_CAD_COM"
 _LEGACY_MUTEX_NAME = "Local\\DWG_TO_PDF_GSTARCAD_COM"
@@ -159,6 +160,7 @@ class ComSession(AbstractContextManager["ComSession"]):
         if self.mutex is not None or self._com_initialized or self.app is not None:
             raise RuntimeError("session cannot be entered more than once")
         try:
+            emit("start")
             pythoncom.CoInitialize()
             self._com_initialized = True
             self.mutex = _create_owned_mutex(_MUTEX_NAME)
@@ -178,8 +180,10 @@ class ComSession(AbstractContextManager["ComSession"]):
                 self.reported_version = version if isinstance(version, str) and version.strip() else None
             except Exception:
                 self.reported_version = None
+            emit("ready", reported_version=self.reported_version)
             return self
-        except BaseException:
+        except BaseException as error:
+            emit("start", getattr(error, "code", "E201"))
             self._release()
             raise
 
@@ -324,6 +328,8 @@ class ComSession(AbstractContextManager["ComSession"]):
         self._release()
 
     def _release(self) -> None:
+        if self._owns_app:
+            emit("close", reported_version=self.reported_version)
         process_handle, self._owned_process_handle = self._owned_process_handle, None
         process, self._owned_process = self._owned_process, None
         try:
