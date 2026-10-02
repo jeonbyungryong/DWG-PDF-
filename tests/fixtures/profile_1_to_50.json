@@ -1,0 +1,25 @@
+{
+  "profile_id": "synthetic-a3-1-to-50-v1",
+  "scale": {"numerator": "1", "denominator": "50"},
+  "source": {"path": "tests/fixtures/synthetic_1_to_50.dwg", "sha256": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"},
+  "approved": true,
+  "frame": [[0.0, 0.0], [21000.0, 14850.0]],
+  "scale_anchor": [19250.0, 850.0],
+  "scale_value_offset": [0.0, -10.0],
+  "scale_value_tolerance": 5.0,
+  "orientation_anchor": [20500.0, 1200.0],
+  "reference_window": [[0.0, 0.0], [21000.0, 14850.0]],
+  "position_tolerance": 5.0,
+  "structural_signature": {
+    "segments": [
+      [[-19250.0, -850.0], [1750.0, -850.0]],
+      [[1750.0, -850.0], [1750.0, 14000.0]],
+      [[-19250.0, 14000.0], [1750.0, 14000.0]],
+      [[-19250.0, -850.0], [-19250.0, 14000.0]],
+      [[750.0, -850.0], [750.0, 350.0]]
+    ],
+    "frame_segment_count": 4,
+    "title_segment_count": 1,
+    "orientation_anchor": [750.0, 350.0]
+  }
+}

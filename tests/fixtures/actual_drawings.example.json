@@ -1,0 +1,32 @@
+[
+  {
+    "source": "D:\\2026 PROJECT\\SK ON\\PAD\\05.설계도면\\02.설계도면(3D)\\PART\\변환 도면\\XXX-XXXXA_GASKET_FRT.DWG",
+    "expected_scale": "1:5",
+    "label": "GASKET FRT"
+  },
+  {
+    "source": "D:\\2026 PROJECT\\SK ON\\PAD\\05.설계도면\\02.설계도면(3D)\\PART\\변환 도면\\XXX-XXXXA_Insualtion sheet UPR COVER B.DWG",
+    "expected_scale": "1:2",
+    "label": "Insualtion sheet UPR COVER B"
+  },
+  {
+    "source": "D:\\2026 PROJECT\\SK ON\\PAD\\05.설계도면\\02.설계도면(3D)\\PART\\변환 도면\\XXX-XXXXA_PAD_UPR.DWG",
+    "expected_scale": "1:10",
+    "label": "PAD UPR"
+  },
+  {
+    "source": "D:\\2026 PROJECT\\SK ON\\PAD\\05.설계도면\\02.설계도면(3D)\\PART\\변환 도면\\XXX-XXXXA_Silicon Gromet A.DWG",
+    "expected_scale": "1:1",
+    "label": "Silicon Gromet A"
+  },
+  {
+    "source": "D:\\2026 PROJECT\\APP 개발\\DWG TO PDF 자동변환 프로그램\\학습용 템플릿\\윈도우 영역 학습용\\TEMPLETE_1대1.DWG",
+    "expected_scale": "1:1",
+    "label": "Window variation 1:1"
+  },
+  {
+    "source": "D:\\2026 PROJECT\\APP 개발\\DWG TO PDF 자동변환 프로그램\\학습용 템플릿\\윈도우 영역 학습용\\TEMPLETE_1대50.DWG",
+    "expected_scale": "1:50",
+    "label": "Window variation 1:50"
+  }
+]
