@@ -13,6 +13,17 @@ import json
 from pathlib import Path
 import sys
 import time
+import shutil
+
+
+def benchmark_passed(summary):
+    return bool(
+        summary["outcomes"]
+        and not any("error" in item for item in summary["outcomes"])
+        and summary["sources_unchanged"]
+        and summary["owned_pid_closed"]
+        and set(summary["user_pids_before"]) <= set(summary["user_pids_after"])
+    )
 
 
 class ComProbe:
@@ -67,9 +78,11 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--code-root", type=Path, required=True)
     parser.add_argument("--source-root", type=Path, required=True)
+    parser.add_argument("--input-root", type=Path, help="DWG inputs, when different from approved template assets")
     parser.add_argument("--result", type=Path, required=True)
     parser.add_argument("--names", nargs="*")
     parser.add_argument("--probe-com", action="store_true")
+    parser.add_argument("--retain-rejected-pdf", action="store_true", help="Preserve diagnostic copies of rejected outputs")
     args = parser.parse_args()
     sys.path.insert(0, str(args.code_root / "src"))
     import dwg_to_pdf.conversion_service as service_module
@@ -80,7 +93,18 @@ def main():
     from dwg_to_pdf.pdf_validator import validate_pdf
 
     events, current = [], {"name": "batch"}
-    com_stats, definitions = {}, {}
+    com_stats, definitions, failure_details = {}, {}, {}
+    if args.retain_rejected_pdf:
+        original_publish = service_module.publish_pdf
+        def diagnosed_publish(temporary, final):
+            folder = args.result.parent / (args.result.stem + "-rejected")
+            folder.mkdir(parents=True, exist_ok=True)
+            copy = folder / Path(final).name
+            shutil.copy2(temporary, copy)
+            result = original_publish(temporary, final)
+            copy.unlink()
+            return result
+        service_module.publish_pdf = diagnosed_publish
     def instrument(owner, name):
         original = getattr(owner, name)
         @functools.wraps(original)
@@ -94,6 +118,14 @@ def main():
                 a[0].raw = ComProbe(raw, stats, visits)
             try:
                 return original(*a, **kw)
+            except Exception as exc:
+                trace = exc.__traceback__
+                while trace:
+                    if trace.tb_frame.f_code.co_name == "detect_scale_cell":
+                        local = trace.tb_frame.f_locals
+                        failure_details[current["name"]] = {"value_cell_objects": list(local.get("value_by_key", {}).values())}
+                    trace = trace.tb_next
+                raise
             finally:
                 if raw is not None:
                     a[0].raw = raw
@@ -108,7 +140,8 @@ def main():
     config = load_config(args.code_root / "config.toml")
     store = ProfileStore(args.code_root / "template_profiles", source_root=args.source_root)
     store.load_all()
-    sources = [args.source_root / name for name in args.names] if args.names else sorted(args.source_root.glob("*.DWG"))
+    input_root = args.input_root or args.source_root
+    sources = [input_root / name for name in args.names] if args.names else sorted(input_root.glob("*.DWG"))
     args.result.parent.mkdir(parents=True, exist_ok=True)
     output = args.result.parent / (args.result.stem + "-pdf")
     output.mkdir(exist_ok=True)
@@ -130,15 +163,17 @@ def main():
                     validation = validate_pdf(outcome.frames[0].output)
                     outcomes.append({"source": source.name, "outcome": asdict(outcome), "pdf": asdict(validation), "seconds": time.perf_counter() - file_start})
                 except Exception as exc:
-                    outcomes.append({"source": source.name, "error": str(exc), "code": getattr(exc, "code", None), "seconds": time.perf_counter() - file_start})
+                    outcomes.append({"source": source.name, "error": str(exc), "cause": str(exc.__cause__), "code": getattr(exc, "code", None), "seconds": time.perf_counter() - file_start})
                 print(json.dumps(outcomes[-1], default=str), flush=True)
             current["name"] = "batch"
     finally:
         pids_after = _gstar_pids()
         summary = {"code_root": str(args.code_root), "probe_com": args.probe_com, "batch_seconds": time.perf_counter()-start, "sources_unchanged": before == {str(p): identity(p) for p in sources}, "user_pids_before": sorted(pids_before), "user_pids_after": sorted(pids_after), "owned_pid": owned_pid, "owned_pid_closed": owned_pid not in pids_after, "outcomes": outcomes, "events": events, "com": com_stats, "definitions": definitions}
+        summary["user_pids_preserved"] = pids_before <= pids_after
+        summary["failure_details"] = failure_details
         args.result.write_text(json.dumps(summary, indent=2, ensure_ascii=False, default=str), encoding="utf-8")
         print("RESULT=" + str(args.result), flush=True)
-    return int(any("error" in item for item in outcomes) or not summary["sources_unchanged"] or not summary["owned_pid_closed"])
+    return int(not benchmark_passed(summary))
 
 
 if __name__ == "__main__":

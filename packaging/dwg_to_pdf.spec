@@ -17,6 +17,7 @@ datas = [
     (str(ASSETS / "README.md"), "."),
     (str(ASSETS / "USER_GUIDE_KO.md"), "docs"),
     (str(ASSETS / "TEST_REPORT.md"), "docs"),
+    (str(ASSETS / "PERFORMANCE_REPORT_20261002.md"), "docs"),
     (str(ASSETS / "THIRD_PARTY_NOTICES.md"), "third_party"),
     (str(ASSETS / "typing_extensions.pyc"), "."),
     (str(ASSETS / "pythoncom.pyc"), "."),

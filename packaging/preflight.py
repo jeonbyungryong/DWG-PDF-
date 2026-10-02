@@ -27,7 +27,7 @@ def main() -> int:
     store = ProfileStore(profiles_dir, source_root=source_root); store.load_all(); require_canonical_profiles(store.all())
     for rel in ("config.toml", "config.example.toml", "README.md"):
         shutil.copy2(ROOT / rel, assets / rel)
-    for rel in ("USER_GUIDE_KO.md", "TEST_REPORT.md"):
+    for rel in ("USER_GUIDE_KO.md", "TEST_REPORT.md", "PERFORMANCE_REPORT_20261002.md"):
         shutil.copy2(ROOT / "docs" / rel, assets / rel)
     shutil.copy2(ROOT / "third_party" / "THIRD_PARTY_NOTICES.md", assets / "THIRD_PARTY_NOTICES.md")
     target = assets / "template_profiles"; target.mkdir()
