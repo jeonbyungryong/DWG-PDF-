@@ -1,10 +1,11 @@
 from types import SimpleNamespace
 
-import dwg_to_pdf.gstarcad.com_session as com_session
+import dwg_to_pdf.cad.com_session as com_session
+from dwg_to_pdf.gstarcad.com_session import GstarSession
 
 
-def _session(owned_pid: int, handle: object | None) -> com_session.GstarSession:
-    session = com_session.GstarSession("unused")
+def _session(owned_pid: int, handle: object | None) -> GstarSession:
+    session = GstarSession("unused")
     session.owned_pid = owned_pid
     session._owned_process_handle = handle
     session._owns_app = True

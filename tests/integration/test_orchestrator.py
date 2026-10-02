@@ -118,6 +118,9 @@ def test_primary_file_failure_is_preserved_when_replacement_fails(tmp_path: Path
 class _RawWorkingDocument:
     ReadOnly = False
 
+    def __init__(self, path):
+        self.FullName = path
+
     def Close(self, _save: bool) -> None:
         raise RuntimeError("close failed")
 
@@ -127,7 +130,7 @@ class _WorkingSession(GstarSession):
         super().__init__("unused")
         self.owned_pid = pid
         self.events = events
-        self.app = type("App", (), {"Documents": type("Documents", (), {"Open": lambda *_: _RawWorkingDocument()})()})()
+        self.app = type("App", (), {"Documents": type("Documents", (), {"Open": lambda _, path, readonly: _RawWorkingDocument(path)})()})()
         self._owns_app = True
 
     def __enter__(self):
@@ -167,7 +170,7 @@ def test_working_document_close_chain_preserves_body_reason_and_logs_close(tmp_p
     assert result.status == "failed"
     assert result.code == "E303"
     assert result.reason == "비균일 블록 축척이 검출되었습니다."
-    assert "E203: AppError: GstarCAD could not close the current document" in (result.log_detail or "")
+    assert "E203: AppError: CAD could not close the current document" in (result.log_detail or "")
     assert "E303: AppError: non-uniform block scale" in (result.log_detail or "")
     assert events == ["enter:2001", "exit:2001", "enter:2002", "exit:2002"]
 
@@ -189,7 +192,7 @@ def test_working_document_close_chain_with_runtime_body_normalizes_to_e900_and_l
     assert result.status == "failed"
     assert result.code == "E900"
     assert result.reason == "예상하지 못한 변환 오류가 발생했습니다."
-    assert "E203: AppError: GstarCAD could not close the current document" in (result.log_detail or "")
+    assert "E203: AppError: CAD could not close the current document" in (result.log_detail or "")
     assert "RuntimeError: detector crashed" in (result.log_detail or "")
 
 
@@ -210,7 +213,7 @@ def test_working_document_close_only_failure_remains_e203_not_e900(tmp_path: Pat
     assert result.status == "failed"
     assert result.code == "E203"
     assert result.reason == "GstarCAD 문서 종료에 실패했습니다."
-    assert "E203: AppError: GstarCAD could not close the current document" in (result.log_detail or "")
+    assert "E203: AppError: CAD could not close the current document" in (result.log_detail or "")
     assert "RuntimeError: close failed" in (result.log_detail or "")
 
 
