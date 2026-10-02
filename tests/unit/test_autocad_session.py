@@ -104,3 +104,24 @@ def test_wrong_document_identity_rejected(setup_session, tmp_path):
                 pytest.fail("must not expose wrong drawing")
         assert error.value.code == "E203"
     assert app.closed == [False]
+
+
+@pytest.mark.parametrize("stage", ["start", "ready", "close"])
+@pytest.mark.parametrize("sink_error", [OSError, BrokenPipeError, ValueError])
+def test_diagnostic_sink_failure_cannot_strand_session(setup_session, monkeypatch, stage, sink_error):
+    import sys
+    from dwg_to_pdf.cad.diagnostics import diagnostic_scope
+    session, app, events = setup_session
+    class Sink:
+        def write(self, value):
+            if f'"stage": "{stage}"' in value:
+                raise sink_error("closed diagnostic destination")
+        def flush(self): pass
+    with monkeypatch.context() as patch:
+        patch.setattr(sys, "stderr", Sink())
+        with diagnostic_scope(session.candidate, "test"), session:
+            assert session.is_usable
+    assert app.quit_count == 1
+    assert "handle-close" in events and "uninit" in events
+    assert session.mutex is None and session._legacy_mutex is None
+    assert not session._owns_app

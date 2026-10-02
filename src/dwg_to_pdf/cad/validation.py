@@ -11,3 +11,8 @@ def live_autocad_environment(environment):
     if not config.is_absolute() or not sources or any(not source.is_absolute() for source in sources):
         raise ValueError("AutoCAD NOT_RUN: config and DWG paths must be absolute")
     return config, sources
+
+
+def require_process_cleanup(user_pids, acquired_pids, after_pids):
+    assert set(user_pids) <= set(after_pids), "a pre-existing user CAD process disappeared"
+    assert not set(acquired_pids) & set(after_pids), "an acquired CAD PID is still present after cleanup"

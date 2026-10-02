@@ -103,3 +103,25 @@ def test_conversion_emits_stage_and_failure_code_without_private_paths(conversio
     assert [record["stage"] for record in records] == ["open", "detect", "plot", "plot"]
     assert records[-1]["code"] == "E410"
     assert str(source) not in " ".join(lines)
+
+
+def test_failed_diagnostic_does_not_replace_primary_or_leave_temporary_pdf(conversion_case, monkeypatch):
+    import sys
+    from dwg_to_pdf.cad.diagnostics import diagnostic_scope
+    from dwg_to_pdf.cad.selection import CadCandidate
+    service, source, output, _ = conversion_case
+    doc = ContractDocument(fail=True)
+    session = SimpleNamespace(working_document=lambda workspace: working_document(doc, workspace))
+    candidate = CadCandidate("autocad", "AutoCAD.Application.25", "id", Path("C:/acad.exe"), "AutoCAD", None)
+    class Sink:
+        def write(self, value):
+            if '"code": "E410"' in value:
+                raise OSError("diagnostic write failed")
+        def flush(self): pass
+    with monkeypatch.context() as patch:
+        patch.setattr(sys, "stderr", Sink())
+        with diagnostic_scope(candidate, "test"), pytest.raises(AppError) as error:
+            service.convert_in_session(session, source, output, "copy")
+    assert error.value.code == "E410" and "synthetic plot failure" in str(error.value)
+    assert list(output.iterdir()) == []
+    assert source.read_bytes() == b"unchanged-source"

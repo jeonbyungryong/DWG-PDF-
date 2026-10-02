@@ -31,3 +31,13 @@ def test_frozen_smoke_passes_config_explicitly(tmp_path):
     command = module.build_command(Path("C:/app.exe"), [Path("C:/a.dwg")], Path("C:/out"), config)
     assert command[-2:] == ["--config", str(config.resolve())]
     assert "--config" not in module.build_command(Path("C:/app.exe"), [], Path("C:/out"), None)
+
+
+def test_live_cleanup_gate_checks_captured_pid_not_cleared_field():
+    from dwg_to_pdf.cad.validation import require_process_cleanup
+    from types import SimpleNamespace
+    session = SimpleNamespace(owned_pid=None)
+    with pytest.raises(AssertionError):
+        require_process_cleanup({10}, {71}, {10, 71})
+    require_process_cleanup({10}, {71}, {10})
+    assert session.owned_pid is None

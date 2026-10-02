@@ -106,3 +106,33 @@ def test_metadata_reader_bootstraps_pywin32_without_prior_com_import():
     )
     assert result.returncode == 0, result.stderr.decode(errors="replace")
     assert json.loads(result.stdout)[0]
+
+
+@pytest.mark.parametrize("arguments", ['/product ACADM /Automation', '/product "C3D" /Automation', '/ld "C:/vertical.arx"', '/product ACAD /product ACADM'])
+@pytest.mark.parametrize("explicit_server", [False, True])
+def test_excluded_or_unverified_launch_mode_rejected(registered, monkeypatch, arguments, explicit_server):
+    exe, raw = registered
+    record = discovery.Registration(raw.prog_id, raw.clsid, f'"{exe}" {arguments}', str(exe) if explicit_server else None)
+    monkeypatch.setattr(discovery, "_read_registrations", lambda provider: (record,))
+    with pytest.raises(AppError) as error:
+        discovery.discover_candidates("autocad")
+    assert error.value.code == "E223"
+
+
+@pytest.mark.parametrize("explicit_server", [False, True])
+def test_same_executable_different_launch_arguments_are_conflicting(registered, monkeypatch, explicit_server):
+    exe, raw = registered
+    records = tuple(discovery.Registration(raw.prog_id, raw.clsid, f'"{exe}" /product {product} /Automation', str(exe) if explicit_server else None) for product in ("ACAD", "ACADM"))
+    monkeypatch.setattr(discovery, "_read_registrations", lambda provider: records)
+    with pytest.raises(AppError) as error:
+        discovery.discover_candidates("autocad")
+    assert error.value.code == "E202"
+
+
+def test_normalized_launch_arguments_retained(registered, monkeypatch):
+    exe, raw = registered
+    records = tuple(discovery.Registration(raw.prog_id, raw.clsid, f'"{exe}" {arguments}', None) for arguments in ('/product "ACAD" /Automation', '/product acad   /automation'))
+    monkeypatch.setattr(discovery, "_read_registrations", lambda provider: records)
+    result = discovery.discover_candidates("autocad")
+    assert len(result) == 1
+    assert result[0].launch_arguments == ("/product", "acad", "/automation")

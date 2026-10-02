@@ -10,7 +10,7 @@ from dwg_to_pdf.cad.factory import create_session, resolve_selection
 from dwg_to_pdf.cad.discovery import discover_candidates
 from dwg_to_pdf.cad.selection import select_candidate
 from dwg_to_pdf.cad.process_ownership import provider_pids
-from dwg_to_pdf.cad.validation import live_autocad_environment
+from dwg_to_pdf.cad.validation import live_autocad_environment, require_process_cleanup
 from dwg_to_pdf.configuration import load_config
 from dwg_to_pdf.conversion_service import ConversionService
 from dwg_to_pdf.orchestrator import run_jobs
@@ -91,8 +91,21 @@ def test_autocad_failed_file_does_not_stop_next(tmp_path):
     user_pids = provider_pids("autocad")
     assert user_pids, "G4 requires a user-opened AutoCAD process"
     sessions = []
+    acquired_pids = set()
+    class RecordingSession:
+        def __init__(self):
+            self.session = create_session(candidate)
+        def __getattr__(self, name):
+            return getattr(self.session, name)
+        def __enter__(self):
+            self.session.__enter__()
+            assert self.session.owned_pid is not None
+            acquired_pids.add(self.session.owned_pid)
+            return self
+        def __exit__(self, *args):
+            return self.session.__exit__(*args)
     def factory():
-        session = create_session(candidate)
+        session = RecordingSession()
         sessions.append(session)
         return session
     try:
@@ -101,5 +114,5 @@ def test_autocad_failed_file_does_not_stop_next(tmp_path):
         validate_pdf(results[1].outputs[0])
     finally:
         assert evidence(sources[:1]) == before
-        assert user_pids <= provider_pids("autocad")
+        require_process_cleanup(user_pids, acquired_pids, provider_pids("autocad"))
         assert all(session.owned_pid is None for session in sessions)

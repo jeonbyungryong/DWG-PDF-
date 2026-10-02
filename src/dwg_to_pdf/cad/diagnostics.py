@@ -30,5 +30,10 @@ def emit(stage, code=None, *, reported_version=None):
         state["reported_version"] = None
     if reported_version is not None:
         state["reported_version"] = reported_version
-    record = build_diagnostic_record(**state, stage=stage, code=code)
-    print("CAD_DIAGNOSTIC " + json.dumps(record, ensure_ascii=True), file=sys.stderr)
+    try:
+        record = build_diagnostic_record(**state, stage=stage, code=code)
+        print("CAD_DIAGNOSTIC " + json.dumps(record, ensure_ascii=True), file=sys.stderr)
+    except Exception:
+        # Diagnostics are best-effort. A closed pipe/console or serialization
+        # error must never replace the primary failure or interrupt cleanup.
+        pass

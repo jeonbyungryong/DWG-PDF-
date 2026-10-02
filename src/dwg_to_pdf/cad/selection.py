@@ -25,6 +25,7 @@ class CadCandidate:
     executable: Path
     product_name: str
     reported_version: str | None
+    launch_arguments: tuple[str, ...] = ()
 
 
 def validate_prog_id(prog_id: object, provider: ProviderId) -> str:
@@ -43,12 +44,12 @@ def select_candidate(selection: CadSelection, candidates: tuple[CadCandidate, ..
         raise AppError("E222", "AutoCAD: experimental support requires explicit opt-in")
     matching = tuple(item for item in candidates if item.provider == selection.provider)
     registrations: dict[str, CadCandidate] = {}
-    identities: dict[tuple[str, str], CadCandidate] = {}
+    identities: dict[tuple[str, str, tuple[str, ...]], CadCandidate] = {}
     for item in sorted(matching, key=lambda item: (item.prog_id.count("."), item.prog_id.casefold()), reverse=True):
-        identity = (item.clsid.casefold(), str(item.executable).casefold())
+        identity = (item.clsid.casefold(), str(item.executable).casefold(), item.launch_arguments)
         key = item.prog_id.casefold()
         existing = registrations.get(key)
-        if existing and (existing.clsid.casefold(), str(existing.executable).casefold()) != identity:
+        if existing and (existing.clsid.casefold(), str(existing.executable).casefold(), existing.launch_arguments) != identity:
             raise AppError("E202", f"{selection.provider}: conflicting registration; repair CAD registration")
         registrations[key] = item
         identities.setdefault(identity, item)
