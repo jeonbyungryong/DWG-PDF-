@@ -60,6 +60,10 @@ def _point(entity: Any) -> tuple[float, float]:
         raw = getattr(entity, "StartPoint", None)
     if raw is None:
         raw = getattr(entity, "Coordinates", None)
+    return _point_values(raw)
+
+
+def _point_values(raw: object) -> tuple[float, float]:
     try:
         values = tuple(raw)
         if len(values) < 2:
@@ -98,13 +102,16 @@ def _is_permitted_annotation_only_entity(entity: Any) -> bool:
         raise AppError("E303", "could not snapshot entity type") from exc
 
 
-def _snapshot(entity: Any) -> dict[str, object]:
-    kind = _entity_type(entity)
+def _snapshot(entity: Any, kind: str | None = None) -> dict[str, object]:
+    kind = _entity_type(entity) if kind is None else kind
     try:
+        start = entity.StartPoint if kind == "LINE" else None
+        coordinates = tuple(entity.Coordinates) if kind == "LWPOLYLINE" else None
+        point = _point_values(start if start is not None else coordinates) if kind in {"LINE", "LWPOLYLINE"} else _point(entity)
         result: dict[str, object] = {
             "type": kind,
             "text": str(getattr(entity, "TextString", "")),
-            "point": _point(entity),
+            "point": point,
             "handle": str(entity.Handle),
         }
         if kind in {"TEXT", "MTEXT", "ATTRIB"} and hasattr(entity, "GetBoundingBox"):
@@ -116,25 +123,23 @@ def _snapshot(entity: Any) -> dict[str, object]:
         if kind == "INSERT":
             # Name addresses the actual Blocks.Item definition. EffectiveName can
             # be a user-facing dynamic block name and is not safe for *U blocks.
+            block_name = str(entity.Name)
             result.update(
-                block_name=str(entity.Name),
-                effective_name=str(getattr(entity, "EffectiveName", entity.Name)),
+                block_name=block_name,
+                effective_name=str(getattr(entity, "EffectiveName", block_name)),
                 rotation=_finite_number(getattr(entity, "Rotation", 0.0), "block rotation"),
                 x_scale=_finite_number(getattr(entity, "XScaleFactor", 1.0), "block x scale"),
                 y_scale=_finite_number(getattr(entity, "YScaleFactor", 1.0), "block y scale"),
                 has_attributes=bool(getattr(entity, "HasAttributes", False)),
             )
         elif kind == "LINE":
-            result["start"] = (
-                _finite_number(entity.StartPoint[0], "line start x"),
-                _finite_number(entity.StartPoint[1], "line start y"),
-            )
+            result["start"] = point
+            end = entity.EndPoint
             result["end"] = (
-                _finite_number(entity.EndPoint[0], "line end x"),
-                _finite_number(entity.EndPoint[1], "line end y"),
+                _finite_number(end[0], "line end x"),
+                _finite_number(end[1], "line end y"),
             )
         elif kind == "LWPOLYLINE":
-            coordinates = tuple(entity.Coordinates)
             if len(coordinates) < 4 or len(coordinates) % 2:
                 raise AppError("E303", "invalid polyline coordinates")
             result["coordinates"] = tuple(
@@ -423,7 +428,7 @@ class GstarDocument:
                     if "unsupported filtered entity type" in str(exc):
                         continue
                     raise
-                local = _snapshot(entity)
+                local = _snapshot(entity, kind)
                 if kind == "ATTRIB" and suppress_attribute_definitions:
                     continue
                 if kind == "INSERT":
@@ -526,7 +531,7 @@ class GstarDocument:
                     return False
                 if kind in {"LINE", "LWPOLYLINE"}:
                     continue
-                local = _snapshot(entity)
+                local = _snapshot(entity, kind)
                 if kind == "INSERT":
                     if bool(local.get("has_attributes", False)):
                         return False
@@ -624,7 +629,7 @@ class GstarDocument:
                     if "unsupported filtered entity type" in str(exc):
                         continue
                     raise
-                local = _snapshot(entity)
+                local = _snapshot(entity, kind)
                 if kind == "INSERT":
                     child_name = str(local.get("block_name", ""))
                     if child_name and child_name not in child_ancestry:
