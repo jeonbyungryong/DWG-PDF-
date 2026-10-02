@@ -386,7 +386,7 @@ def test_filtered_snapshots_use_marshaled_server_side_filter_and_cleanup(monkeyp
         marshalled.append((vt, value))
         return (vt, value)
 
-    monkeypatch.setattr("dwg_to_pdf.gstarcad.document.VARIANT", fake_variant)
+    monkeypatch.setattr("dwg_to_pdf.cad.com_document.VARIANT", fake_variant)
     document = GstarDocument(raw)
     snapshots = document.filtered_snapshots(
         ("TEXT", "MTEXT", "INSERT"), Rect(Point(0.0, 0.0), Point(3.0, 4.0))
@@ -412,7 +412,7 @@ def test_filtered_geometry_snapshots_returns_line_endpoints_from_bounded_selecti
     )
     selection = FakeSelection([entity])
     raw = SimpleNamespace(SelectionSets=FakeSelectionSets(selection))
-    monkeypatch.setattr("dwg_to_pdf.gstarcad.document.VARIANT", lambda vt, value: (vt, value))
+    monkeypatch.setattr("dwg_to_pdf.cad.com_document.VARIANT", lambda vt, value: (vt, value))
     document = GstarDocument(raw)
 
     result = document.filtered_geometry_snapshots(Rect(Point(0, 0), Point(5, 5)))
@@ -433,7 +433,7 @@ def test_structural_lwpolyline_rejects_bulge_elevation_or_nonplanar_normal(monke
     )
     selection = FakeSelection([entity])
     raw = SimpleNamespace(SelectionSets=FakeSelectionSets(selection))
-    monkeypatch.setattr("dwg_to_pdf.gstarcad.document.VARIANT", lambda vt, value: (vt, value))
+    monkeypatch.setattr("dwg_to_pdf.cad.com_document.VARIANT", lambda vt, value: (vt, value))
     with pytest.raises(AppError) as raised:
         GstarDocument(raw).filtered_geometry_snapshots(Rect(Point(-1, -1), Point(11, 1)))
     assert raised.value.code == "E303"
@@ -449,7 +449,7 @@ def test_structural_lwpolyline_rejects_missing_planarity_property(monkeypatch, m
     del values[missing]
     selection = FakeSelection([SimpleNamespace(**values)])
     raw = SimpleNamespace(SelectionSets=FakeSelectionSets(selection))
-    monkeypatch.setattr("dwg_to_pdf.gstarcad.document.VARIANT", lambda vt, value: (vt, value))
+    monkeypatch.setattr("dwg_to_pdf.cad.com_document.VARIANT", lambda vt, value: (vt, value))
     with pytest.raises(AppError) as raised:
         GstarDocument(raw).filtered_geometry_snapshots(Rect(Point(-1, -1), Point(11, 1)))
     assert raised.value.code == "E303"
@@ -480,7 +480,7 @@ def test_structural_lwpolyline_rejects_unreadable_planarity_property(monkeypatch
 
     selection = FakeSelection([UnreadablePolyline()])
     raw = SimpleNamespace(SelectionSets=FakeSelectionSets(selection))
-    monkeypatch.setattr("dwg_to_pdf.gstarcad.document.VARIANT", lambda vt, value: (vt, value))
+    monkeypatch.setattr("dwg_to_pdf.cad.com_document.VARIANT", lambda vt, value: (vt, value))
     with pytest.raises(AppError) as raised:
         GstarDocument(raw).filtered_geometry_snapshots(Rect(Point(-1, -1), Point(11, 1)))
     assert raised.value.code == "E303"
@@ -489,7 +489,7 @@ def test_structural_lwpolyline_rejects_unreadable_planarity_property(monkeypatch
 def test_unbounded_filter_passes_empty_optional_points_instead_of_null(monkeypatch) -> None:
     selection = FakeSelection([])
     raw = SimpleNamespace(SelectionSets=FakeSelectionSets(selection))
-    monkeypatch.setattr("dwg_to_pdf.gstarcad.document.VARIANT", lambda vt, value: (vt, value))
+    monkeypatch.setattr("dwg_to_pdf.cad.com_document.VARIANT", lambda vt, value: (vt, value))
 
     GstarDocument(raw).filtered_snapshots(("TEXT",))
 

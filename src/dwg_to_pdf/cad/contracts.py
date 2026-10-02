@@ -9,7 +9,7 @@ from ..domain import Rect, Rotation
 from ..temp_workspace import SourceWorkspace
 
 if TYPE_CHECKING:
-    from ..gstarcad.document import TraversalBudget
+    from .com_document import TraversalBudget
 
 Snapshot = dict[str, object]
 
