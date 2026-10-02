@@ -1,4 +1,10 @@
 [gstarcad]
+# Existing settings retain GstarCAD as the default.
+# Experimental AutoCAD configuration: replace this entire [gstarcad] section
+# with [cad], provider="autocad", allow_experimental_autocad=true.
+# Do not invent a ProgID; select one returned by CAD discovery.
+# AutoCAD is NOT live-validated. New CAD selection will be exposed by the
+# completed adapter/CLI integration, not by this configuration parser alone.
 prog_id = "GStarCAD.Application.26"
 visible = false
 open_timeout_sec = 120

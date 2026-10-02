@@ -5,11 +5,12 @@ import tomllib
 from typing import Any
 
 from .errors import AppError
+from .cad.selection import ProviderId, validate_prog_id
 
 
 @dataclass(frozen=True)
 class AppConfig:
-    prog_id: str
+    prog_id: str | None
     auto_match_enabled: bool
     plotter_name: str
     media_width_mm: float
@@ -19,6 +20,8 @@ class AppConfig:
     matching_threshold: float | None
     minimum_score_gap: float | None
     use_native_extraction: bool = True
+    cad_provider: ProviderId = "gstarcad"
+    allow_experimental_autocad: bool = False
 
 
 def _require_string(value: Any, field: str) -> str:
@@ -47,6 +50,7 @@ def _optional_score(value: Any, field: str) -> float | None:
 
 def _parse_config(path: Path) -> AppConfig:
     data = tomllib.loads(path.read_text(encoding="utf-8"))
+    provider, prog_id, allow_experimental = _parse_cad(data)
     matching = data["matching"]
     use_target_saved_window = matching.get("use_target_saved_window", False)
     if not isinstance(use_target_saved_window, bool):
@@ -84,7 +88,7 @@ def _parse_config(path: Path) -> AppConfig:
     ):
         raise ValueError("plot.preferred_media_names must be an array of strings")
     return AppConfig(
-        prog_id=_require_string(data["gstarcad"]["prog_id"], "gstarcad.prog_id"),
+        prog_id=prog_id,
         auto_match_enabled=enabled,
         plotter_name=plotter_name,
         media_width_mm=media_width_mm,
@@ -94,13 +98,37 @@ def _parse_config(path: Path) -> AppConfig:
         matching_threshold=threshold,
         minimum_score_gap=gap,
         use_native_extraction=native,
+        cad_provider=provider,
+        allow_experimental_autocad=allow_experimental,
     )
+
+
+def _parse_cad(data: dict[str, Any]) -> tuple[ProviderId, str | None, bool]:
+    legacy = data.get("gstarcad")
+    if "cad" not in data:
+        return "gstarcad", validate_prog_id(data["gstarcad"]["prog_id"], "gstarcad"), False
+    cad = data["cad"]
+    provider = cad.get("provider", "gstarcad")
+    if provider not in ("gstarcad", "autocad"):
+        raise ValueError("cad.provider must be gstarcad or autocad")
+    allowed = cad.get("allow_experimental_autocad", False)
+    if type(allowed) is not bool:
+        raise ValueError("cad.allow_experimental_autocad must be a boolean")
+    prog_id = validate_prog_id(cad["prog_id"], provider) if "prog_id" in cad else None
+    if legacy is not None:
+        old = validate_prog_id(legacy["prog_id"], "gstarcad")
+        if provider != "gstarcad" or (prog_id is not None and old.casefold() != prog_id.casefold()):
+            raise ValueError("conflicting cad/gstarcad sections; remove or migrate the legacy section")
+        prog_id = prog_id or old
+    return provider, prog_id, allowed
 
 
 def load_config(path: Path) -> AppConfig:
     try:
         return _parse_config(path)
-    except AppError:
+    except AppError as exc:
+        if exc.path is None and exc.code == "E001":
+            raise AppError(exc.code, str(exc), path) from exc
         raise
     except (
         AttributeError,

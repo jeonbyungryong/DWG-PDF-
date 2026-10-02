@@ -109,6 +109,45 @@ def test_native_extraction_rejects_a_string_boolean(tmp_path):
     _assert_e001(path)
 
 
+def test_legacy_cad_config_preserves_default_provider(tmp_path):
+    path = tmp_path / "legacy.toml"
+    path.write_text(_config_text(), encoding="utf-8")
+    config = load_config(path)
+    assert config.cad_provider == "gstarcad"
+    assert config.allow_experimental_autocad is False
+    assert config.prog_id == "GStarCAD.Application.26"
+
+
+def test_new_autocad_config_requires_no_installed_cad_to_parse(tmp_path):
+    path = tmp_path / "autocad.toml"
+    text = _config_text().replace('[gstarcad]\nprog_id="GStarCAD.Application.26"',
+                                  '[cad]\nprovider="autocad"\nallow_experimental_autocad=true')
+    path.write_text(text, encoding="utf-8")
+    config = load_config(path)
+    assert config.cad_provider == "autocad"
+    assert config.prog_id is None
+    assert config.allow_experimental_autocad is True
+
+
+@pytest.mark.parametrize("new", [
+    'provider="autocad"\nallow_experimental_autocad=true',
+    'provider="gstarcad"\nprog_id="GStarCAD.Application.25"',
+    'provider="other"', 'provider=1', 'provider="gstarcad"\nprog_id=""',
+    'provider="gstarcad"\nallow_experimental_autocad="true"',
+])
+def test_old_new_config_conflict_e001(tmp_path, new):
+    path = tmp_path / "conflict.toml"
+    path.write_text(_config_text() + "\n[cad]\n" + new, encoding="utf-8")
+    _assert_e001(path)
+
+
+@pytest.mark.parametrize("new", ['provider="gstarcad"', 'provider="gstarcad"\nprog_id="GStarCAD.Application.26"'])
+def test_same_old_new_config_retains_explicit_gstar_selection(tmp_path, new):
+    path = tmp_path / "same.toml"
+    path.write_text(_config_text() + "\n[cad]\n" + new, encoding="utf-8")
+    assert load_config(path).prog_id == "GStarCAD.Application.26"
+
+
 @pytest.mark.parametrize("field", ["matching_threshold", "minimum_score_gap"])
 @pytest.mark.parametrize("value", ["true", "-0.1", "0.0", "nan", "inf", "1.1"])
 def test_config_rejects_invalid_enabled_score(
