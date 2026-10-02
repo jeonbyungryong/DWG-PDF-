@@ -3,15 +3,20 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from copy import copy
 import math
+from pathlib import Path
 from typing import Any, Iterable
 import uuid
 
 import pythoncom
 from win32com.client import VARIANT
 
-from ..domain import Rect
+from ..domain import Rect, Rotation
 from ..errors import AppError
 from ..templates.scale_label import parse_internal_scale
+from .media_resolver import require_plot_environment
+from .plot_settings import apply_plot_settings
+from .plotter import plot_to_file
+from ..pdf_orientation import normalize_portrait_plot
 
 AC_SELECTION_SET_CROSSING = 1
 AC_SELECTION_SET_ALL = 5
@@ -288,6 +293,22 @@ class GstarDocument:
     _geometry_cache: dict[
         tuple[Rect, int, int], tuple[dict[str, object], ...]
     ] = field(default_factory=dict, init=False, repr=False)
+
+    def configure_extraction(self, enabled: bool) -> None:
+        if type(enabled) is not bool:
+            raise ValueError("native extraction flag must be boolean")
+        if enabled != self._bulk_enabled:
+            self._bulk_raw = None
+            self._geometry_cache.clear()
+        self._bulk_enabled = enabled
+
+    def plot_pdf(self, output: Path, window: Rect, rotation: Rotation,
+                 preferred_media_names: tuple[str, ...]) -> None:
+        layout = self.raw.ActiveLayout
+        media = require_plot_environment(layout, preferred_media_names)
+        apply_plot_settings(layout, window, rotation, media)
+        plot_to_file(self.raw, output)
+        normalize_portrait_plot(output, rotation)
 
     def for_scale_detection(self) -> GstarDocument:
         """Create a conversion-only view without changing registration snapshots.

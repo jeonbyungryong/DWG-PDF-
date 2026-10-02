@@ -9,14 +9,9 @@ from .conflict_resolver import resolve_collision
 from .domain import ConvertedFrame, ConversionOutcome
 from .errors import AppError
 from .file_stability import require_stable
-from .gstarcad.com_session import GstarSession
-from .gstarcad.document import GstarDocument
-from .gstarcad.media_resolver import require_plot_environment
-from .gstarcad.plot_settings import apply_plot_settings
-from .gstarcad.plotter import plot_to_file
+from .cad.contracts import CadSession
 from .gstarcad.template_detector import DetectionLimits, detect_scale_cell, verify_rotation
 from .output_planner import output_names
-from .pdf_orientation import normalize_portrait_plot
 from .temp_workspace import SourceWorkspace, publish_pdf
 from .templates.profile_store import ProfileStore
 from .templates.structural_fallback import choose_profile_by_structure, profiles_for_scale_cell
@@ -51,7 +46,7 @@ def _resolve_source_after_stability(source: Path) -> Path:
 
 
 class ConversionService:
-    """Convert one source through a caller-owned GstarCAD session."""
+    """Convert one source through a caller-owned CAD session."""
 
     def __init__(self, config: AppConfig, profiles: ProfileStore) -> None:
         self.config = config
@@ -59,7 +54,7 @@ class ConversionService:
 
     def convert_in_session(
         self,
-        session: GstarSession,
+        session: CadSession,
         source: Path,
         output_dir: Path,
         conflict_policy: ConflictPolicy,
@@ -80,8 +75,7 @@ class ConversionService:
         try:
             with SourceWorkspace(source_path) as workspace:
                 with session.working_document(workspace) as document:
-                    if isinstance(document, GstarDocument):
-                        document._bulk_enabled = self.config.use_native_extraction
+                    document.configure_extraction(self.config.use_native_extraction)
                     structural = {}
                     def resolve_missing_scale(provisional):
                         structural["decision"] = choose_profile_by_structure(
@@ -109,18 +103,9 @@ class ConversionService:
                     )
                     if profile is None:
                         raise AppError("E303", "chosen frame has no approved profile", source_path)
-                    layout = document.raw.ActiveLayout
-                    media = require_plot_environment(layout, self.config.preferred_media_names)
-                    apply_plot_settings(
-                        layout,
-                        decision.candidate.plot_window,
-                        decision.candidate.rotation,
-                        media,
-                    )
                     temporary = Path(output_dir) / f".{final_output.stem}.{uuid.uuid4().hex}.tmp.pdf"
-                    plot_to_file(document.raw, temporary)
-                    normalize_portrait_plot(temporary, decision.candidate.rotation)
-                    layout = None
+                    document.plot_pdf(temporary, decision.candidate.plot_window,
+                                      decision.candidate.rotation, self.config.preferred_media_names)
             publish_pdf(temporary, final_output)
         except Exception as primary:
             _cleanup_temporary_after_failure(temporary, primary)
