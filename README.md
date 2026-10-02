@@ -14,6 +14,7 @@
 | 전체 개발 자료 위치 | [문서 안내](docs/README.md) |
 | 최초 사용자 개발 지침 | [REV02 개발 지침](docs/reference/CODEX_DWG_TO_PDF_개발지침_260715_REV02.md) |
 | 배포 구성과 기준 버전 | [2026-10-02 배포 기록](docs/releases/2026-10-02-github-handoff.md) |
+| 최신 성능 개선 배포 | [2026-10-02 성능 개선 배포 기록](docs/releases/2026-10-02-performance.md) |
 
 ## 현재 상태 요약
 
@@ -25,7 +26,7 @@
 
 ## Windows 설치
 
-1. [배포 다운로드](https://github.com/jeonbyungryong/DWG-PDF-/releases) 또는 [배포 폴더](releases/windows/)에서 `dwg-to-pdf-validation.zip`을 받습니다.
+1. [성능 개선 배포 다운로드](https://github.com/jeonbyungryong/DWG-PDF-/releases/tag/windows-performance-20261002) 또는 [배포 폴더](releases/windows/)에서 `dwg-to-pdf-validation.zip`을 받습니다.
 2. 대상 PC에 정식 GstarCAD 2026을 설치하고 한 번 실행합니다. `DWG To PDF.pc3`, A4 297×210 mm 용지, `monochrome.ctb` 사용 가능 여부를 확인합니다.
 3. ZIP을 로컬 폴더에 **전체 압축 해제**합니다. EXE와 `_internal` 폴더를 함께 유지합니다. Python 별도 설치는 필요하지 않습니다.
 4. `dwg-to-pdf.exe`를 더블클릭해 입력 DWG/폴더와 출력 폴더를 선택합니다.
