@@ -116,7 +116,7 @@ def test_session_opens_only_active_workspace_copy_writable(tmp_path: Path) -> No
     raw = SimpleNamespace(ReadOnly=False, Close=lambda save: None)
     session = GstarSession("unused")
     session.app = SimpleNamespace(
-        Documents=SimpleNamespace(Open=lambda path, readonly: opened.append((path, readonly)) or raw)
+        Documents=SimpleNamespace(Open=lambda path, readonly: opened.append((path, readonly)) or setattr(raw, "FullName", path) or raw)
     )
     session._owns_app = True
 
@@ -147,6 +147,7 @@ def test_working_document_closes_before_workspace_cleanup_on_body_failure(tmp_pa
         ReadOnly = False
 
         def __init__(self, path: str) -> None:
+            self.FullName = path
             self.handle = Path(path).open("rb")
 
         def Close(self, save: bool) -> None:

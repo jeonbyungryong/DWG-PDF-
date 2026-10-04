@@ -9,10 +9,13 @@ import pytest
 
 from dwg_to_pdf.domain import JobResult
 from dwg_to_pdf.errors import AppError
+from dwg_to_pdf.cad.selection import CadCandidate
 
 
 def _install_happy_preflight(monkeypatch, cli, tmp_path: Path):
-    config = SimpleNamespace(prog_id="GstarCAD.Application.26")
+    config = SimpleNamespace(prog_id="GStarCAD.Application.26", cad_provider="gstarcad", allow_experimental_autocad=False)
+    selected = CadCandidate("gstarcad", config.prog_id, "fake", tmp_path / "gcad.exe", "GstarCAD", None)
+    monkeypatch.setattr(cli, "discover_candidates", lambda provider: (selected,))
     source = tmp_path / "input.dwg"
     source.write_bytes(b"dwg")
     profile_directory = tmp_path / "profiles"
@@ -45,8 +48,8 @@ def test_main_preflights_then_calls_run_jobs_once_with_gstar_session_factory(mon
     factories: list[object] = []
 
     class FakeSession:
-        def __init__(self, prog_id: str) -> None:
-            self.prog_id = prog_id
+        def __init__(self, candidate) -> None:
+            self.prog_id = candidate.prog_id
 
     def fake_run_jobs(service, sources, output_dir, conflict_policy, session_factory):
         calls["run_jobs"] = (service, sources, output_dir, conflict_policy)
@@ -54,7 +57,7 @@ def test_main_preflights_then_calls_run_jobs_once_with_gstar_session_factory(mon
         factories.append(created)
         return (JobResult(source, "success", (output / "input.pdf",)),)
 
-    monkeypatch.setattr(cli, "GstarSession", FakeSession)
+    monkeypatch.setattr(cli, "create_session", FakeSession)
     monkeypatch.setattr(cli, "run_jobs", fake_run_jobs)
     monkeypatch.setattr(
         cli,
@@ -109,7 +112,7 @@ def test_main_preflight_error_prints_stderr_once_and_never_starts_batch(monkeypa
     called = {"run_jobs": False, "factory": False}
     monkeypatch.setattr(cli, "load_config", lambda _path: (_ for _ in ()).throw(AppError("E001", "bad configuration")))
     monkeypatch.setattr(cli, "run_jobs", lambda *_args: called.__setitem__("run_jobs", True))
-    monkeypatch.setattr(cli, "GstarSession", lambda _prog_id: called.__setitem__("factory", True))
+    monkeypatch.setattr(cli, "create_session", lambda _prog_id: called.__setitem__("factory", True))
 
     assert cli.main([str(tmp_path / "input.dwg"), "--output", str(tmp_path / "output")]) == 2
     captured = capsys.readouterr()
@@ -127,7 +130,7 @@ def test_main_output_preparation_failure_returns_two_without_session_or_batch(mo
     output_file.write_text("occupied", encoding="utf-8")
     called = {"run_jobs": False, "factory": False}
     monkeypatch.setattr(cli, "run_jobs", lambda *_args: called.__setitem__("run_jobs", True))
-    monkeypatch.setattr(cli, "GstarSession", lambda _prog_id: called.__setitem__("factory", True))
+    monkeypatch.setattr(cli, "create_session", lambda _prog_id: called.__setitem__("factory", True))
 
     assert cli.main([str(source), "--output", str(output_file), "--profiles", str(profile_directory)]) == 2
     captured = capsys.readouterr()
@@ -158,7 +161,7 @@ def test_incomplete_canonical_profile_set_fails_before_session_or_batch(monkeypa
     monkeypatch.setattr(cli, "ProfileStore", IncompleteStore)
     monkeypatch.setattr(cli, "require_canonical_profiles", require_canonical_profiles)
     monkeypatch.setattr(cli, "run_jobs", lambda *_args: called.__setitem__("run_jobs", True))
-    monkeypatch.setattr(cli, "GstarSession", lambda _prog_id: called.__setitem__("factory", True))
+    monkeypatch.setattr(cli, "create_session", lambda _prog_id: called.__setitem__("factory", True))
 
     assert cli.main([str(source), "--output", str(tmp_path / "output"), "--profiles", str(profile_directory)]) == 2
     captured = capsys.readouterr()

@@ -1,0 +1,692 @@
+{
+  "cases": [
+    {
+      "file": "TEMPLETE_1대1.DWG",
+      "sha256": "BEEBDF8F0D246CE623E637E7D1A4B3325199035B55DE7D1CC05EBE9D6A1BC281",
+      "scale": {
+        "numerator": "1",
+        "denominator": "1"
+      },
+      "rotation": 0,
+      "state": "original",
+      "window": [
+        0.07128468580771141,
+        6.139627657830715e-06,
+        420.07128468580777,
+        297.00000613962766
+      ]
+    },
+    {
+      "file": "TEMPLETE_1대10.DWG",
+      "sha256": "DCC5B938173453CFA458F633D00064DF6C7F527AE79DB3B7126CF2E3487C6DBA",
+      "scale": {
+        "numerator": "1",
+        "denominator": "10"
+      },
+      "rotation": 0,
+      "state": "original",
+      "window": [
+        0.7128468580776826,
+        6.13962770330545e-05,
+        4200.712846858078,
+        2970.000061396277
+      ]
+    },
+    {
+      "file": "TEMPLETE_1대100.DWG",
+      "sha256": "F58283F20C16BBBC8FB10682CAE99B7AB26314B94748F489305C7F10C59B6A32",
+      "scale": {
+        "numerator": "1",
+        "denominator": "100"
+      },
+      "rotation": 0,
+      "state": "original",
+      "window": [
+        7.1284685807768255,
+        0.0006139627694210503,
+        42007.12846858078,
+        29700.000613962766
+      ]
+    },
+    {
+      "file": "TEMPLETE_1대2.DWG",
+      "sha256": "F2BD4A5A4B8AC83787BD93E81CC8C40D8AEB0C57B149F95F5850D7F226B12E5F",
+      "scale": {
+        "numerator": "1",
+        "denominator": "2"
+      },
+      "rotation": 0,
+      "state": "original",
+      "window": [
+        0.14256937161542282,
+        1.227925531566143e-05,
+        840.1425693716155,
+        594.0000122792553
+      ]
+    },
+    {
+      "file": "TEMPLETE_1대20.DWG",
+      "sha256": "03442D0391FCC3AF242A7B6F1CB8507EC7A4B171C303FCDBD7AB4E5E1909C297",
+      "scale": {
+        "numerator": "1",
+        "denominator": "20"
+      },
+      "rotation": 0,
+      "state": "original",
+      "window": [
+        1.425693716155365,
+        0.0001227925549756037,
+        8401.425693716155,
+        5940.000122792554
+      ]
+    },
+    {
+      "file": "TEMPLETE_1대5.DWG",
+      "sha256": "C5370EEA268414604E5A43B7C9810157A9A2925BF96EFCAC698D6ECA48FDBC16",
+      "scale": {
+        "numerator": "1",
+        "denominator": "5"
+      },
+      "rotation": 0,
+      "state": "original",
+      "window": [
+        0.3564234290388413,
+        3.069813851652725e-05,
+        2100.356423429039,
+        1485.0000306981385
+      ]
+    },
+    {
+      "file": "TEMPLETE_1대50.DWG",
+      "sha256": "4E0B38F20F1E600A59FD95BC776B98BC2ACCCE68FA0621013EE164001C7E80BF",
+      "scale": {
+        "numerator": "1",
+        "denominator": "50"
+      },
+      "rotation": 0,
+      "state": "original",
+      "window": [
+        3.5642342903884128,
+        0.00030698138471052516,
+        21003.56423429039,
+        14850.000306981383
+      ]
+    },
+    {
+      "file": "TEMPLETE_10대1.DWG",
+      "sha256": "7DC8CFC49AE54E23EED10D391FDF539756679704A559252733C86A103999555B",
+      "scale": {
+        "numerator": "10",
+        "denominator": "1"
+      },
+      "rotation": 0,
+      "state": "original",
+      "window": [
+        0.007128468580781089,
+        6.139627686252425e-07,
+        42.00712846858078,
+        29.700000613962764
+      ]
+    },
+    {
+      "file": "TEMPLETE_100대1.DWG",
+      "sha256": "83673B33511C3B10F54295BA681C359FDEE6948B34A0259C98A8589ED2BB3C6A",
+      "scale": {
+        "numerator": "100",
+        "denominator": "1"
+      },
+      "rotation": 0,
+      "state": "original",
+      "window": [
+        0.0007128468580770431,
+        6.139627695134209e-08,
+        4.200712846858076,
+        2.9700000613962767
+      ]
+    },
+    {
+      "file": "TEMPLETE_2대1.DWG",
+      "sha256": "29F1EAA99261D262653DB21B6483D336E7F0339D09F186D5D548CFE1E3906E88",
+      "scale": {
+        "numerator": "2",
+        "denominator": "1"
+      },
+      "rotation": 0,
+      "state": "original",
+      "window": [
+        0.035642342903855706,
+        3.0698138289153576e-06,
+        210.03564234290388,
+        148.50000306981383
+      ]
+    },
+    {
+      "file": "TEMPLETE_20대1.DWG",
+      "sha256": "CDDF702592A56A3EC6339D6A6D2D0AA780A91B5561144D0B41DE31D703A46018",
+      "scale": {
+        "numerator": "20",
+        "denominator": "1"
+      },
+      "rotation": 0,
+      "state": "original",
+      "window": [
+        0.0035642342903905444,
+        3.0698138608897807e-07,
+        21.00356423429039,
+        14.850000306981382
+      ]
+    },
+    {
+      "file": "TEMPLETE_5대1.DWG",
+      "sha256": "00B5E797E3256C2FD7E53A14C3E49AFAEDC8FF37AF92E23BA7B4E974996A3F8C",
+      "scale": {
+        "numerator": "5",
+        "denominator": "1"
+      },
+      "rotation": 0,
+      "state": "original",
+      "window": [
+        0.014256937161562178,
+        1.2279255443559123e-06,
+        84.01425693716156,
+        59.40000122792554
+      ]
+    },
+    {
+      "file": "TEMPLETE_50대1.DWG",
+      "sha256": "5A4D7E9BBB09897DAD4F74E73B84AD6D0A7C11DD8E39F7B7E3BCCA5CE420C2DD",
+      "scale": {
+        "numerator": "50",
+        "denominator": "1"
+      },
+      "rotation": 0,
+      "state": "original",
+      "window": [
+        0.0014256937161540861,
+        1.2279255390268418e-07,
+        8.401425693716153,
+        5.940000122792553
+      ]
+    },
+    {
+      "file": "TEMPLETE_1대1_shift.DWG",
+      "scale": {
+        "numerator": "1",
+        "denominator": "1"
+      },
+      "rotation": 0,
+      "state": "shift",
+      "sha256": "8A66A506901429F65EC9CFE53F3353B22AFE1AFB939E48DA2A108D012D26BB95",
+      "window": [
+        1000.0712846858079,
+        -499.99999386037234,
+        1420.0712846858078,
+        -202.99999386037234
+      ]
+    },
+    {
+      "file": "TEMPLETE_1대1_rotate90.DWG",
+      "scale": {
+        "numerator": "1",
+        "denominator": "1"
+      },
+      "rotation": 90,
+      "state": "rotate90",
+      "sha256": "46D4DF904886A0FCADD175063D8E7D3EA67781C27CBE1B40FACACB4DA7802772",
+      "window": [
+        702.9999938603721,
+        -499.92871531419223,
+        999.9999938603721,
+        -79.92871531419215
+      ]
+    },
+    {
+      "file": "TEMPLETE_1대1_rotate180.DWG",
+      "scale": {
+        "numerator": "1",
+        "denominator": "1"
+      },
+      "rotation": 180,
+      "state": "rotate180",
+      "sha256": "673F634933ACA8D8D32CBE43D453D3A8D6795D193FA70B75651B26D060619B92",
+      "window": [
+        579.9287153141922,
+        -797.0000061396278,
+        999.9287153141923,
+        -500.00000613962777
+      ]
+    },
+    {
+      "file": "TEMPLETE_1대1_rotate270.DWG",
+      "scale": {
+        "numerator": "1",
+        "denominator": "1"
+      },
+      "rotation": 270,
+      "state": "rotate270",
+      "sha256": "B5E5531E8065A5D4761E8C77BD521BCF21A4D10666212E5E0227D4AFFFB000F1",
+      "window": [
+        1000.0000061396277,
+        -920.0712846858079,
+        1297.0000061396277,
+        -500.07128468580765
+      ]
+    },
+    {
+      "file": "TEMPLETE_1대1_blank.DWG",
+      "scale": {
+        "numerator": "1",
+        "denominator": "1"
+      },
+      "rotation": 0,
+      "state": "blank",
+      "sha256": "42A2D1DCFD6FD48A0220A8C2DC2D865F174E48528098E023CCD7D54F9130533C",
+      "window": [
+        0.07128468580771141,
+        6.139627657830715e-06,
+        420.07128468580777,
+        297.00000613962766
+      ]
+    },
+    {
+      "file": "TEMPLETE_1대1_na.DWG",
+      "scale": {
+        "numerator": "1",
+        "denominator": "1"
+      },
+      "rotation": 0,
+      "state": "na",
+      "sha256": "1E266D567748DB8C1F83D270A82AB811B09E10DACF46D22989E2A4EE4C9DA127",
+      "window": [
+        0.07128468580771141,
+        6.139627657830715e-06,
+        420.07128468580777,
+        297.00000613962766
+      ]
+    },
+    {
+      "file": "TEMPLETE_1대10_shift.DWG",
+      "scale": {
+        "numerator": "1",
+        "denominator": "10"
+      },
+      "rotation": 0,
+      "state": "shift",
+      "sha256": "327A857194FEE880E5EBE9E3882BD53C8C5416C84CE4C7158305C476E98887AD",
+      "window": [
+        1000.7128468580777,
+        -499.99993860372297,
+        5200.712846858078,
+        2470.000061396277
+      ]
+    },
+    {
+      "file": "TEMPLETE_1대10_rotate90.DWG",
+      "scale": {
+        "numerator": "1",
+        "denominator": "10"
+      },
+      "rotation": 90,
+      "state": "rotate90",
+      "sha256": "0B3AA6208D856A463535CC84E55EC3ADF723D7014CFFC85ED43F1A7930A83803",
+      "window": [
+        -1970.000061396278,
+        -499.28715314192164,
+        999.9999386037223,
+        3700.7128468580786
+      ]
+    },
+    {
+      "file": "TEMPLETE_1대10_rotate180.DWG",
+      "scale": {
+        "numerator": "1",
+        "denominator": "10"
+      },
+      "rotation": 180,
+      "state": "rotate180",
+      "sha256": "1BCC01107B7103A731C3AD92DB4FEAF123C3D0A0DD310B908AC4233123214446",
+      "window": [
+        -3200.7128468580777,
+        -3470.0000613962766,
+        999.2871531419228,
+        -500.0000613962767
+      ]
+    },
+    {
+      "file": "TEMPLETE_1대10_rotate270.DWG",
+      "scale": {
+        "numerator": "1",
+        "denominator": "10"
+      },
+      "rotation": 270,
+      "state": "rotate270",
+      "sha256": "3DC9EB95056C197DE16235BE6069E77053330B7D13C7300112A469923CC3662F",
+      "window": [
+        1000.0000613962764,
+        -4700.712846858078,
+        3970.000061396276,
+        -500.71284685807814
+      ]
+    },
+    {
+      "file": "TEMPLETE_1대10_blank.DWG",
+      "scale": {
+        "numerator": "1",
+        "denominator": "10"
+      },
+      "rotation": 0,
+      "state": "blank",
+      "sha256": "B4362427561B981D0944983C036AE5FB50B7663AF69197F4DE26F1AC8F9AFE8D",
+      "window": [
+        0.7128468580776826,
+        6.13962770330545e-05,
+        4200.712846858078,
+        2970.000061396277
+      ]
+    },
+    {
+      "file": "TEMPLETE_1대10_na.DWG",
+      "scale": {
+        "numerator": "1",
+        "denominator": "10"
+      },
+      "rotation": 0,
+      "state": "na",
+      "sha256": "ECA6C6C20741F776AF7C433911534B3777A108E04732E5A5A9B23096ACED34ED",
+      "window": [
+        0.7128468580776826,
+        6.13962770330545e-05,
+        4200.712846858078,
+        2970.000061396277
+      ]
+    },
+    {
+      "file": "TEMPLETE_1대100_shift.DWG",
+      "scale": {
+        "numerator": "1",
+        "denominator": "100"
+      },
+      "rotation": 0,
+      "state": "shift",
+      "sha256": "6CCC1241EE7677C88437414B6E6595BE7B3FA77509FD5B6124EE1A84B8AF8395",
+      "window": [
+        1007.1284685807768,
+        -499.9993860372306,
+        43007.12846858078,
+        29200.000613962766
+      ]
+    },
+    {
+      "file": "TEMPLETE_1대100_rotate90.DWG",
+      "scale": {
+        "numerator": "1",
+        "denominator": "100"
+      },
+      "rotation": 90,
+      "state": "rotate90",
+      "sha256": "A26DAC89D293A884E3BE24E9DD52B177C6ADB968E1AB752CBF3F8685A9582016",
+      "window": [
+        -28700.00061396278,
+        -492.8715314192159,
+        999.9993860372192,
+        41507.128468580784
+      ]
+    },
+    {
+      "file": "TEMPLETE_1대100_rotate180.DWG",
+      "scale": {
+        "numerator": "1",
+        "denominator": "100"
+      },
+      "rotation": 180,
+      "state": "rotate180",
+      "sha256": "BFA6D02F2ACE9581CAABD3815E3383410D13001390FA0596C6E2DFFF412C5342",
+      "window": [
+        -41007.12846858077,
+        -30200.000613962766,
+        992.8715314192305,
+        -500.0006139627667
+      ]
+    },
+    {
+      "file": "TEMPLETE_1대100_rotate270.DWG",
+      "scale": {
+        "numerator": "1",
+        "denominator": "100"
+      },
+      "rotation": 270,
+      "state": "rotate270",
+      "sha256": "9ABCB0E55B908B452DD6F8843543A488C496CA9A20C8B39322BFA1218675DED3",
+      "window": [
+        1000.000613962763,
+        -42507.12846858078,
+        30700.00061396276,
+        -507.1284685807768
+      ]
+    },
+    {
+      "file": "TEMPLETE_1대100_blank.DWG",
+      "scale": {
+        "numerator": "1",
+        "denominator": "100"
+      },
+      "rotation": 0,
+      "state": "blank",
+      "sha256": "91D393038E3B07BAC7B9D6A352BFCDBBB00CA1CF5465CBDB274D1CB048A1ECF4",
+      "window": [
+        7.1284685807768255,
+        0.0006139627694210503,
+        42007.12846858078,
+        29700.000613962766
+      ]
+    },
+    {
+      "file": "TEMPLETE_1대100_na.DWG",
+      "scale": {
+        "numerator": "1",
+        "denominator": "100"
+      },
+      "rotation": 0,
+      "state": "na",
+      "sha256": "62DF8A14789B76327678FA72A3F44288C44E6B84FBA2EB2384F1698FC91786DD",
+      "window": [
+        7.1284685807768255,
+        0.0006139627694210503,
+        42007.12846858078,
+        29700.000613962766
+      ]
+    },
+    {
+      "file": "TEMPLETE_1대2_shift.DWG",
+      "scale": {
+        "numerator": "1",
+        "denominator": "2"
+      },
+      "rotation": 0,
+      "state": "shift",
+      "sha256": "EDF87B3CC3D379F0094CD4D28C6F052B57F7795949E29D6197818EFA93116BEE",
+      "window": [
+        1000.1425693716153,
+        -499.9999877207447,
+        1840.1425693716158,
+        94.0000122792553
+      ]
+    },
+    {
+      "file": "TEMPLETE_1대2_rotate90.DWG",
+      "scale": {
+        "numerator": "1",
+        "denominator": "2"
+      },
+      "rotation": 90,
+      "state": "rotate90",
+      "sha256": "4927700DCAB4B16BD514B0FF9F4E2DE0CE83D3486757C6B262A54A06524FF655",
+      "window": [
+        405.99998772074457,
+        -499.85743062838435,
+        999.9999877207446,
+        340.1425693716158
+      ]
+    },
+    {
+      "file": "TEMPLETE_1대2_rotate180.DWG",
+      "scale": {
+        "numerator": "1",
+        "denominator": "2"
+      },
+      "rotation": 180,
+      "state": "rotate180",
+      "sha256": "16A4F36AD32AB027F236B2F82E788DC24F1ADD8EA03732D3F828552FF15E3CD0",
+      "window": [
+        159.85743062838452,
+        -1094.0000122792553,
+        999.8574306283847,
+        -500.0000122792553
+      ]
+    },
+    {
+      "file": "TEMPLETE_1대2_rotate270.DWG",
+      "scale": {
+        "numerator": "1",
+        "denominator": "2"
+      },
+      "rotation": 270,
+      "state": "rotate270",
+      "sha256": "19861D1E7786E2A8FB3CD3323C4498730D124E7E3D821B68DEDDC3C1BC34C070",
+      "window": [
+        1000.0000122792553,
+        -1340.1425693716155,
+        1594.0000122792553,
+        -500.14256937161537
+      ]
+    },
+    {
+      "file": "TEMPLETE_1대2_blank.DWG",
+      "scale": {
+        "numerator": "1",
+        "denominator": "2"
+      },
+      "rotation": 0,
+      "state": "blank",
+      "sha256": "5A9DAF5F545096207D3F9EE932BEA2810F01671839794183A6362B43DF4B55D2",
+      "window": [
+        0.14256937161542282,
+        1.227925531566143e-05,
+        840.1425693716155,
+        594.0000122792553
+      ]
+    },
+    {
+      "file": "TEMPLETE_1대2_na.DWG",
+      "scale": {
+        "numerator": "1",
+        "denominator": "2"
+      },
+      "rotation": 0,
+      "state": "na",
+      "sha256": "6E750229192A590EA67A5334FBF032FE335479A951CCC39E4EE6FF6FD862985E",
+      "window": [
+        0.14256937161542282,
+        1.227925531566143e-05,
+        840.1425693716155,
+        594.0000122792553
+      ]
+    },
+    {
+      "file": "TEMPLETE_100대1_shift.DWG",
+      "scale": {
+        "numerator": "100",
+        "denominator": "1"
+      },
+      "rotation": 0,
+      "state": "shift",
+      "sha256": "A0173E2A60FD77A9477BB49BD8A44D0A6786CA98C2DC4C1A75F5394BBF94A925",
+      "window": [
+        1000.000712846858,
+        -499.9999999386037,
+        1004.2007128468581,
+        -497.02999993860374
+      ]
+    },
+    {
+      "file": "TEMPLETE_100대1_rotate90.DWG",
+      "scale": {
+        "numerator": "100",
+        "denominator": "1"
+      },
+      "rotation": 90,
+      "state": "rotate90",
+      "sha256": "B24A5E4FCE8555F2E98DD18151295850267BE698D1D839280CF35F2D10F8CDE0",
+      "window": [
+        997.0299999386037,
+        -499.999287153142,
+        999.9999999386038,
+        -495.79928715314196
+      ]
+    },
+    {
+      "file": "TEMPLETE_100대1_rotate180.DWG",
+      "scale": {
+        "numerator": "100",
+        "denominator": "1"
+      },
+      "rotation": 180,
+      "state": "rotate180",
+      "sha256": "0BED90496375C62F7AD715736EB07419965CC013FE5FB26F9C0A9500B40BDC26",
+      "window": [
+        995.7992871531419,
+        -502.97000006139626,
+        999.999287153142,
+        -500.0000000613963
+      ]
+    },
+    {
+      "file": "TEMPLETE_100대1_rotate270.DWG",
+      "scale": {
+        "numerator": "100",
+        "denominator": "1"
+      },
+      "rotation": 270,
+      "state": "rotate270",
+      "sha256": "2F8FA4110BEDB80A6DE454DBC44254BBCB4EC2EF1023FD51287ABBA0A2FC41EF",
+      "window": [
+        1000.0000000613962,
+        -504.20071284685804,
+        1002.9700000613963,
+        -500.000712846858
+      ]
+    },
+    {
+      "file": "TEMPLETE_100대1_blank.DWG",
+      "scale": {
+        "numerator": "100",
+        "denominator": "1"
+      },
+      "rotation": 0,
+      "state": "blank",
+      "sha256": "EACCF43121B89E2D36758BC8D183ECC2354D8C5CF8E7B25DFBB40E5A9AD39599",
+      "window": [
+        0.0007128468580770431,
+        6.139627695134209e-08,
+        4.200712846858076,
+        2.9700000613962767
+      ]
+    },
+    {
+      "file": "TEMPLETE_100대1_na.DWG",
+      "scale": {
+        "numerator": "100",
+        "denominator": "1"
+      },
+      "rotation": 0,
+      "state": "na",
+      "sha256": "52C32F9C1AC37364279D51EC49AEE977F34AD81BA8A6CD132F5A9916E1F126E5",
+      "window": [
+        0.0007128468580770431,
+        6.139627695134209e-08,
+        4.200712846858076,
+        2.9700000613962767
+      ]
+    }
+  ]
+}

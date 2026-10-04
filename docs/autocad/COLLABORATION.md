@@ -21,18 +21,18 @@ git log -1 --oneline
 1. [허브](README.md),명세,로드맵,루트 `AGENTS.md`,관리 이슈의 최근 인계 내용을 읽는다.
 2. G0/G1 승인 여부와 작업 담당을 확인한다. 이슈가 closed라고 기능 전체가 승인됐다고 가정하지 않는다.
 3. 작업을 맡기 전에 이슈에 작업ID·개발자/PC별명·브랜치·소유 파일·시작 기준SHA를 적는다. 담당 배정 충돌은 해소한 뒤 시작한다. 동시 요청이면 선착순을 추측하지 말고 조정한다.
-4. 프로젝트 지침에 따라 `antigravity_prepare_worktree`로 만든 `agy/*` 격리 작업트리에서 구현한다. 다른 PC에 이 도구가 없으면 읽기/검토/문서 작업까지만 진행하고, 구현 환경 준비 또는 대체 작업 방식에 대한 사용자 승인을 받는다. 일반 branch 생성으로 이 규칙을 우회하지 않는다.
-5. 원격 브랜치 이름은 작업ID와 목적을 포함한다(예:`agy/ac-02-cad-discovery`). 사람/PC가 바뀌어도 같은 작업의 브랜치를 이어받을 수 있게 한다.
+4. DWG-PDF 전용 clone의 remote와 기준 SHA를 확인한 후 `git worktree add <독립경로> -b codex/<작업명> origin/main`으로 격리한다. Antigravity는 사용하지 않는다. 기존 작업 브랜치를 이어받을 때는 새 브랜치로 갈라지지 않고 인계 SHA와 담당을 먼저 확인한다.
+5. 원격 브랜치 이름은 목적을 포함한다(예:`codex/autocad-support`). 사람/PC가 바뀌어도 같은 작업의 브랜치를 이어받을 수 있게 한다.
 6. Python3.12 x64와 의존성은 [개발 안내](../DEVELOPMENT.md)에 따라 준비한다. 설치 전 사용자 권한/네트워크 정책을 확인한다. 라이선스/토큰은 Git에 저장하지 않는다.
 7. CAD 없는 시험은 아래 명령을 사용할 수 있다. AutoCAD가 없으면 실기 PASS를 기록하지 않는다.
 
 ```powershell
 $env:PYTHONPATH = "$PWD\src"
 $env:DWG_TO_PDF_TEMPLATE_SOURCE_ROOT = "$PWD\template_profiles"
-.\.venv\Scripts\python.exe -m pytest -m 'not gstarcad'
+.\.venv\Scripts\python.exe -m pytest -m 'not gstarcad and not autocad' -q
 ```
 
-위 명령은 현재 저장소 기준이다. 향후 AutoCAD 표식이 도입되면 해당 구현 PR에서 명령도 함께 갱신한다. 기존 `gstarcad` 외 표식을 현재 있다고 가정하지 않는다. 일부 pytest 통합 테스트는 모의 객체를 사용하므로 폴더 이름만으로 실기 시험이라고 판단하지 않는다.
+AutoCAD 표식은 개발 브랜치에 도입되었으며 추가 환경 opt-in도 필요하다. 일부 pytest 통합 테스트는 모의 객체를 사용하므로 폴더 이름만으로 실기 시험이라고 판단하지 않는다. 검증되지 않은 개발 브랜치를 main/배포본과 혼동하지 않는다.
 
 ## 충돌 방지와 인계
 

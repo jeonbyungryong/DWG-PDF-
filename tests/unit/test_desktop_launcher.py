@@ -1,9 +1,21 @@
 from __future__ import annotations
 
 from types import SimpleNamespace
+from pathlib import Path
+import pytest
+from dwg_to_pdf.cad.selection import CadCandidate
+
+
+@pytest.fixture(autouse=True)
+def installed_candidates(monkeypatch):
+    candidate = CadCandidate("gstarcad", "GStarCAD.Application.26", "fake", Path("C:/gcad.exe"), "GstarCAD", None)
+    monkeypatch.setattr("dwg_to_pdf.desktop_launcher.discover_candidates", lambda provider: (candidate,))
 
 
 class FakeUI:
+    def choose_cad_provider(self): return "gstarcad"
+    def choose_cad_candidate(self, candidates): return candidates[0].prog_id
+    def confirm_experimental_autocad(self): return False
     def __init__(
         self,
         *,
@@ -58,6 +70,7 @@ def test_file_selection_runs_existing_cli_contract() -> None:
         r"D:\output",
         "--conflict",
         "copy",
+        "--cad", "gstarcad", "--cad-prog-id", "GStarCAD.Application.26",
     ]]
     assert ui.result == 0
     assert ui.closed is True
@@ -72,7 +85,7 @@ def test_folder_selection_runs_existing_cli_contract() -> None:
     exit_code = run_desktop(lambda args: received.append(args) or 1, ui=ui)
 
     assert exit_code == 1
-    assert received == [[r"D:\input", "--output", r"D:\output", "--conflict", "copy"]]
+    assert received == [[r"D:\input", "--output", r"D:\output", "--conflict", "copy", "--cad", "gstarcad", "--cad-prog-id", "GStarCAD.Application.26"]]
     assert ui.result == 1
     assert ui.closed is True
 

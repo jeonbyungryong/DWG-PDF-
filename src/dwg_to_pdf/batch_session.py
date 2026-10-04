@@ -35,7 +35,7 @@ class BatchSession:
             self._unavailable = True
             if not isinstance(exc, Exception):
                 raise
-            raise AppError("E311", "GstarCAD batch session is unavailable") from exc
+            raise AppError("E311", "CAD batch session is unavailable") from exc
         return self
 
     def __exit__(self, exc_type: object, exc: object, tb: object) -> None:
@@ -80,7 +80,7 @@ class BatchSession:
             self._unavailable = True
             if not isinstance(exc, Exception):
                 raise
-            raise AppError("E311", "GstarCAD batch session is unavailable") from exc
+            raise AppError("E311", "CAD batch session is unavailable") from exc
         self._session = replacement
 
     def run_one(self, callback: Callable[[Any], T]) -> T:
@@ -92,7 +92,7 @@ class BatchSession:
         """
 
         if not self.is_available:
-            raise AppError("E311", "GstarCAD batch session is unavailable")
+            raise AppError("E311", "CAD batch session is unavailable")
         assert self._session is not None
         self.last_cleanup_error = None
         primary: BaseException | None = None
@@ -109,4 +109,4 @@ class BatchSession:
                 except Exception as replacement_error:
                     self.last_cleanup_error = replacement_error
                     if primary is None:
-                        raise AppError("E311", "GstarCAD batch session is unavailable") from replacement_error
+                        raise AppError("E311", "CAD batch session is unavailable") from replacement_error

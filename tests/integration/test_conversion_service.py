@@ -9,6 +9,7 @@ from dwg_to_pdf.configuration import AppConfig
 from dwg_to_pdf.conversion_service import ConversionService
 from dwg_to_pdf.domain import FrameCandidate, MatchDecision, Point, Rect, ScaleRatio
 from dwg_to_pdf.errors import AppError
+from dwg_to_pdf.gstarcad.document import GstarDocument
 from dwg_to_pdf import temp_workspace as workspace_module
 from dwg_to_pdf.temp_workspace import publish_pdf as actual_publish_pdf
 
@@ -72,7 +73,7 @@ def test_convert_in_session_uses_the_supplied_session_and_computed_plot_window(
     candidate = FrameCandidate("p", SimpleNamespace(), 0, window, window, 0.0)
     decision = MatchDecision(candidate, 0.9, 0.2)
     raw = SimpleNamespace(ActiveLayout=object())
-    document = SimpleNamespace(raw=raw)
+    document = GstarDocument(raw)
     session = FakeSession(document)
     profile = SimpleNamespace(profile_id="p", scale=ScaleRatio(1, 1))
     service = ConversionService(_config(), SimpleNamespace(all=lambda: (profile,)))
@@ -82,14 +83,14 @@ def test_convert_in_session_uses_the_supplied_session_and_computed_plot_window(
     monkeypatch.setattr("dwg_to_pdf.conversion_service.detect_scale_cell", lambda *args: object())
     monkeypatch.setattr("dwg_to_pdf.conversion_service.profiles_for_scale_cell", lambda *args: (profile,))
     monkeypatch.setattr("dwg_to_pdf.conversion_service.choose_profile_by_structure", lambda *args: decision)
-    monkeypatch.setattr("dwg_to_pdf.conversion_service.require_plot_environment", lambda *args: "User77")
+    monkeypatch.setattr("dwg_to_pdf.gstarcad.document.require_plot_environment", lambda *args: "User77")
     monkeypatch.setattr(
-        "dwg_to_pdf.conversion_service.apply_plot_settings",
+        "dwg_to_pdf.gstarcad.document.apply_plot_settings",
         lambda layout, received_window, rotation, media: calls.update(
             layout=layout, window=received_window, rotation=rotation, media=media
         ),
     )
-    monkeypatch.setattr("dwg_to_pdf.conversion_service.plot_to_file", lambda raw, path: None)
+    monkeypatch.setattr("dwg_to_pdf.gstarcad.document.plot_to_file", lambda raw, path: None)
     monkeypatch.setattr("dwg_to_pdf.conversion_service.publish_pdf", lambda temporary, final: None)
 
     outcome = service.convert_in_session(session, source, output_dir, "overwrite")
@@ -113,7 +114,7 @@ def test_convert_in_session_orders_plot_then_workspace_identity_then_publish_wit
     raw = SimpleNamespace(ActiveLayout=layout)
     profile = SimpleNamespace(profile_id="p", scale=ScaleRatio(1, 1))
     service = ConversionService(_config(), SimpleNamespace(all=lambda: (profile,)))
-    session = FakeSession(SimpleNamespace(raw=raw))
+    session = FakeSession(GstarDocument(raw))
     events: list[str] = []
     real_verify_identity = workspace_module._verify_source_identity
 
@@ -121,9 +122,9 @@ def test_convert_in_session_orders_plot_then_workspace_identity_then_publish_wit
     monkeypatch.setattr("dwg_to_pdf.conversion_service.detect_scale_cell", lambda *args: object())
     monkeypatch.setattr("dwg_to_pdf.conversion_service.profiles_for_scale_cell", lambda *args: (profile,))
     monkeypatch.setattr("dwg_to_pdf.conversion_service.choose_profile_by_structure", lambda *args: decision)
-    monkeypatch.setattr("dwg_to_pdf.conversion_service.require_plot_environment", lambda *args: "User77")
+    monkeypatch.setattr("dwg_to_pdf.gstarcad.document.require_plot_environment", lambda *args: "User77")
     monkeypatch.setattr(
-        "dwg_to_pdf.conversion_service.plot_to_file",
+        "dwg_to_pdf.gstarcad.document.plot_to_file",
         lambda raw_document, temporary: events.append("plot") or _write_pdf(temporary),
     )
 
@@ -160,19 +161,19 @@ def test_convert_in_session_preserves_old_final_when_workspace_identity_gate_fai
     decision = MatchDecision(candidate, 0.9, 0.2)
     profile = SimpleNamespace(profile_id="p", scale=ScaleRatio(1, 1))
     service = ConversionService(_config(), SimpleNamespace(all=lambda: (profile,)))
-    session = FakeSession(SimpleNamespace(raw=SimpleNamespace(ActiveLayout=SavedWindowGetterSentinel())))
+    session = FakeSession(GstarDocument(SimpleNamespace(ActiveLayout=SavedWindowGetterSentinel())))
 
     monkeypatch.setattr("dwg_to_pdf.conversion_service.require_stable", lambda path: None)
     monkeypatch.setattr("dwg_to_pdf.conversion_service.detect_scale_cell", lambda *args: object())
     monkeypatch.setattr("dwg_to_pdf.conversion_service.profiles_for_scale_cell", lambda *args: (profile,))
     monkeypatch.setattr("dwg_to_pdf.conversion_service.choose_profile_by_structure", lambda *args: decision)
-    monkeypatch.setattr("dwg_to_pdf.conversion_service.require_plot_environment", lambda *args: "User77")
+    monkeypatch.setattr("dwg_to_pdf.gstarcad.document.require_plot_environment", lambda *args: "User77")
 
     def successful_plot_then_source_change(raw_document: object, temporary: Path) -> None:
         _write_pdf(temporary)
         source.write_bytes(b"source changed after plotting")
 
-    monkeypatch.setattr("dwg_to_pdf.conversion_service.plot_to_file", successful_plot_then_source_change)
+    monkeypatch.setattr("dwg_to_pdf.gstarcad.document.plot_to_file", successful_plot_then_source_change)
 
     with pytest.raises(AppError) as raised:
         service.convert_in_session(session, source, output_dir, "overwrite")

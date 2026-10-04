@@ -9,6 +9,7 @@ import stat
 import tempfile
 import time
 from types import TracebackType
+from typing import Callable
 
 from .errors import AppError
 from .pdf_validator import PdfValidation, validate_pdf
@@ -249,7 +250,8 @@ class SourceWorkspace(AbstractContextManager["SourceWorkspace"]):
         raise AppError("E400", "임시 DWG 작업공간을 정리할 수 없습니다.", temp_dir) from last_error
 
 
-def publish_pdf(temporary: Path, final: Path) -> PdfValidation:
+def publish_pdf(temporary: Path, final: Path, *,
+                validator: Callable[[Path], PdfValidation] | None = None) -> PdfValidation:
     """Validate and atomically publish a PDF; never damage an old final on failure."""
 
     requested_temporary = Path(temporary)
@@ -276,7 +278,7 @@ def publish_pdf(temporary: Path, final: Path) -> PdfValidation:
         if resolved_temporary == resolved_final:
             owned_temporary = False
             raise AppError("E420", "임시 PDF와 최종 PDF 경로가 같습니다.", resolved_final)
-        result = validate_pdf(resolved_temporary)
+        result = (validate_pdf if validator is None else validator)(resolved_temporary)
         try:
             _make_dir(resolved_final.parent)
             _replace_file(resolved_temporary, resolved_final)

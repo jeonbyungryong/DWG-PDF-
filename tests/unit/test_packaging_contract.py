@@ -9,6 +9,14 @@ import tomllib
 ROOT = Path(__file__).parents[2]
 
 
+def test_shared_lisp_asset_is_packaged_once():
+    spec = (ROOT / "packaging/dwg_to_pdf.spec").read_text(encoding="utf-8")
+    assert '"cad" / "bulk_extract.lsp"' in spec
+    assert '"dwg_to_pdf/cad"' in spec
+    assert (ROOT / "src/dwg_to_pdf/cad/bulk_extract.lsp").is_file()
+    assert not (ROOT / "src/dwg_to_pdf/gstarcad/bulk_extract.lsp").exists()
+
+
 def test_shipped_configs_enable_only_strict_calibrated_matching() -> None:
     for name in ("config.toml", "config.example.toml"):
         config = tomllib.loads((ROOT / name).read_text(encoding="utf-8"))

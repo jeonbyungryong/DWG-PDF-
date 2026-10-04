@@ -1,0 +1,109 @@
+{
+  "code_root": "LOCAL_WORKSPACE\\work\\autocad-fixes",
+  "probe_com": false,
+  "batch_seconds": 16.948967900010757,
+  "sources_unchanged": true,
+  "user_pids_before": [
+    37600
+  ],
+  "user_pids_after": [
+    37600
+  ],
+  "owned_pid": 26876,
+  "owned_pid_closed": true,
+  "outcomes": [
+    {
+      "source": "TEMPLETE_1대1.DWG",
+      "outcome": {
+        "source": "LOCAL_WORKSPACE\\work\\autocad-fixes\\template_profiles\\TEMPLETE_1대1.DWG",
+        "frames": [
+          {
+            "output": "..\\..\\outputs\\main-merge-autocad-benchmark-pdf\\TEMPLETE_1대1.pdf",
+            "scale": {
+              "numerator": "1",
+              "denominator": "1"
+            },
+            "rotation": 0,
+            "plot_window": {
+              "lower_left": {
+                "x": 0.07128468580771141,
+                "y": 6.139627657830715e-06
+              },
+              "upper_right": {
+                "x": 420.07128468580777,
+                "y": 297.00000613962766
+              }
+            }
+          }
+        ],
+        "used_target_saved_window": false
+      },
+      "pdf": {
+        "page_count": 1,
+        "width_mm": 297.03888888888883,
+        "height_mm": 209.90277777777777,
+        "nonblank": true
+      },
+      "seconds": 8.197830900084227
+    }
+  ],
+  "events": [
+    {
+      "source": "batch",
+      "stage": "__enter__",
+      "seconds": 5.11502060003113
+    },
+    {
+      "source": "TEMPLETE_1대1.DWG",
+      "stage": "require_stable",
+      "seconds": 1.0006597000174224
+    },
+    {
+      "source": "TEMPLETE_1대1.DWG",
+      "stage": "_open_working_copy",
+      "seconds": 0.4727662999648601
+    },
+    {
+      "source": "TEMPLETE_1대1.DWG",
+      "stage": "detect_scale_cell",
+      "seconds": 1.3124607000499964
+    },
+    {
+      "source": "TEMPLETE_1대1.DWG",
+      "stage": "choose_profile_by_structure",
+      "seconds": 6.320001557469368e-05
+    },
+    {
+      "source": "TEMPLETE_1대1.DWG",
+      "stage": "plot_pdf",
+      "seconds": 5.145416799932718
+    },
+    {
+      "source": "TEMPLETE_1대1.DWG",
+      "stage": "close_document",
+      "seconds": 0.19795339996926486
+    },
+    {
+      "source": "TEMPLETE_1대1.DWG",
+      "stage": "publish_pdf",
+      "seconds": 0.046217399998568
+    },
+    {
+      "source": "batch",
+      "stage": "close_document",
+      "seconds": 1.600012183189392e-06
+    },
+    {
+      "source": "batch",
+      "stage": "_release",
+      "seconds": 3.4659173999680206
+    }
+  ],
+  "com": {},
+  "definitions": {},
+  "user_pids_preserved": true,
+  "provider": "autocad",
+  "prog_id": "AutoCAD.Application.24",
+  "reported_version": "24.0s (LMS Tech)",
+  "failure_details": {}
+}

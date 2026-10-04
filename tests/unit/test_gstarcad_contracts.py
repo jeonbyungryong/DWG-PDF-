@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 from pathlib import Path
+from datetime import datetime, timezone
+import sys
 from types import SimpleNamespace
 
 import pytest
@@ -10,6 +12,23 @@ from dwg_to_pdf.gstarcad.com_session import GstarSession, _gstar_pids
 from dwg_to_pdf.gstarcad.discovery import require_registered_prog_id
 from dwg_to_pdf.gstarcad.media_resolver import require_plot_environment
 from dwg_to_pdf.temp_workspace import SourceWorkspace
+from dwg_to_pdf.cad.selection import CadCandidate
+
+
+@pytest.fixture(autouse=True)
+def ownership_boundary(monkeypatch):
+    executable = Path(sys.executable).resolve()
+    candidate = CadCandidate("gstarcad", "GStarCAD.Application.26", "fake", executable, "GstarCAD", None)
+    monkeypatch.setattr(GstarSession, "_resolve_candidate", lambda self: candidate)
+    monkeypatch.setattr("dwg_to_pdf.cad.process_ownership._product_pids", lambda _: frozenset({7}))
+    # Stable creation timestamp is captured on first identity read, after dispatch.
+    times = []
+    def identity(handle):
+        if not times:
+            times.append(datetime.now(timezone.utc))
+        return 7, executable, times[0]
+    monkeypatch.setattr("dwg_to_pdf.cad.process_ownership._identity", identity)
+    monkeypatch.setattr("dwg_to_pdf.cad.process_ownership._running", lambda _: True)
 
 
 def test_discovery_rejects_missing_registration(monkeypatch) -> None:
@@ -24,7 +43,7 @@ def test_discovery_rejects_missing_registration(monkeypatch) -> None:
 
 def test_gstar_pid_enumeration_treats_empty_process_set_as_valid(monkeypatch) -> None:
     monkeypatch.setattr(
-        "dwg_to_pdf.gstarcad.com_session.subprocess.run",
+        "dwg_to_pdf.cad.com_session.subprocess.run",
         lambda *args, **kwargs: SimpleNamespace(returncode=1, stdout="", stderr=""),
     )
     assert _gstar_pids() == set()
@@ -32,7 +51,7 @@ def test_gstar_pid_enumeration_treats_empty_process_set_as_valid(monkeypatch) ->
 
 def test_gstar_pid_enumeration_preserves_real_powershell_failure(monkeypatch) -> None:
     monkeypatch.setattr(
-        "dwg_to_pdf.gstarcad.com_session.subprocess.run",
+        "dwg_to_pdf.cad.com_session.subprocess.run",
         lambda *args, **kwargs: SimpleNamespace(returncode=1, stdout="", stderr="access denied"),
     )
     with pytest.raises(AppError) as raised:
@@ -69,37 +88,37 @@ def test_plot_environment_resolves_a4_by_measured_size() -> None:
 
 def test_session_partial_enter_failure_cleans_up_without_unbalanced_com(monkeypatch) -> None:
     events = []
-    monkeypatch.setattr("dwg_to_pdf.gstarcad.com_session._create_owned_mutex", lambda name: "mutex")
-    monkeypatch.setattr("dwg_to_pdf.gstarcad.com_session.pythoncom.CoInitialize", lambda: events.append("init"))
-    monkeypatch.setattr("dwg_to_pdf.gstarcad.com_session.pythoncom.CoUninitialize", lambda: events.append("uninit"))
-    monkeypatch.setattr("dwg_to_pdf.gstarcad.com_session.require_registered_prog_id", lambda prog_id: (_ for _ in ()).throw(AppError("E202", "bad")))
-    monkeypatch.setattr("dwg_to_pdf.gstarcad.com_session._close_mutex", lambda mutex: events.append("mutex-close"))
+    monkeypatch.setattr("dwg_to_pdf.cad.com_session._create_owned_mutex", lambda name: "mutex")
+    monkeypatch.setattr("dwg_to_pdf.cad.com_session.pythoncom.CoInitialize", lambda: events.append("init"))
+    monkeypatch.setattr("dwg_to_pdf.cad.com_session.pythoncom.CoUninitialize", lambda: events.append("uninit"))
+    monkeypatch.setattr(GstarSession, "_resolve_candidate", lambda self: (_ for _ in ()).throw(AppError("E202", "bad")))
+    monkeypatch.setattr("dwg_to_pdf.cad.com_session._close_mutex", lambda mutex: events.append("mutex-close"))
 
     session = GstarSession("bad")
     with pytest.raises(AppError, match="bad"):
         session.__enter__()
     session._release()
-    assert events == ["init", "uninit", "mutex-close"]
+    assert events == ["init", "uninit", "mutex-close", "mutex-close"]
 
 
 def test_session_fails_closed_when_window_pid_does_not_prove_new_process(monkeypatch) -> None:
     events = []
     app = SimpleNamespace(HWND=123, Visible=True, Quit=lambda: events.append("quit"))
-    monkeypatch.setattr("dwg_to_pdf.gstarcad.com_session._create_owned_mutex", lambda name: "mutex")
-    monkeypatch.setattr("dwg_to_pdf.gstarcad.com_session._close_mutex", lambda mutex: events.append("mutex-close"))
-    monkeypatch.setattr("dwg_to_pdf.gstarcad.com_session.pythoncom.CoInitialize", lambda: events.append("init"))
-    monkeypatch.setattr("dwg_to_pdf.gstarcad.com_session.pythoncom.CoUninitialize", lambda: events.append("uninit"))
-    monkeypatch.setattr("dwg_to_pdf.gstarcad.com_session.require_registered_prog_id", lambda prog_id: prog_id)
-    monkeypatch.setattr("dwg_to_pdf.gstarcad.com_session._gstar_pids", lambda: {7})
-    monkeypatch.setattr("dwg_to_pdf.gstarcad.com_session.win32com.client.DispatchEx", lambda prog_id: app)
-    monkeypatch.setattr("dwg_to_pdf.gstarcad.com_session._window_pid", lambda hwnd: 7)
+    monkeypatch.setattr("dwg_to_pdf.cad.com_session._create_owned_mutex", lambda name: "mutex")
+    monkeypatch.setattr("dwg_to_pdf.cad.com_session._close_mutex", lambda mutex: events.append("mutex-close"))
+    monkeypatch.setattr("dwg_to_pdf.cad.com_session.pythoncom.CoInitialize", lambda: events.append("init"))
+    monkeypatch.setattr("dwg_to_pdf.cad.com_session.pythoncom.CoUninitialize", lambda: events.append("uninit"))
+    monkeypatch.setattr("dwg_to_pdf.cad.com_session._all_pids", lambda: {7})
+    monkeypatch.setattr("dwg_to_pdf.cad.com_session.win32com.client.DispatchEx", lambda prog_id: app)
+    monkeypatch.setattr("dwg_to_pdf.cad.process_ownership._window_pid", lambda hwnd: 7)
 
     with pytest.raises(AppError, match="ownership") as raised:
         GstarSession("GStarCAD.Application.26").__enter__()
     assert raised.value.code == "E201"
     # An application whose PID was already present may be user-owned. Releasing
     # our COM reference is safe; calling Quit would not be.
-    assert events == ["init", "uninit", "mutex-close"]
+    assert app.Visible is True
+    assert events == ["init", "uninit", "mutex-close", "mutex-close"]
 
 
 def test_session_requires_exact_process_handle_after_ownership_proof(monkeypatch) -> None:
@@ -107,44 +126,42 @@ def test_session_requires_exact_process_handle_after_ownership_proof(monkeypatch
     app = SimpleNamespace(HWND=123, Visible=True, Quit=lambda: events.append("quit"))
     handle = object()
     pids = iter((set(), {7}))
-    monkeypatch.setattr("dwg_to_pdf.gstarcad.com_session._create_owned_mutex", lambda name: "mutex")
-    monkeypatch.setattr("dwg_to_pdf.gstarcad.com_session._close_mutex", lambda mutex: events.append("mutex-close"))
-    monkeypatch.setattr("dwg_to_pdf.gstarcad.com_session.pythoncom.CoInitialize", lambda: events.append("init"))
-    monkeypatch.setattr("dwg_to_pdf.gstarcad.com_session.pythoncom.CoUninitialize", lambda: events.append("uninit"))
-    monkeypatch.setattr("dwg_to_pdf.gstarcad.com_session.require_registered_prog_id", lambda prog_id: prog_id)
-    monkeypatch.setattr("dwg_to_pdf.gstarcad.com_session._gstar_pids", lambda: next(pids))
-    monkeypatch.setattr("dwg_to_pdf.gstarcad.com_session.win32com.client.DispatchEx", lambda prog_id: app)
-    monkeypatch.setattr("dwg_to_pdf.gstarcad.com_session._window_pid", lambda hwnd: 7)
-    monkeypatch.setattr("dwg_to_pdf.gstarcad.com_session._open_owned_process_handle", lambda pid: handle)
-    monkeypatch.setattr("dwg_to_pdf.gstarcad.com_session._wait_for_process_exit", lambda captured: True)
-    monkeypatch.setattr("dwg_to_pdf.gstarcad.com_session._close_process_handle", lambda captured: events.append(("handle-close", captured)))
+    monkeypatch.setattr("dwg_to_pdf.cad.com_session._create_owned_mutex", lambda name: "mutex")
+    monkeypatch.setattr("dwg_to_pdf.cad.com_session._close_mutex", lambda mutex: events.append("mutex-close"))
+    monkeypatch.setattr("dwg_to_pdf.cad.com_session.pythoncom.CoInitialize", lambda: events.append("init"))
+    monkeypatch.setattr("dwg_to_pdf.cad.com_session.pythoncom.CoUninitialize", lambda: events.append("uninit"))
+    monkeypatch.setattr("dwg_to_pdf.cad.com_session._all_pids", lambda: next(pids))
+    monkeypatch.setattr("dwg_to_pdf.cad.com_session.win32com.client.DispatchEx", lambda prog_id: app)
+    monkeypatch.setattr("dwg_to_pdf.cad.process_ownership._window_pid", lambda hwnd: 7)
+    monkeypatch.setattr("dwg_to_pdf.cad.process_ownership._open_process", lambda pid: handle)
+    monkeypatch.setattr("dwg_to_pdf.cad.com_session._wait_for_process_exit", lambda captured: True)
+    monkeypatch.setattr("dwg_to_pdf.cad.process_ownership._close_handle", lambda captured: events.append(("handle-close", captured)))
 
     session = GstarSession("GStarCAD.Application.26").__enter__()
     assert session.owned_pid == 7
     assert session._owned_process_handle is handle
     session._release()
 
-    assert events == ["init", "quit", ("handle-close", handle), "uninit", "mutex-close"]
+    assert events == ["init", "quit", ("handle-close", handle), "uninit", "mutex-close", "mutex-close"]
 
 
-def test_handle_capture_failure_fails_session_safely_and_quits_without_force_termination(monkeypatch) -> None:
+def test_handle_capture_failure_never_sets_owns_app_or_mutates_cad(monkeypatch) -> None:
     events: list[object] = []
     app = SimpleNamespace(HWND=123, Visible=True, Quit=lambda: events.append("quit"))
     pids = iter((set(), {7}))
-    monkeypatch.setattr("dwg_to_pdf.gstarcad.com_session._create_owned_mutex", lambda name: "mutex")
-    monkeypatch.setattr("dwg_to_pdf.gstarcad.com_session._close_mutex", lambda mutex: events.append("mutex-close"))
-    monkeypatch.setattr("dwg_to_pdf.gstarcad.com_session.pythoncom.CoInitialize", lambda: events.append("init"))
-    monkeypatch.setattr("dwg_to_pdf.gstarcad.com_session.pythoncom.CoUninitialize", lambda: events.append("uninit"))
-    monkeypatch.setattr("dwg_to_pdf.gstarcad.com_session.require_registered_prog_id", lambda prog_id: prog_id)
-    monkeypatch.setattr("dwg_to_pdf.gstarcad.com_session._gstar_pids", lambda: next(pids))
-    monkeypatch.setattr("dwg_to_pdf.gstarcad.com_session.win32com.client.DispatchEx", lambda prog_id: app)
-    monkeypatch.setattr("dwg_to_pdf.gstarcad.com_session._window_pid", lambda hwnd: 7)
+    monkeypatch.setattr("dwg_to_pdf.cad.com_session._create_owned_mutex", lambda name: "mutex")
+    monkeypatch.setattr("dwg_to_pdf.cad.com_session._close_mutex", lambda mutex: events.append("mutex-close"))
+    monkeypatch.setattr("dwg_to_pdf.cad.com_session.pythoncom.CoInitialize", lambda: events.append("init"))
+    monkeypatch.setattr("dwg_to_pdf.cad.com_session.pythoncom.CoUninitialize", lambda: events.append("uninit"))
+    monkeypatch.setattr("dwg_to_pdf.cad.com_session._all_pids", lambda: next(pids))
+    monkeypatch.setattr("dwg_to_pdf.cad.com_session.win32com.client.DispatchEx", lambda prog_id: app)
+    monkeypatch.setattr("dwg_to_pdf.cad.process_ownership._window_pid", lambda hwnd: 7)
     monkeypatch.setattr(
-        "dwg_to_pdf.gstarcad.com_session._open_owned_process_handle",
+        "dwg_to_pdf.cad.process_ownership._open_process",
         lambda pid: (_ for _ in ()).throw(AppError("E201", "no handle")),
     )
     monkeypatch.setattr(
-        "dwg_to_pdf.gstarcad.com_session._terminate_owned_process_handle",
+        "dwg_to_pdf.cad.com_session._terminate_owned_process_handle",
         lambda captured: pytest.fail("session without a captured handle must not force terminate"),
     )
 
@@ -152,7 +169,8 @@ def test_handle_capture_failure_fails_session_safely_and_quits_without_force_ter
         GstarSession("GStarCAD.Application.26").__enter__()
 
     assert raised.value.code == "E201"
-    assert events == ["init", "quit", "uninit", "mutex-close"]
+    assert app.Visible is True
+    assert events == ["init", "uninit", "mutex-close", "mutex-close"]
 
 
 def test_session_opens_at_most_one_existing_file_readonly(monkeypatch, tmp_path: Path) -> None:
@@ -226,7 +244,9 @@ class FakeDocuments:
 
     def Open(self, path: str, readonly: bool) -> FakeRawDocument:
         self.opened.append((path, readonly))
-        return next(self._documents)
+        document = next(self._documents)
+        document.FullName = path
+        return document
 
 
 def _open_fake_session(documents: list[FakeRawDocument]) -> GstarSession:
@@ -424,23 +444,23 @@ def test_handle_wait_and_close_failures_cannot_block_com_or_mutex_cleanup(
     session._com_initialized = True
     session.mutex = "mutex"
     monkeypatch.setattr(
-        "dwg_to_pdf.gstarcad.com_session._wait_for_process_exit",
+        "dwg_to_pdf.cad.com_session._wait_for_process_exit",
         lambda handle: (_ for _ in ()).throw(OSError("wait failure")),
     )
     monkeypatch.setattr(
-        "dwg_to_pdf.gstarcad.com_session._terminate_owned_process_handle",
+        "dwg_to_pdf.cad.com_session._terminate_owned_process_handle",
         lambda handle: (_ for _ in ()).throw(RuntimeError("terminate failure")),
     )
     monkeypatch.setattr(
-        "dwg_to_pdf.gstarcad.com_session._close_process_handle",
+        "dwg_to_pdf.cad.com_session._close_process_handle",
         lambda handle: (_ for _ in ()).throw(RuntimeError("close failure")),
     )
     monkeypatch.setattr(
-        "dwg_to_pdf.gstarcad.com_session.pythoncom.CoUninitialize",
+        "dwg_to_pdf.cad.com_session.pythoncom.CoUninitialize",
         lambda: events.append("uninit"),
     )
     monkeypatch.setattr(
-        "dwg_to_pdf.gstarcad.com_session._close_mutex",
+        "dwg_to_pdf.cad.com_session._close_mutex",
         lambda mutex: events.append(("mutex-close", mutex)),
     )
 

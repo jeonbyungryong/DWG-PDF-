@@ -1,0 +1,3 @@
+# Preserve the exact bytes recorded by evidence checksums on every PC.
+validation/** -text
+tools/regression/gstarcad/inputs/*.DWG -text

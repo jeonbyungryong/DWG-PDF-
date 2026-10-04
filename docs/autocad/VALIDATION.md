@@ -1,0 +1,104 @@
+# AutoCAD 확장 검증 현황
+
+## 결론
+
+### 2026-10-04 두 번째 PC 추가 검증
+
+MAIN 인계의 CLI/도구 보완과 자료 무결성 시험을 포함한 최종 전체 회귀는 **829 PASS / 9 SKIP (34.02초)**다. 이전 813/809 결과는 실행 이력이다. 새 CLI 명시 선택과 benchmark는 각각 실제 AutoCAD 1건을 통과했고, 독립 재검토는35PASS다.
+
+후속 관리자 토큰 재검증: **813 PASS / 9 SKIP (32.31초)**, 심볼릭 링크4개 **4 PASS / 0 SKIP**. 기존13SKIP 중 링크4개가 해소됐다. 9SKIP는 GstarCAD6과 오프라인AutoCAD3(별도 실기로 통과)다. OFF/ON43쌍은144dpi렌더에서동일했다. 영구보안정책변경없이시험프로세스만승격했다. 공개증거와원래PC회귀도구는 [MAIN인계](HANDOFF-2026-10-04.md)에있다.
+
+`codex/autocad-pc-validation`은 인계 SHA `a546c4fc8bc960b6e5e2a36a3317e507db4d4352`의 격리 작업 브랜치다. Windows 일반 AutoCAD 2021, 실제 COM `24.0s (LMS Tech)`를 확인했다. 최종 오프라인 회귀는 **809 PASS / 13 SKIP (33.77초)**, 실제 AutoCAD 통합 시험은 **3 PASS (1696.80초)**다. 승인 원본13종과 변형30종을 OFF/ON으로 변환한 **86개 PDF 및 86개 기대 판정값**이 모두 통과했다. 원본 해시·mtime, 기존 사용자 CAD 공존, 작업용 CAD 종료, 실패 파일 이후 다음 정상 파일 진행을 확인했다. G3/G5 또는 배포 승인 완료를 의미하지 않는다.
+
+별도 읽기 전용 출력 감사에서 각 PDF의 단일 비암호화 페이지, A4 가로(±0.2mm), Rotate=0, 비어 있지 않은 흑백 렌더를 확인했다. 기대 축척·회전·출력 창 좌표(오차 0.001 도면 단위 미만)를 독립 대조했다. 원본13종 접촉판과 1:1 네 회전 표본을 육안 검토했다. 13 SKIP은 GstarCAD 미설치6개, 오프라인 AutoCAD opt-in 미지정3개(별도 실기로 통과), 심볼릭 링크 권한4개다. ON은 현 보안 정책에서 COM fallback이며 직접 LISP 실행 검증이 아니다. 폰트·선가중치의 엔진 간 동등성, 전체 G4 수용 항목, frozen EXE 검증은 별도다.
+
+수정 범위는 시작 시 읽기 전용 준비 대기, 장치 정보 갱신 후 PaperUnits 설정, SECURELOAD/TRUSTEDPATHS 확인 후 COM fallback, AutoCAD PDF catalogue의 합법적 중복 PageMode만 메모리에서 처리하는 검증 호환, 선택적 전용 PC3 경로다. 사용자 보안 설정을 변경하지 않는다.
+
+4각도 실측으로 확인한 AutoCAD 2021의 직접 PlotRotation 매핑을 적용한다. 비정상 회전 PDF를 무조건 보정하지 않는다. COM 버전 `24.0s (LMS Tech)`, 단일 비암호화 A4 가로 MediaBox, 도면 회전의 역방향 PDF Rotate 패턴이 일치할 때만 작업용 PDF의 회전 메타데이터를 제거한다. 문서를 복제해 벡터 내용 보존을 확인하며 GstarCAD의 방향 보정은 사용하지 않는다. 0도 출력은 원래 바이트를 유지한다.
+
+원본 템플릿의 RGB True Color는 monochrome CTB를 우회했다. 작업용 도면에서만 레이어·블록 정의·붙은 속성/상수 속성을 제한 안에서 먼저 읽고, 흰색 마스크를 제외한 RGB를 승인 CTB의 색상7로 변환한다. 형상·선가중치·원본 저장은 변경하지 않는다. 외부 참조 블록은 소유 범위 밖이므로 거부한다. 1:1 표본 4각도 실제 출력에서 가로 방향과 흑백 픽셀을 확인했다. [Autodesk의 True Color/CTB 안내](https://www.autodesk.com/support/technical/article/caas/sfdcarticles/sfdcarticles/Plotting-True-Color-objects-in-monochrome.html)를 참고했다.
+
+#### 이 PC의 플로터 준비
+
+설치된 `DWG To PDF.pc3`의 자동 뷰어 옵션은 PDF를 Adobe Reader에서 열어 임시 파일 게시/삭제를 막았다. 전용 복사본에서 **Open in PDF viewer when done / Show results in viewer**를 끄고 다음 AutoCAD 전용 설정을 지정한다. 기존 설치 PC3를 덮어쓰지 않는다.
+
+```toml
+[plot]
+# 기존 승인 plotter_name/A4/monochrome 설정 유지
+autocad_pc3_path = "C:/project/local-plotter/DWG To PDF.pc3"
+preferred_media_names = ["ISO_A4_(297.00_x_210.00_MM)"]
+```
+
+위 경로와 매체명은 설치 환경에서 확인해야 한다. 설정 경로는 기존 일반 파일의 절대 경로여야 하며 AutoCAD에서만 허용한다. 제품은 PC3를 자동 편집하거나 PDF 뷰어를 종료하지 않는다. `SECURELOAD=1`에서 번들 LISP가 신뢰되지 않으면 native ON도 COM 추출로 전환한다.
+
+아래 2026-10-03 표는 이전 PC의 이력을 보존한 기록이다.
+
+2026-10-03 기준 **개발 브랜치 구현 / 실기·배포 미승인**이다. T1~T6의 오프라인 구현과 T7/T8 시험 장치를 준비했다. AutoCAD 지원 버전은 아직 없다. 기존 main/릴리스 ZIP은 변경하지 않는다.
+
+## 확인된 사실
+
+- 브랜치: `codex/autocad-support`, 기준 main: `de4bc247d7363c440d05aa5c949cc59df3e6f5ca`.
+- T1 `00dc3cd`, T2 `5b5c18a`, T3 `365e547`, T4 `32d440c`, T5 `e3c579e`, T6 `de7fd03`.
+- 2026-10-03 개발PC-A에서 `python -m dwg_to_pdf --self-check`: `RUNTIME_SELF_CHECK_OK`. CAD 기동 없이 검사했다.
+- 읽기 전용 후보 탐지: GstarCAD, 파일 메타데이터 버전 `26.3.0.0`, ProgID 별칭 2개. **실제 COM 버전/라이선스/출력 호환성 증거가 아니다.** AutoCAD 후보 없음.
+- 현재 세션에서 고객 도면이나 실제 CAD 출력은 실행하지 않았다. 사용자 소유 CAD 프로세스가 실행 중이지 않아 공존 조건을 충족하지 못했다.
+
+## 검증표
+
+| 게이트/제품 | 버전·커밋 | PC/표본 해시 | native | 명령/결과 | 사용자 검토 |
+|---|---|---|---|---|---|
+| G2 오프라인 | 위 T1~T6 및 최종 리뷰 수정 | 개발PC-A / 합성 자료, 기준13종은 기존 JSON의 source.sha256 검증 | on/off mock | `python -m pytest -q`: **778 PASS,13 SKIP** | Astra 독립 리뷰 후 구현자가 재현/수정/전체시험 |
+| G3 GstarCAD 실기 | COM 버전 미확인 / 현재 브랜치 | 승인13종+파생30개 실측 해시 미수집 | NOT_RUN | `python -m pytest -m gstarcad -q`: 6 SKIP. 게이트 미통과 | 사용자 CAD 공존 환경 필요 |
+| G4 AutoCAD 실기 | 제품/에디션/버전 미확인 | 검증PC/표본 해시 미수집 | NOT_RUN | `python -m pytest -m autocad -q`: 3 SKIP. 환경 opt-in 없음 | AutoCAD 확보 후 출력 육안 검토 필요 |
+| G5 frozen/다른 PC | 새 ZIP 없음 | 새 ZIP SHA256 없음 | NOT_RUN | G3/G4 선행 조건 미충족으로 새 빌드·배포 보류 | 별도 사용자 승인 필요 |
+
+최종 오프라인 재검증과 리뷰 결과는 관리 이슈의 마지막 push SHA 인계가 기준이다. SKIP/모의 성공을 실제 CAD PASS로 간주하지 않는다.
+
+### 독립 리뷰 후 수정
+
+- 진단 출력 스트림 오류가 CAD 종료/핸들/COM/mutex 정리 또는 임시 PDF 삭제를 방해하던 경로를 수정했다. 시작/ready/종료와 파일 실패 경로의 재현시험을 통과했다.
+- 동일 EXE의 다른 실행 인자를 무시하던 등록 판단을 수정했다. 정규화 실행 인자를 보존하고 등록 충돌은 E202,제외/미확인 AutoCAD 모드는 E223으로 거부한다. `ServerExecutable`이 있어도 제품 모드를 검사한다.
+- 실기 실패배치 시험은 세션의 PID 필드 초기화만 보지 않고, 획득한 PID가 종료 후 프로세스 목록에 남지 않는지 확인한다.
+- 중요 문제 2건과 안전 게이트 영향으로 중요로 상향한 시험 문제 1건을 한 번의 수정 단계에서 해결했다. 재현 단계 22 FAIL/27 PASS → 해당 시험49 PASS → 전체778 PASS/13 SKIP. 수정 후 재리뷰는 별도로 수행하지 않았다.
+
+### 구현 중 결정과 영향
+
+| 결정 | 이유/남는 영향 |
+|---|---|
+| Windows용 수동 작업원장·PowerShell 실행 | Bash 도우미의 경로 처리 실패를 피함. 작업 기록은 수동 유지 필요 |
+| 따옴표 없는 등록 경로는 모호하지 않을 때만 허용 | 설치된 GstarCAD 호환. 모호한 등록은 사용자 수정 필요 |
+| 정확한 핸들 확보 전 Quit 금지 | 사용자 CAD 보호. 소유권이 불명확하면 신규 프로세스가 남을 수 있음 |
+| 실행 전후 시각과 생성시각을 추가 확인 | 빠른 PID 재사용 차단. 시스템 시계 변화 시 보수적 실패 가능 |
+| 기존 GstarSession 생성자의 후보 결정은 진입 시 수행 | 기존 호출 호환. 잘못된 선택은 생성 시가 아닌 진입 시 오류 |
+| 공개 COM 플롯 보조 함수를 재사용 | 중복 검증 로직 방지. AutoCAD 실제 적합성은 아직 검증 필요 |
+| 없는 단위시험 파일 대신 기존 통합 플롯시험 사용 | 실제 저장소 구조와 일치. 수용 기준 변경 없음 |
+| benchmark 설정/팩토리 연결을 앞당김 | 공통화로 깨진 개발 도구 복구. 과거 기준은 그 기준의 원래 harness 필요 |
+| PID 정리 시험 문제를 중요로 상향 | 거짓 안전 게이트 통과 방지. 검증 중 PID가 재사용되면 추가 확인 필요 |
+| 미확인 AutoCAD 실행 스위치는 거부 | 수직제품/사용자 프로파일을 일반 제품으로 오판하지 않음. 정상 사용자 정의 모드도 추후 검토 필요 |
+| 실기·전체 G4·다른PC는 별도 게이트 유지 | 모의 PASS로 대체하지 않음. 사용자 환경 준비/출력 검토 필요 |
+| 임의 레지스트리 변조 방어와 COM watchdog은 보증하지 않음 | 승인 범위 밖. 변조·무응답은 별도 조사/사용자 조치 필요 |
+
+보류한 경미한 리뷰 항목은 없다. 위 실기 미완료 항목은 경미한 문제로 축소하지 않는다.
+
+## 분석·한계
+
+- 기존13종의 판정·한도·원본 보호 계약을 공통화했다. 다른 템플릿 양식은 지원 범위가 아니다.
+- AutoCAD의 명령·COM 유사성은 호환성을 보장하지 않는다. PC3/CTB/폰트/한글경로/LISP 보안 및 PDF 출력 방향을 실제 환경에서 확인해야 한다.
+- 동기 COM 호출 자체를 중단하는 watchdog은 없다. 소유권 증명 실패 시 사용자 CAD 보호를 위해 `Visible`,문서열기,`Quit`,강제종료를 수행하지 않는다. 이때 신규 프로세스가 남으면 사용자가 확인 후 닫아야 한다.
+- AutoCAD의 portrait/비정상 회전 PDF는 E420으로 거부한다. GstarCAD 전용 방향 보정을 적용하지 않는다.
+- T8의 3개 라이브 시험은 원본/사용자PID 보호,13+30 및 native 비교,실패파일 이후 진행의 출발점이다. LISP 차단·출력잠금·폰트·흑백·선가중치 육안검토와 전체 G4 수용 항목을 모두 대체하지 않는다.
+- `benchmark_conversion.py --config`는 이 확장 브랜치의 공통 경계를 대상으로 한다. 과거 제품 기준 측정은 해당 기준 커밋의 원래 harness와 같은 환경으로 별도 수행한다. `--probe-com` 시간은 순수 변환시간이 아니다.
+
+## 다음 실행
+
+1. 현재 개발 브랜치의 독립 코드 리뷰 지적사항은 수정·오프라인 검증했다. 다른 PC는 관리 이슈의 최종 push SHA를 가져온다.
+2. 사용자가 GstarCAD를 별도로 열고, 승인 표본·기존 파생자료 및 필수 환경변수를 준비한다. G3 필수시험/원본해시/mtime/사용자PID/APP 종료/native on·off/기준 성능을 검증한다.
+3. G3 통과 후에만 실험 번들을 로컬 빌드하고 자체검사·실제 GstarCAD 변환을 시험한다. 기존 릴리스는 덮어쓰지 않는다.
+4. 실제 Windows 일반 AutoCAD를 확보하여 G4를 수행한다. LT/수직제품이면 범위 변경을 먼저 검토한다.
+5. 다른 PC에서 G5와 사용자 출력 검토를 마친 뒤 main 병합·배포 승인을 받는다.
+
+## 근거/기준
+
+[승인 명세](../superpowers/specs/2026-10-02-autocad-support-design.md), [구현 계획](../superpowers/plans/2026-10-02-autocad-support.md), 저장소 테스트의 실제 실행 출력, [관리 이슈 #1](https://github.com/jeonbyungryong/DWG-PDF-/issues/1)을 근거로 한다. 새로운 실측 성능 향상률이나 AutoCAD 지원 버전을 주장하지 않는다.
+
+제품 실행 모드는 [Autodesk의 외부 실행 안내](https://www.autodesk.com/jp/support/technical/article/caas/tsarticles/ts/3LHmCFcdumMk5EGoC369gj.html)(확인 2026-10-03)를 참고했다. 해당 자료의 제품 실행 방식은 참고 근거이며 이 APP의 실제 AutoCAD 호환 인증이 아니다.

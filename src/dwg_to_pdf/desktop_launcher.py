@@ -2,11 +2,21 @@ from __future__ import annotations
 
 from collections.abc import Callable, Sequence
 import ctypes
+import base64
+import json
+import sys
 import subprocess
 from typing import Protocol
+from .cad.discovery import discover_candidates
+from .cad.selection import CadCandidate, CadSelection, ProviderId, select_candidate
+from .cad.factory import EXPERIMENTAL_WARNING
+from .errors import AppError
 
 
 class DesktopUI(Protocol):
+    def choose_cad_provider(self) -> ProviderId | None: ...
+    def choose_cad_candidate(self, candidates: tuple[CadCandidate, ...]) -> str | None: ...
+    def confirm_experimental_autocad(self) -> bool: ...
     def choose_source_mode(self) -> str | None: ...
     def choose_files(self) -> Sequence[str]: ...
     def choose_input_folder(self) -> str: ...
@@ -37,6 +47,38 @@ def _run_picker(script: str) -> tuple[str, ...]:
 
 class WindowsDesktopUI:
     """Dependency-free Windows launcher used when the EXE is double-clicked."""
+
+    def choose_cad_provider(self) -> ProviderId | None:
+        answer = _message_box("CAD 선택", "예: GstarCAD (기본)\n아니요: AutoCAD (실험적)\n취소: 종료", 0x23)
+        return {6: "gstarcad", 7: "autocad"}.get(answer)
+
+    def confirm_experimental_autocad(self) -> bool:
+        return _message_box("AutoCAD 실험적 지원", EXPERIMENTAL_WARNING + "\n계속하시겠습니까?", 0x134) == 6
+
+    def choose_cad_candidate(self, candidates: tuple[CadCandidate, ...]) -> str | None:
+        if len(candidates) == 1:
+            candidate = candidates[0]
+            answer = _message_box("CAD 설치 선택", f"{candidate.product_name}\n{candidate.prog_id}\n{candidate.executable}\n사용하시겠습니까?", 0x21)
+            return candidate.prog_id if answer == 1 else None
+        data = [f"{item.product_name} | {item.prog_id} | {item.executable}" for item in candidates]
+        encoded = base64.b64encode(json.dumps(data, ensure_ascii=False).encode("utf-8")).decode("ascii")
+        selected = _run_picker(
+            "$ErrorActionPreference='Stop';[Console]::OutputEncoding=[Text.UTF8Encoding]::new($false);"
+            "Add-Type -AssemblyName System.Windows.Forms;"
+            f"$items=ConvertFrom-Json ([Text.Encoding]::UTF8.GetString([Convert]::FromBase64String('{encoded}')));"
+            "$f=New-Object Windows.Forms.Form;$f.Text='CAD 선택';$f.Width=820;$f.Height=260;"
+            "$list=New-Object Windows.Forms.ListBox;$list.Dock='Top';$list.Height=160;"
+            "$items|ForEach-Object{[void]$list.Items.Add([string]$_)};"
+            "$ok=New-Object Windows.Forms.Button;$ok.Text='OK';$ok.Dock='Bottom';"
+            "$ok.Add_Click({if($list.SelectedIndex -ge 0){$f.DialogResult='OK';$f.Close()}});"
+            "$f.Controls.Add($list);$f.Controls.Add($ok);"
+            "if($f.ShowDialog() -eq 'OK'){Write-Output $list.SelectedIndex};$f.Dispose()"
+        )
+        if len(selected) == 1 and selected[0].isdigit():
+            index = int(selected[0])
+            if 0 <= index < len(candidates):
+                return candidates[index].prog_id
+        return None
 
     def choose_source_mode(self) -> str | None:
         answer = _message_box(
@@ -122,8 +164,33 @@ def run_desktop(
         output = desktop.choose_output_folder()
         if not output:
             return 0
-        exit_code = run_cli([*sources, "--output", output, "--conflict", "copy"])
+        provider = desktop.choose_cad_provider()
+        if provider is None:
+            return 0
+        experimental = provider == "autocad"
+        if experimental and not desktop.confirm_experimental_autocad():
+            return 0
+        candidates = discover_candidates(provider)
+        # Validate conflicting registrations before showing one entry per installation.
+        if candidates:
+            select_candidate(CadSelection(provider, candidates[0].prog_id, experimental), candidates)
+        else:
+            select_candidate(CadSelection(provider, None, experimental), candidates)
+        unique = {}
+        for candidate in sorted(candidates, key=lambda item: item.prog_id.count("."), reverse=True):
+            unique.setdefault((candidate.clsid.casefold(), str(candidate.executable).casefold()), candidate)
+        selected = desktop.choose_cad_candidate(tuple(unique.values()))
+        if selected is None:
+            return 0
+        arguments = [*sources, "--output", output, "--conflict", "copy", "--cad", provider, "--cad-prog-id", selected]
+        if experimental:
+            arguments.append("--allow-experimental-autocad")
+        exit_code = run_cli(arguments)
         desktop.show_result(exit_code)
         return exit_code
+    except (AppError, OSError, ValueError) as error:
+        print(f"CAD 선택 실패: {error}", file=sys.stderr)
+        desktop.show_result(2)
+        return 2
     finally:
         desktop.close()
