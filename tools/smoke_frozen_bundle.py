@@ -11,8 +11,12 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 from dwg_to_pdf.cad.process_ownership import provider_pids
 from dwg_to_pdf.configuration import load_config
 from dwg_to_pdf.temp_workspace import sha256
-from dwg_to_pdf.pdf_validator import validate_pdf
 from dataclasses import asdict
+
+
+def validate_output(path, provider):
+    from dwg_to_pdf.pdf_validator import validate_pdf
+    return validate_pdf(path, allow_duplicate_page_mode=provider == "autocad")
 
 
 def build_command(exe, inputs, output, config=None):
@@ -44,7 +48,7 @@ def main():
     completed = subprocess.run(build_command(args.exe.resolve(strict=True), inputs, output, args.config), capture_output=True, env=env, cwd=output)
     seconds = time.perf_counter() - start
     pids_after = provider_pids(provider)
-    result = {"exit_code": completed.returncode, "expected_exit_code": args.expected_exit, "seconds": seconds, "stdout": completed.stdout.decode("utf-8", errors="replace"), "stderr": completed.stderr.decode("utf-8", errors="replace"), "source_unchanged": before == {str(path): identity(path) for path in inputs}, "pids_before": sorted(pids_before), "pids_after": sorted(pids_after), "no_new_cad_left": pids_after == pids_before, "pdfs": {name: asdict(validate_pdf(output / name)) for name in args.expected_pdfs}}
+    result = {"exit_code": completed.returncode, "expected_exit_code": args.expected_exit, "seconds": seconds, "stdout": completed.stdout.decode("utf-8", errors="replace"), "stderr": completed.stderr.decode("utf-8", errors="replace"), "source_unchanged": before == {str(path): identity(path) for path in inputs}, "pids_before": sorted(pids_before), "pids_after": sorted(pids_after), "no_new_cad_left": pids_after == pids_before, "pdfs": {name: asdict(validate_output(output / name, provider)) for name in args.expected_pdfs}}
     (output / "smoke-result.json").write_text(json.dumps(result, ensure_ascii=False, indent=2), encoding="utf-8")
     # Console code pages may not represent replacement characters in child output.
     print(json.dumps(result, ensure_ascii=True), flush=True)

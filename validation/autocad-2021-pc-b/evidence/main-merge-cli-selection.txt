@@ -1,0 +1,10 @@
+AutoCAD 지원은 실험적이며 실제 출력/버전 호환 검증이 완료되지 않았습니다.
+CAD_DIAGNOSTIC {"provider": "autocad", "prog_id": "AutoCAD.Application.24", "reported_version": null, "app_version": "0.1.0", "stage": "start", "code": null}
+CAD_DIAGNOSTIC {"provider": "autocad", "prog_id": "AutoCAD.Application.24", "reported_version": "24.0s (LMS Tech)", "app_version": "0.1.0", "stage": "ready", "code": null}
+CAD_DIAGNOSTIC {"provider": "autocad", "prog_id": "AutoCAD.Application.24", "reported_version": "24.0s (LMS Tech)", "app_version": "0.1.0", "stage": "open", "code": null}
+CAD_DIAGNOSTIC {"provider": "autocad", "prog_id": "AutoCAD.Application.24", "reported_version": "24.0s (LMS Tech)", "app_version": "0.1.0", "stage": "detect", "code": null}
+CAD_DIAGNOSTIC {"provider": "autocad", "prog_id": "AutoCAD.Application.24", "reported_version": "24.0s (LMS Tech)", "app_version": "0.1.0", "stage": "native_fallback", "code": "E303"}
+CAD_DIAGNOSTIC {"provider": "autocad", "prog_id": "AutoCAD.Application.24", "reported_version": "24.0s (LMS Tech)", "app_version": "0.1.0", "stage": "plot", "code": null}
+CAD_DIAGNOSTIC {"provider": "autocad", "prog_id": "AutoCAD.Application.24", "reported_version": "24.0s (LMS Tech)", "app_version": "0.1.0", "stage": "validate", "code": null}
+CAD_DIAGNOSTIC {"provider": "autocad", "prog_id": "AutoCAD.Application.24", "reported_version": "24.0s (LMS Tech)", "app_version": "0.1.0", "stage": "close", "code": null}
+변환 결과: 전체 1건 / 성공 1건 / 실패 0건 / 건너뜀 0건

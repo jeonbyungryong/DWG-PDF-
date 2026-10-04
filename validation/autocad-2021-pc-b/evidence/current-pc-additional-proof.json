@@ -1,0 +1,309 @@
+{
+  "approved_source_hashes_valid": 13,
+  "off_on_identical_144dpi_pairs": 43,
+  "user_autocad_pid_preserved": true,
+  "gstarcad_candidates": 0,
+  "pairs": [
+    {
+      "file": "TEMPLETE_100대1.pdf",
+      "same_pixels_144dpi": true,
+      "decoded_vector_bytes": 26774,
+      "off_sha256": "CB299553C24DE4DBB0F13C140336503771341CDBA6EFC12EEBD1DA69A419F8F5",
+      "on_sha256": "333EE36EC225116F093629B39890FD6A41DA955B0135FC5FF73094EE3A61F76F"
+    },
+    {
+      "file": "TEMPLETE_100대1_blank.pdf",
+      "same_pixels_144dpi": true,
+      "decoded_vector_bytes": 26406,
+      "off_sha256": "C627459347648A0B003E6DB945B9BE8BC5F076E7EEA67C60A84D8FFC82AF6D1B",
+      "on_sha256": "B60844CC7E368BE7AF6BEDABEC0100E82CE5FB6D33CB4C14BE50AA5DBA51EDEA"
+    },
+    {
+      "file": "TEMPLETE_100대1_na.pdf",
+      "same_pixels_144dpi": true,
+      "decoded_vector_bytes": 26557,
+      "off_sha256": "FC4C7174CDB9D163688BFC03CA274BEBE4C6EAD8AC2F979F6DA29A7DF63E5D98",
+      "on_sha256": "6CCFCC2D8340E00DC88ABDECBFD9EBE24BFB5AC62954C837591CE1A9FC7CB082"
+    },
+    {
+      "file": "TEMPLETE_100대1_rotate180.pdf",
+      "same_pixels_144dpi": true,
+      "decoded_vector_bytes": 26774,
+      "off_sha256": "ED74CD6578A4DAF38FA4F2EE9218E509EC56F613FC7C3E775025E2AC3B6A1ECF",
+      "on_sha256": "94A762BCDE2EC6F2B6BFAB9DCD76E7D8A0264D1964DA7BB3046F26D5604347C4"
+    },
+    {
+      "file": "TEMPLETE_100대1_rotate270.pdf",
+      "same_pixels_144dpi": true,
+      "decoded_vector_bytes": 26774,
+      "off_sha256": "95FED7CF54567D472B1B44A464DFB592FB6F33B9999AD71310A130778CEA3594",
+      "on_sha256": "6A570A025D8DF5B4F6A2372B6E0225DC36046959E7CBF34AED2E742DA75CFF79"
+    },
+    {
+      "file": "TEMPLETE_100대1_rotate90.pdf",
+      "same_pixels_144dpi": true,
+      "decoded_vector_bytes": 26774,
+      "off_sha256": "33B4231900D150648B5661FA4DD85567121C6B2363C4735379D7D9FC60EFF65D",
+      "on_sha256": "63CDAB82DE9CCC14A896799FB547E552ACC5DB3DA47A646347060DD16016D932"
+    },
+    {
+      "file": "TEMPLETE_100대1_shift.pdf",
+      "same_pixels_144dpi": true,
+      "decoded_vector_bytes": 26774,
+      "off_sha256": "EC4A944F86C26BEC31C6D6F18080F7A127E21EB52196CFC1705DB78794AD5DB8",
+      "on_sha256": "323EB0BFB28ACBC52806B8A20D0A079547DD278F3E7CCDA4F31ADF317CCA696B"
+    },
+    {
+      "file": "TEMPLETE_10대1.pdf",
+      "same_pixels_144dpi": true,
+      "decoded_vector_bytes": 26673,
+      "off_sha256": "8124CD4B3DBE0A7C06C4FA09CAD5CB3FE918332DE078D36C051632A22D391F03",
+      "on_sha256": "3BCF36A689E5875923FC5C05CC85ADDABF5353D41C320B495D1F7664ACA65F2E"
+    },
+    {
+      "file": "TEMPLETE_1대1.pdf",
+      "same_pixels_144dpi": true,
+      "decoded_vector_bytes": 26652,
+      "off_sha256": "F1BC0A63B402A728AEE5E44B7626E222337A1653878B858F0AEDE4C89AFCD995",
+      "on_sha256": "929BE566228E91C7334FB5B52B9FBAACE8346E0556B95F5147D8FBA05A950CDE"
+    },
+    {
+      "file": "TEMPLETE_1대10.pdf",
+      "same_pixels_144dpi": true,
+      "decoded_vector_bytes": 26753,
+      "off_sha256": "E5C867486A38AE63EB161C6A981D997856EF80423B3237D2762CE07BE620ED8E",
+      "on_sha256": "5ED9ED090E526FE21AC8F1056B72D5AACC603DA4B6F84C521BD6227ED4E3064E"
+    },
+    {
+      "file": "TEMPLETE_1대100.pdf",
+      "same_pixels_144dpi": true,
+      "decoded_vector_bytes": 26854,
+      "off_sha256": "2C4CF7294F2709A28884C4CA2D5C6531B1D51B8C52BC5F67C9ACF5E004F8000E",
+      "on_sha256": "F63189E0DF3551404ECC5423457C39C4EE5D016FE4C0EF2D478FA6EFBEA76297"
+    },
+    {
+      "file": "TEMPLETE_1대100_blank.pdf",
+      "same_pixels_144dpi": true,
+      "decoded_vector_bytes": 26486,
+      "off_sha256": "40BB4B170F6C2A13E100E93C0053B4B0DFFD1EDEBBEDB8443A401C8EDB0CBCB0",
+      "on_sha256": "A3FADAFFB52B9E67C807312F9F78620909A404D9FB7E84448E5A6C12DA904C21"
+    },
+    {
+      "file": "TEMPLETE_1대100_na.pdf",
+      "same_pixels_144dpi": true,
+      "decoded_vector_bytes": 26637,
+      "off_sha256": "37C11066F89C9ADCD59BEF510E0C2C7CF11F8664BF482B73A1B1196A04377AAC",
+      "on_sha256": "140E80D14974D1F3826CAF9A749EAC487532C160E455CB700405F44C93A9DCE3"
+    },
+    {
+      "file": "TEMPLETE_1대100_rotate180.pdf",
+      "same_pixels_144dpi": true,
+      "decoded_vector_bytes": 26854,
+      "off_sha256": "0EBCF503DE91D37D51619DE2B087528E07AAFCAE3CC3E147A9A35387F7244BBE",
+      "on_sha256": "CB08B241B895889E6745865975C7F661C2B75F4C9D9CA087F1D7198FF6F017EC"
+    },
+    {
+      "file": "TEMPLETE_1대100_rotate270.pdf",
+      "same_pixels_144dpi": true,
+      "decoded_vector_bytes": 26854,
+      "off_sha256": "4357DC825D6F98F67242C6A1334A5050DBA5ABB9ED56AB26F45C91AC61289534",
+      "on_sha256": "392BEFE03F1273EE69D3E80E209C06AB21EC0CD8046F191E9A203426B4BF9B55"
+    },
+    {
+      "file": "TEMPLETE_1대100_rotate90.pdf",
+      "same_pixels_144dpi": true,
+      "decoded_vector_bytes": 26854,
+      "off_sha256": "8C23E5523C18D67F827DE864044C8411C88C648AF94F2CB76E68196E082B9347",
+      "on_sha256": "1FE31E0C98892835BDAE09AD343E1F5523A70B83187ACB076175A9C343769C43"
+    },
+    {
+      "file": "TEMPLETE_1대100_shift.pdf",
+      "same_pixels_144dpi": true,
+      "decoded_vector_bytes": 26854,
+      "off_sha256": "6B818A9C26F663CD9BE6C22535A84A36D55B258D58DB862E72EB2C4F26789530",
+      "on_sha256": "3E64D8C8F58099CBA2F864144D6BBF394F3C5231B1A79CE28E26C8674450A478"
+    },
+    {
+      "file": "TEMPLETE_1대10_blank.pdf",
+      "same_pixels_144dpi": true,
+      "decoded_vector_bytes": 26486,
+      "off_sha256": "9A49C07F6148AC615C1E289E639EDF18E7DFE339B1EDD293F5D67620EB18A755",
+      "on_sha256": "CDD21905B92C5337B726867CE612017FD5C71CB0D39FF47A0D699F0E5EB9C508"
+    },
+    {
+      "file": "TEMPLETE_1대10_na.pdf",
+      "same_pixels_144dpi": true,
+      "decoded_vector_bytes": 26637,
+      "off_sha256": "45BE71218917160A24F4A28CCBBEDE24C5553B728ABB1C7327694980A91D38BF",
+      "on_sha256": "172F2BAB52AF4F4E60A59778FFFC2DC78B60BDFB1A514AB75EB6680BD4F16568"
+    },
+    {
+      "file": "TEMPLETE_1대10_rotate180.pdf",
+      "same_pixels_144dpi": true,
+      "decoded_vector_bytes": 26753,
+      "off_sha256": "3F21BB8F9F192A5227C4D96117812164D879B64C66C341EA2C8868A41986693A",
+      "on_sha256": "DBAD3AA2BA571E7FBC25F848CB74BDF742BC85D7E0CC6131853AFD3C504F7BF6"
+    },
+    {
+      "file": "TEMPLETE_1대10_rotate270.pdf",
+      "same_pixels_144dpi": true,
+      "decoded_vector_bytes": 26753,
+      "off_sha256": "486D8342639EDD9B7B9DBD56916070D18244E0ED8A5EB5CCA882FFAE393CFF9C",
+      "on_sha256": "B9B5267A94C027853D7B70363EA558EAFFA59BC7C3393656B9D43B4ABCA40F26"
+    },
+    {
+      "file": "TEMPLETE_1대10_rotate90.pdf",
+      "same_pixels_144dpi": true,
+      "decoded_vector_bytes": 26753,
+      "off_sha256": "DFC7395A078DC7E9AAB423CC9DDA317557D044F369BE75771F0CF00205326952",
+      "on_sha256": "2C047472373E510BFCBF8DDC40A6B750DAA20F1CCA4C9FCAB5AF20345E89ECBA"
+    },
+    {
+      "file": "TEMPLETE_1대10_shift.pdf",
+      "same_pixels_144dpi": true,
+      "decoded_vector_bytes": 26753,
+      "off_sha256": "D7E2AE681BB51E0A63014356ED3861C00A8FBD12AF300588EFAB595F5CEBD90B",
+      "on_sha256": "1C3F665B3A885774A881E4371C56BD07828CB27CADB647A63310B3DB90A92987"
+    },
+    {
+      "file": "TEMPLETE_1대1_blank.pdf",
+      "same_pixels_144dpi": true,
+      "decoded_vector_bytes": 26486,
+      "off_sha256": "158A9A8404BFB25DD52B61EB9D4711ED1D7E6A3460B36C0614B32D2C48E877DC",
+      "on_sha256": "11EC0D8B165F1E69D5578137F332259C0CEBEF2472A3B58FEC4B3957E9D65474"
+    },
+    {
+      "file": "TEMPLETE_1대1_na.pdf",
+      "same_pixels_144dpi": true,
+      "decoded_vector_bytes": 26637,
+      "off_sha256": "9114C0B753E72BBBA7467B6170D052877608EA6206176B4E5F65CDAF257E961A",
+      "on_sha256": "6499B280DA36BC701ACF010151D11687D327941446A7880F192DD61367AE89F7"
+    },
+    {
+      "file": "TEMPLETE_1대1_rotate180.pdf",
+      "same_pixels_144dpi": true,
+      "decoded_vector_bytes": 26652,
+      "off_sha256": "4D67F5C06BB7C54CC3FB8D539451BEB9BC0D2F089E8CCC95172A493CF65103F2",
+      "on_sha256": "43910D70EA44979DC746600DC71347622273B4A04EFED5E7D77716067D8AABF0"
+    },
+    {
+      "file": "TEMPLETE_1대1_rotate270.pdf",
+      "same_pixels_144dpi": true,
+      "decoded_vector_bytes": 26652,
+      "off_sha256": "23F27FC548BD8291580CBB8028F1E0CF7B160C846C38DB92D0B0A26BE03A6F43",
+      "on_sha256": "5A8E2BCF8CEE0DEFF0300F1A856862A1023D9D970D31A814C084B1651E85936E"
+    },
+    {
+      "file": "TEMPLETE_1대1_rotate90.pdf",
+      "same_pixels_144dpi": true,
+      "decoded_vector_bytes": 26652,
+      "off_sha256": "87732663F6A901E1552A0D73A39F937F5954B22FE1573462FA6713B94C7C15EC",
+      "on_sha256": "43A8068C2C2A7C3676977677E37EDE892D3F8200C43E01A51989A32F83839488"
+    },
+    {
+      "file": "TEMPLETE_1대1_shift.pdf",
+      "same_pixels_144dpi": true,
+      "decoded_vector_bytes": 26652,
+      "off_sha256": "BDA36A7ACE02A25CF4CF42D6F78EBBBF2159B24D8254CEC252667860AB98179B",
+      "on_sha256": "79D4BBF5770BF545936F140AB72F6DE3EAEF477506BF1C38F909B0ED36937719"
+    },
+    {
+      "file": "TEMPLETE_1대2.pdf",
+      "same_pixels_144dpi": true,
+      "decoded_vector_bytes": 26705,
+      "off_sha256": "913A186F4C1AF745BE984D1D56287FA9FC1E8A892590CF74FB976E9D7EE300C7",
+      "on_sha256": "81D11314C17C64A8CD0831F7ED036E6A370B0E6E7411D7D4841B91CFA0EBD723"
+    },
+    {
+      "file": "TEMPLETE_1대20.pdf",
+      "same_pixels_144dpi": true,
+      "decoded_vector_bytes": 26806,
+      "off_sha256": "DC6B19E8618EDCD3098EFEF21B80964CE89A9A03FF3EB9FC2F60EB00394AC816",
+      "on_sha256": "951BA1F54A25725EDC756FE9CDDEDF9F901A612F8E3982ABA2C45D06A470F63C"
+    },
+    {
+      "file": "TEMPLETE_1대2_blank.pdf",
+      "same_pixels_144dpi": true,
+      "decoded_vector_bytes": 26486,
+      "off_sha256": "B58894401049F94DDAB312AD42B6203305ED9DDED086ADAB7DDA69AFF46441A9",
+      "on_sha256": "423C601652F99833614D7D541A36A7D158DA08FCD9CF59EB088D7D880E68993F"
+    },
+    {
+      "file": "TEMPLETE_1대2_na.pdf",
+      "same_pixels_144dpi": true,
+      "decoded_vector_bytes": 26637,
+      "off_sha256": "7019CF015F3182B079355A7E153F01055FCE089D8875213D408FCC5B84CDCC61",
+      "on_sha256": "C13EEAF762C1F8C2F1559C5F4BA85C682ECCA94A7DB17309CD42F88A54DB587C"
+    },
+    {
+      "file": "TEMPLETE_1대2_rotate180.pdf",
+      "same_pixels_144dpi": true,
+      "decoded_vector_bytes": 26705,
+      "off_sha256": "25A47EAE792972E30093A794434C1D3FE045DC574E614C2D818D9714DC5CA2FE",
+      "on_sha256": "ACB64522A4F09BD23B46904B8E6AC32F7D84125057BDB5E6C3ED90FDF75BD774"
+    },
+    {
+      "file": "TEMPLETE_1대2_rotate270.pdf",
+      "same_pixels_144dpi": true,
+      "decoded_vector_bytes": 26705,
+      "off_sha256": "3B2EAAAB104BF8E416F5599A62B135068165165580C01CB8F8E31053D83E9D25",
+      "on_sha256": "889AC2EBE9CA66C7323690D75C9D0419119B2C33D3CBD0C8BBA79F1BFE864940"
+    },
+    {
+      "file": "TEMPLETE_1대2_rotate90.pdf",
+      "same_pixels_144dpi": true,
+      "decoded_vector_bytes": 26705,
+      "off_sha256": "70F7F3BDEB9CC6245B69DB0880EAD0B5D529313DFAB952932F192DF824921F4D",
+      "on_sha256": "520F9B8EFB87D6C76E9DA16F8AAB7E2258318E4B1B564FFD0766192DFFED147D"
+    },
+    {
+      "file": "TEMPLETE_1대2_shift.pdf",
+      "same_pixels_144dpi": true,
+      "decoded_vector_bytes": 26705,
+      "off_sha256": "2D9ADFFE84C9D3030085E004510487EB691B4B2D3FE7C04647BF3C73542DF4E0",
+      "on_sha256": "22DAF3E0635BE8B349B3D723DB11D922ACC34928E30DBEDB26427047A9B75724"
+    },
+    {
+      "file": "TEMPLETE_1대5.pdf",
+      "same_pixels_144dpi": true,
+      "decoded_vector_bytes": 26694,
+      "off_sha256": "D1F3CF03BE2BF09A35BD84EF4E1C61F6C7D6989E38A020DD49A09FD7D174E539",
+      "on_sha256": "73AE6B012A1C26329400ED05AF92B95DDCD6A83D34B68F3B925D9176FF3D1728"
+    },
+    {
+      "file": "TEMPLETE_1대50.pdf",
+      "same_pixels_144dpi": true,
+      "decoded_vector_bytes": 26795,
+      "off_sha256": "98254BE487348159A6B96BF0CA0547C1541045FE5A032092CEA020454E5BDA58",
+      "on_sha256": "1E67576E6941CC2B2FB1DBADC64FF7659D9D56F2B8315361CA18CC41F1B8A58A"
+    },
+    {
+      "file": "TEMPLETE_20대1.pdf",
+      "same_pixels_144dpi": true,
+      "decoded_vector_bytes": 26726,
+      "off_sha256": "D0DA71E9DFE97FD04D8CDF59D39099EFB37180E9113ED1BB2D33BF769AFA39D9",
+      "on_sha256": "F1AC8050FBF9065D9F5493BEABF97F12B4075A438A0257FFA50F8C370166C4AB"
+    },
+    {
+      "file": "TEMPLETE_2대1.pdf",
+      "same_pixels_144dpi": true,
+      "decoded_vector_bytes": 26705,
+      "off_sha256": "E2FFF815CF8C680C92BFF46C56ED9A1081B1A5818D32334AD86DACCE065FCF74",
+      "on_sha256": "EFC79A7FF690E54D0E5BD2912E97EB88AA332BABFB7269E88F97F879C39260AD"
+    },
+    {
+      "file": "TEMPLETE_50대1.pdf",
+      "same_pixels_144dpi": true,
+      "decoded_vector_bytes": 26715,
+      "off_sha256": "A92244A9650A3B51E5F81FFB67D97CA85AD95A666D833F8059E6D81A9D1010F8",
+      "on_sha256": "F7B3CB3A96E704799F0D33BB3B9B6F6588F5D18FA1A92193DB3E445C0D9EACB7"
+    },
+    {
+      "file": "TEMPLETE_5대1.pdf",
+      "same_pixels_144dpi": true,
+      "decoded_vector_bytes": 26692,
+      "off_sha256": "A5FDFA30166CA2BE120E9A62C8DA899AE4568AFCAE6271A3E4302FAF0747A850",
+      "on_sha256": "380AA20DE6BBAE70CA39151D6499C087CCEDB0C6B19E0D39AE8A0FBD739187B9"
+    }
+  ]
+}

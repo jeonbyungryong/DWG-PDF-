@@ -5,6 +5,8 @@ import pytest
 from dwg_to_pdf import cli
 from dwg_to_pdf.cad.selection import CadCandidate
 from dwg_to_pdf.domain import JobResult
+from dwg_to_pdf.configuration import load_config
+from dataclasses import replace
 
 
 def candidate(suffix="25"):
@@ -13,7 +15,7 @@ def candidate(suffix="25"):
 
 @pytest.fixture
 def boundary(monkeypatch, tmp_path):
-    config = SimpleNamespace(cad_provider="gstarcad", prog_id="GStarCAD.Application.26", allow_experimental_autocad=False)
+    config = load_config(Path(__file__).parents[2] / "config.toml")
     monkeypatch.setattr(cli, "_preflight", lambda args: (config, (tmp_path / "source.dwg",), object(), tmp_path))
     monkeypatch.setattr(cli, "discover_candidates", lambda provider: (candidate(),))
     monkeypatch.setattr(cli, "_conversion_dependencies", lambda: (lambda *args: object(), lambda selected: selected, lambda *args: (JobResult(tmp_path / "source.dwg", "success", ()),)))
@@ -57,3 +59,28 @@ def test_autocad_failure_never_starts_gstarcad(boundary, monkeypatch):
     monkeypatch.setattr(cli, "_conversion_dependencies", lambda: (lambda *args: object(), factory, run_jobs))
     assert cli.main([*boundary, "--allow-experimental-autocad"]) == 1
     assert calls == ["autocad"]
+
+
+@pytest.mark.parametrize("configured,selected", [("gstarcad","autocad"),("autocad","gstarcad"),("autocad","autocad")])
+def test_service_configuration_matches_actual_selected_candidate(monkeypatch, tmp_path, configured, selected):
+    original = load_config(Path(__file__).parents[2] / "config.toml")
+    pc3 = tmp_path / "DWG To PDF.pc3"
+    pc3.write_bytes(b"test plotter")
+    original = replace(original, cad_provider=configured,
+                       prog_id="AutoCAD.Application.24" if configured == "autocad" else "GStarCAD.Application.26",
+                       allow_experimental_autocad=configured == "autocad",
+                       autocad_pc3_path=pc3 if configured == "autocad" else None)
+    selected_id = "AutoCAD.Application.25" if selected == "autocad" else "GStarCAD.Application.26"
+    chosen = CadCandidate(selected, selected_id, "test", tmp_path / "cad.exe", "test", None)
+    received=[]
+    monkeypatch.setattr(cli, "_preflight", lambda args:(original,(tmp_path / "source.dwg",),object(),tmp_path))
+    monkeypatch.setattr(cli, "discover_candidates", lambda provider:(chosen,))
+    monkeypatch.setattr(cli, "_conversion_dependencies", lambda:(lambda config,profiles:received.append(config),lambda candidate:candidate,lambda *args:(JobResult(tmp_path / "source.dwg","success",()),)))
+    assert cli.main(["source.dwg","--output",str(tmp_path),"--cad",selected,"--cad-prog-id",selected_id,"--allow-experimental-autocad"]) == 0
+    effective=received[0]
+    assert effective.cad_provider == chosen.provider
+    assert effective.prog_id == chosen.prog_id
+    assert effective.allow_experimental_autocad == (selected == "autocad")
+    assert effective.autocad_pc3_path == (original.autocad_pc3_path if selected == "autocad" else None)
+    assert effective.preferred_media_names == original.preferred_media_names
+    assert original.cad_provider == configured

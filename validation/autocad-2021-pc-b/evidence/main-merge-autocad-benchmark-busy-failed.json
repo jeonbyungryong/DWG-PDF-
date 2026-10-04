@@ -1,0 +1,57 @@
+{
+  "code_root": "LOCAL_WORKSPACE\\work\\autocad-fixes",
+  "probe_com": false,
+  "batch_seconds": 36.28319340001326,
+  "sources_unchanged": true,
+  "user_pids_before": [
+    37600
+  ],
+  "user_pids_after": [
+    37600
+  ],
+  "owned_pid": 44696,
+  "owned_pid_closed": true,
+  "outcomes": [
+    {
+      "source": "TEMPLETE_1대1.DWG",
+      "error": "CAD could not open the temporary DWG copy",
+      "cause": "(-2147418111, '피호출자가 호출을 거부했습니다.', None, None)",
+      "code": "E203",
+      "seconds": 1.0186263000359759
+    }
+  ],
+  "events": [
+    {
+      "source": "batch",
+      "stage": "__enter__",
+      "seconds": 5.035277099930681
+    },
+    {
+      "source": "TEMPLETE_1대1.DWG",
+      "stage": "require_stable",
+      "seconds": 1.0005676000146195
+    },
+    {
+      "source": "TEMPLETE_1대1.DWG",
+      "stage": "_open_working_copy",
+      "seconds": 0.010786099941469729
+    },
+    {
+      "source": "batch",
+      "stage": "close_document",
+      "seconds": 1.100008375942707e-06
+    },
+    {
+      "source": "batch",
+      "stage": "_release",
+      "seconds": 30.035428500035778
+    }
+  ],
+  "com": {},
+  "definitions": {},
+  "user_pids_preserved": true,
+  "provider": "autocad",
+  "prog_id": "AutoCAD.Application.24",
+  "reported_version": "24.0s (LMS Tech)",
+  "failure_details": {}
+}

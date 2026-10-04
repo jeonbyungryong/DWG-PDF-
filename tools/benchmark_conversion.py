@@ -16,6 +16,23 @@ import time
 import shutil
 
 
+def validate_output(path, provider):
+    from dwg_to_pdf.pdf_validator import validate_pdf
+    return validate_pdf(path, allow_duplicate_page_mode=provider == "autocad")
+
+
+def make_diagnostic_publisher(original_publish, result_path):
+    def diagnosed_publish(temporary, final, **kwargs):
+        folder = result_path.parent / (result_path.stem + "-rejected")
+        folder.mkdir(parents=True, exist_ok=True)
+        copy = folder / Path(final).name
+        shutil.copy2(temporary, copy)
+        result = original_publish(temporary, final, **kwargs)
+        copy.unlink()
+        return result
+    return diagnosed_publish
+
+
 def benchmark_passed(summary):
     return bool(
         summary["outcomes"]
@@ -101,8 +118,6 @@ def main():
     from dwg_to_pdf.cad.process_ownership import provider_pids
     from dwg_to_pdf.temp_workspace import sha256
     from dwg_to_pdf.templates.profile_store import ProfileStore
-    from dwg_to_pdf.pdf_validator import validate_pdf
-
     config, candidate, selected_session = prepare_session(args.code_root, args.config)
     if candidate.provider == "autocad":
         from dwg_to_pdf.autocad.document import AutoCADDocument as document_type
@@ -112,16 +127,7 @@ def main():
     events, current = [], {"name": "batch"}
     com_stats, definitions, failure_details = {}, {}, {}
     if args.retain_rejected_pdf:
-        original_publish = service_module.publish_pdf
-        def diagnosed_publish(temporary, final):
-            folder = args.result.parent / (args.result.stem + "-rejected")
-            folder.mkdir(parents=True, exist_ok=True)
-            copy = folder / Path(final).name
-            shutil.copy2(temporary, copy)
-            result = original_publish(temporary, final)
-            copy.unlink()
-            return result
-        service_module.publish_pdf = diagnosed_publish
+        service_module.publish_pdf = make_diagnostic_publisher(service_module.publish_pdf, args.result)
     def instrument(owner, name):
         original = getattr(owner, name)
         @functools.wraps(original)
@@ -177,7 +183,7 @@ def main():
                 file_start = time.perf_counter()
                 try:
                     outcome = service.convert_in_session(session, source, output, "overwrite")
-                    validation = validate_pdf(outcome.frames[0].output)
+                    validation = validate_output(outcome.frames[0].output, candidate.provider)
                     outcomes.append({"source": source.name, "outcome": asdict(outcome), "pdf": asdict(validation), "seconds": time.perf_counter() - file_start})
                 except Exception as exc:
                     outcomes.append({"source": source.name, "error": str(exc), "cause": str(exc.__cause__), "code": getattr(exc, "code", None), "seconds": time.perf_counter() - file_start})

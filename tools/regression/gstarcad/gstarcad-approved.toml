@@ -1,0 +1,28 @@
+[gstarcad]
+prog_id = "GStarCAD.Application.26"
+visible = false
+open_timeout_sec = 120
+detect_timeout_sec = 120
+plot_timeout_sec = 180
+shutdown_timeout_sec = 30
+
+[matching]
+auto_match_enabled = true
+use_native_extraction = true
+matching_threshold = 1.0
+minimum_score_gap = 1.0
+use_target_saved_window = false
+allowed_rotations_deg = [0, 90, 180, 270]
+allow_uniform_scale = false
+allow_mirror = false
+max_nested_blocks = 64
+max_nested_entities = 5000
+
+[plot]
+plotter_name = "DWG To PDF.pc3"
+media_width_mm = 297.0
+media_height_mm = 210.0
+style_sheet = "monochrome.ctb"
+preferred_media_names = ["User77"]
+fit_to_paper = true
+center_plot = true

@@ -5,6 +5,7 @@ import os
 from pathlib import Path
 import sys
 import json
+from dataclasses import replace
 from collections.abc import Sequence
 
 from .configuration import load_config
@@ -155,6 +156,12 @@ def main(argv: Sequence[str] | None = None) -> int:
         config, sources, profiles, output_dir = _preflight(args)
         selection = resolve_selection(config, args.cad, args.cad_prog_id, args.allow_experimental_autocad)
         candidate = select_candidate(selection, discover_candidates(selection.provider))
+        effective_opt_in = candidate.provider == "autocad" and selection.allow_experimental_autocad
+        if (config.cad_provider != candidate.provider or config.prog_id != candidate.prog_id
+                or config.allow_experimental_autocad != effective_opt_in):
+            config = replace(config, cad_provider=candidate.provider, prog_id=candidate.prog_id,
+                             allow_experimental_autocad=effective_opt_in,
+                             autocad_pc3_path=config.autocad_pc3_path if candidate.provider == "autocad" else None)
     except (AppError, OSError, ValueError) as error:
         app_error = _initialization_error(error)
         print(f"초기화 실패 ({app_error.code}): {app_error}", file=sys.stderr)

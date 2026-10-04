@@ -17,7 +17,7 @@ $env:DWG_TO_PDF_TEMPLATE_SOURCE_ROOT = "$PWD\template_profiles"
 
 설치에는 인터넷이 필요합니다. `gstarcad` 표식 시험은 실제 CAD와 별도 시험 도면·환경변수를 요구합니다. 고객 도면을 저장소에 올리지 않습니다.
 
-AutoCAD는 실험적이며 실제 버전/출력 호환성이 확인되지 않았습니다. 개발 브랜치의 소스 실행만 준비된 상태이며 기존 릴리스 ZIP에는 포함되지 않습니다.
+AutoCAD는 실험적입니다. PC-B의 AutoCAD 2021 소스 실기 증거와 최신 MAIN 인계는 [인계 기록](autocad/HANDOFF-2026-10-04.md)을 확인합니다. 기존 릴리스 ZIP에는 이 확장이 포함되지 않으며 GstarCAD 회귀와 새 frozen EXE 검증은 남아 있습니다.
 
 ```powershell
 python -m dwg_to_pdf --list-cad

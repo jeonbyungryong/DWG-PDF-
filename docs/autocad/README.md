@@ -2,9 +2,11 @@
 
 **현재 단계: G1 승인 / 개발 브랜치 구현 / 두 번째 PC의 AutoCAD 2021 소스 통합 실기 3 PASS / G3·G5 및 배포 미완료.**
 
-다른 PC에서는 `codex/autocad-support`와 관리 이슈의 마지막 push SHA를 확인한다. 현재 배포 실행 파일은 GstarCAD용이며 AutoCAD 지원 기능이 추가된 것이 아니다. 소스의 실험적 구현과 검증 상태는 [검증 현황](VALIDATION.md)을 참조한다.
+2026-10-04 사용자는 현재 소스와 검증 자료의 MAIN 병합을 승인했다. [최신 인계·복구점](HANDOFF-2026-10-04.md), [원래 PC GstarCAD 회귀](../../tools/regression/gstarcad/README.md), [PC-B 실제 출력 증거](../../validation/autocad-2021-pc-b/README.md)를 따른다. 병합 후에도 G3/G5와 공식 지원은 미완료다.
 
-2026-10-04 현재 PC에서 확인한 수정은 로컬 격리 브랜치 `codex/autocad-pc-validation`에 있다. GitHub 게시 또는 공식 지원 승인과 구분한다. AutoCAD 전용 플로터 복사본/설정과 검증 범위는 위 검증 현황의 추가 기록을 따른다.
+원래 PC에서는 최신 MAIN을 별도 폴더에 내려받고 위 회귀 절차를 실행한다. 현재 배포 실행 파일은 GstarCAD용이며 새 소스 확장이 포함된 배포본이 아니다. 소스의 실험적 구현과 검증 상태는 [검증 현황](VALIDATION.md)을 참조한다.
+
+수정과 인계 자료는 `codex/autocad-pc-validation` PR을 통해 MAIN으로 통합한다. 소스 게시와 공식 지원 승인을 구분한다. AutoCAD 전용 플로터 복사본/설정과 검증 범위는 검증 현황의 추가 기록을 따른다.
 
 | 자료 | 역할 |
 |---|---|

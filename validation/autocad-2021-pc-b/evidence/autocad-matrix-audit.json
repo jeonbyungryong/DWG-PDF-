@@ -1,0 +1,781 @@
+{
+  "pdf_count": 86,
+  "golden_count": 86,
+  "complete": true,
+  "pdfs": [
+    {
+      "mode": "off",
+      "file": "TEMPLETE_100대1.pdf",
+      "width_mm": 297.0388888888889,
+      "height_mm": 209.90277777777777,
+      "pdf_rotation": 0,
+      "chroma_max": 0,
+      "dark_pixels": 16906
+    },
+    {
+      "mode": "off",
+      "file": "TEMPLETE_100대1_blank.pdf",
+      "width_mm": 297.0388888888889,
+      "height_mm": 209.90277777777777,
+      "pdf_rotation": 0,
+      "chroma_max": 0,
+      "dark_pixels": 16841
+    },
+    {
+      "mode": "off",
+      "file": "TEMPLETE_100대1_na.pdf",
+      "width_mm": 297.0388888888889,
+      "height_mm": 209.90277777777777,
+      "pdf_rotation": 0,
+      "chroma_max": 0,
+      "dark_pixels": 16905
+    },
+    {
+      "mode": "off",
+      "file": "TEMPLETE_100대1_rotate180.pdf",
+      "width_mm": 297.0388888888889,
+      "height_mm": 209.90277777777777,
+      "pdf_rotation": 0,
+      "chroma_max": 0,
+      "dark_pixels": 16906
+    },
+    {
+      "mode": "off",
+      "file": "TEMPLETE_100대1_rotate270.pdf",
+      "width_mm": 297.0388888888889,
+      "height_mm": 209.90277777777777,
+      "pdf_rotation": 0,
+      "chroma_max": 0,
+      "dark_pixels": 16906
+    },
+    {
+      "mode": "off",
+      "file": "TEMPLETE_100대1_rotate90.pdf",
+      "width_mm": 297.0388888888889,
+      "height_mm": 209.90277777777777,
+      "pdf_rotation": 0,
+      "chroma_max": 0,
+      "dark_pixels": 16906
+    },
+    {
+      "mode": "off",
+      "file": "TEMPLETE_100대1_shift.pdf",
+      "width_mm": 297.0388888888889,
+      "height_mm": 209.90277777777777,
+      "pdf_rotation": 0,
+      "chroma_max": 0,
+      "dark_pixels": 16906
+    },
+    {
+      "mode": "off",
+      "file": "TEMPLETE_10대1.pdf",
+      "width_mm": 297.0388888888889,
+      "height_mm": 209.90277777777777,
+      "pdf_rotation": 0,
+      "chroma_max": 0,
+      "dark_pixels": 16895
+    },
+    {
+      "mode": "off",
+      "file": "TEMPLETE_1대1.pdf",
+      "width_mm": 297.0388888888889,
+      "height_mm": 209.90277777777777,
+      "pdf_rotation": 0,
+      "chroma_max": 0,
+      "dark_pixels": 17546
+    },
+    {
+      "mode": "off",
+      "file": "TEMPLETE_1대10.pdf",
+      "width_mm": 297.0388888888889,
+      "height_mm": 209.90277777777777,
+      "pdf_rotation": 0,
+      "chroma_max": 0,
+      "dark_pixels": 16953
+    },
+    {
+      "mode": "off",
+      "file": "TEMPLETE_1대100.pdf",
+      "width_mm": 297.0388888888889,
+      "height_mm": 209.90277777777777,
+      "pdf_rotation": 0,
+      "chroma_max": 0,
+      "dark_pixels": 16917
+    },
+    {
+      "mode": "off",
+      "file": "TEMPLETE_1대100_blank.pdf",
+      "width_mm": 297.0388888888889,
+      "height_mm": 209.90277777777777,
+      "pdf_rotation": 0,
+      "chroma_max": 0,
+      "dark_pixels": 16849
+    },
+    {
+      "mode": "off",
+      "file": "TEMPLETE_1대100_na.pdf",
+      "width_mm": 297.0388888888889,
+      "height_mm": 209.90277777777777,
+      "pdf_rotation": 0,
+      "chroma_max": 0,
+      "dark_pixels": 16913
+    },
+    {
+      "mode": "off",
+      "file": "TEMPLETE_1대100_rotate180.pdf",
+      "width_mm": 297.0388888888889,
+      "height_mm": 209.90277777777777,
+      "pdf_rotation": 0,
+      "chroma_max": 0,
+      "dark_pixels": 16917
+    },
+    {
+      "mode": "off",
+      "file": "TEMPLETE_1대100_rotate270.pdf",
+      "width_mm": 297.0388888888889,
+      "height_mm": 209.90277777777777,
+      "pdf_rotation": 0,
+      "chroma_max": 0,
+      "dark_pixels": 16917
+    },
+    {
+      "mode": "off",
+      "file": "TEMPLETE_1대100_rotate90.pdf",
+      "width_mm": 297.0388888888889,
+      "height_mm": 209.90277777777777,
+      "pdf_rotation": 0,
+      "chroma_max": 0,
+      "dark_pixels": 16917
+    },
+    {
+      "mode": "off",
+      "file": "TEMPLETE_1대100_shift.pdf",
+      "width_mm": 297.0388888888889,
+      "height_mm": 209.90277777777777,
+      "pdf_rotation": 0,
+      "chroma_max": 0,
+      "dark_pixels": 16917
+    },
+    {
+      "mode": "off",
+      "file": "TEMPLETE_1대10_blank.pdf",
+      "width_mm": 297.0388888888889,
+      "height_mm": 209.90277777777777,
+      "pdf_rotation": 0,
+      "chroma_max": 0,
+      "dark_pixels": 16900
+    },
+    {
+      "mode": "off",
+      "file": "TEMPLETE_1대10_na.pdf",
+      "width_mm": 297.0388888888889,
+      "height_mm": 209.90277777777777,
+      "pdf_rotation": 0,
+      "chroma_max": 0,
+      "dark_pixels": 16963
+    },
+    {
+      "mode": "off",
+      "file": "TEMPLETE_1대10_rotate180.pdf",
+      "width_mm": 297.0388888888889,
+      "height_mm": 209.90277777777777,
+      "pdf_rotation": 0,
+      "chroma_max": 0,
+      "dark_pixels": 16953
+    },
+    {
+      "mode": "off",
+      "file": "TEMPLETE_1대10_rotate270.pdf",
+      "width_mm": 297.0388888888889,
+      "height_mm": 209.90277777777777,
+      "pdf_rotation": 0,
+      "chroma_max": 0,
+      "dark_pixels": 16953
+    },
+    {
+      "mode": "off",
+      "file": "TEMPLETE_1대10_rotate90.pdf",
+      "width_mm": 297.0388888888889,
+      "height_mm": 209.90277777777777,
+      "pdf_rotation": 0,
+      "chroma_max": 0,
+      "dark_pixels": 16953
+    },
+    {
+      "mode": "off",
+      "file": "TEMPLETE_1대10_shift.pdf",
+      "width_mm": 297.0388888888889,
+      "height_mm": 209.90277777777777,
+      "pdf_rotation": 0,
+      "chroma_max": 0,
+      "dark_pixels": 16953
+    },
+    {
+      "mode": "off",
+      "file": "TEMPLETE_1대1_blank.pdf",
+      "width_mm": 297.0388888888889,
+      "height_mm": 209.90277777777777,
+      "pdf_rotation": 0,
+      "chroma_max": 0,
+      "dark_pixels": 17512
+    },
+    {
+      "mode": "off",
+      "file": "TEMPLETE_1대1_na.pdf",
+      "width_mm": 297.0388888888889,
+      "height_mm": 209.90277777777777,
+      "pdf_rotation": 0,
+      "chroma_max": 0,
+      "dark_pixels": 17575
+    },
+    {
+      "mode": "off",
+      "file": "TEMPLETE_1대1_rotate180.pdf",
+      "width_mm": 297.0388888888889,
+      "height_mm": 209.90277777777777,
+      "pdf_rotation": 0,
+      "chroma_max": 0,
+      "dark_pixels": 17546
+    },
+    {
+      "mode": "off",
+      "file": "TEMPLETE_1대1_rotate270.pdf",
+      "width_mm": 297.0388888888889,
+      "height_mm": 209.90277777777777,
+      "pdf_rotation": 0,
+      "chroma_max": 0,
+      "dark_pixels": 17546
+    },
+    {
+      "mode": "off",
+      "file": "TEMPLETE_1대1_rotate90.pdf",
+      "width_mm": 297.0388888888889,
+      "height_mm": 209.90277777777777,
+      "pdf_rotation": 0,
+      "chroma_max": 0,
+      "dark_pixels": 17546
+    },
+    {
+      "mode": "off",
+      "file": "TEMPLETE_1대1_shift.pdf",
+      "width_mm": 297.0388888888889,
+      "height_mm": 209.90277777777777,
+      "pdf_rotation": 0,
+      "chroma_max": 0,
+      "dark_pixels": 17546
+    },
+    {
+      "mode": "off",
+      "file": "TEMPLETE_1대2.pdf",
+      "width_mm": 297.0388888888889,
+      "height_mm": 209.90277777777777,
+      "pdf_rotation": 0,
+      "chroma_max": 0,
+      "dark_pixels": 17215
+    },
+    {
+      "mode": "off",
+      "file": "TEMPLETE_1대20.pdf",
+      "width_mm": 297.0388888888889,
+      "height_mm": 209.90277777777777,
+      "pdf_rotation": 0,
+      "chroma_max": 0,
+      "dark_pixels": 16932
+    },
+    {
+      "mode": "off",
+      "file": "TEMPLETE_1대2_blank.pdf",
+      "width_mm": 297.0388888888889,
+      "height_mm": 209.90277777777777,
+      "pdf_rotation": 0,
+      "chroma_max": 0,
+      "dark_pixels": 17176
+    },
+    {
+      "mode": "off",
+      "file": "TEMPLETE_1대2_na.pdf",
+      "width_mm": 297.0388888888889,
+      "height_mm": 209.90277777777777,
+      "pdf_rotation": 0,
+      "chroma_max": 0,
+      "dark_pixels": 17239
+    },
+    {
+      "mode": "off",
+      "file": "TEMPLETE_1대2_rotate180.pdf",
+      "width_mm": 297.0388888888889,
+      "height_mm": 209.90277777777777,
+      "pdf_rotation": 0,
+      "chroma_max": 0,
+      "dark_pixels": 17215
+    },
+    {
+      "mode": "off",
+      "file": "TEMPLETE_1대2_rotate270.pdf",
+      "width_mm": 297.0388888888889,
+      "height_mm": 209.90277777777777,
+      "pdf_rotation": 0,
+      "chroma_max": 0,
+      "dark_pixels": 17215
+    },
+    {
+      "mode": "off",
+      "file": "TEMPLETE_1대2_rotate90.pdf",
+      "width_mm": 297.0388888888889,
+      "height_mm": 209.90277777777777,
+      "pdf_rotation": 0,
+      "chroma_max": 0,
+      "dark_pixels": 17215
+    },
+    {
+      "mode": "off",
+      "file": "TEMPLETE_1대2_shift.pdf",
+      "width_mm": 297.0388888888889,
+      "height_mm": 209.90277777777777,
+      "pdf_rotation": 0,
+      "chroma_max": 0,
+      "dark_pixels": 17215
+    },
+    {
+      "mode": "off",
+      "file": "TEMPLETE_1대5.pdf",
+      "width_mm": 297.0388888888889,
+      "height_mm": 209.90277777777777,
+      "pdf_rotation": 0,
+      "chroma_max": 0,
+      "dark_pixels": 17017
+    },
+    {
+      "mode": "off",
+      "file": "TEMPLETE_1대50.pdf",
+      "width_mm": 297.0388888888889,
+      "height_mm": 209.90277777777777,
+      "pdf_rotation": 0,
+      "chroma_max": 0,
+      "dark_pixels": 16912
+    },
+    {
+      "mode": "off",
+      "file": "TEMPLETE_20대1.pdf",
+      "width_mm": 297.0388888888889,
+      "height_mm": 209.90277777777777,
+      "pdf_rotation": 0,
+      "chroma_max": 0,
+      "dark_pixels": 16897
+    },
+    {
+      "mode": "off",
+      "file": "TEMPLETE_2대1.pdf",
+      "width_mm": 297.0388888888889,
+      "height_mm": 209.90277777777777,
+      "pdf_rotation": 0,
+      "chroma_max": 0,
+      "dark_pixels": 18226
+    },
+    {
+      "mode": "off",
+      "file": "TEMPLETE_50대1.pdf",
+      "width_mm": 297.0388888888889,
+      "height_mm": 209.90277777777777,
+      "pdf_rotation": 0,
+      "chroma_max": 0,
+      "dark_pixels": 16899
+    },
+    {
+      "mode": "off",
+      "file": "TEMPLETE_5대1.pdf",
+      "width_mm": 297.0388888888889,
+      "height_mm": 209.90277777777777,
+      "pdf_rotation": 0,
+      "chroma_max": 0,
+      "dark_pixels": 19677
+    },
+    {
+      "mode": "on",
+      "file": "TEMPLETE_100대1.pdf",
+      "width_mm": 297.0388888888889,
+      "height_mm": 209.90277777777777,
+      "pdf_rotation": 0,
+      "chroma_max": 0,
+      "dark_pixels": 16906
+    },
+    {
+      "mode": "on",
+      "file": "TEMPLETE_100대1_blank.pdf",
+      "width_mm": 297.0388888888889,
+      "height_mm": 209.90277777777777,
+      "pdf_rotation": 0,
+      "chroma_max": 0,
+      "dark_pixels": 16841
+    },
+    {
+      "mode": "on",
+      "file": "TEMPLETE_100대1_na.pdf",
+      "width_mm": 297.0388888888889,
+      "height_mm": 209.90277777777777,
+      "pdf_rotation": 0,
+      "chroma_max": 0,
+      "dark_pixels": 16905
+    },
+    {
+      "mode": "on",
+      "file": "TEMPLETE_100대1_rotate180.pdf",
+      "width_mm": 297.0388888888889,
+      "height_mm": 209.90277777777777,
+      "pdf_rotation": 0,
+      "chroma_max": 0,
+      "dark_pixels": 16906
+    },
+    {
+      "mode": "on",
+      "file": "TEMPLETE_100대1_rotate270.pdf",
+      "width_mm": 297.0388888888889,
+      "height_mm": 209.90277777777777,
+      "pdf_rotation": 0,
+      "chroma_max": 0,
+      "dark_pixels": 16906
+    },
+    {
+      "mode": "on",
+      "file": "TEMPLETE_100대1_rotate90.pdf",
+      "width_mm": 297.0388888888889,
+      "height_mm": 209.90277777777777,
+      "pdf_rotation": 0,
+      "chroma_max": 0,
+      "dark_pixels": 16906
+    },
+    {
+      "mode": "on",
+      "file": "TEMPLETE_100대1_shift.pdf",
+      "width_mm": 297.0388888888889,
+      "height_mm": 209.90277777777777,
+      "pdf_rotation": 0,
+      "chroma_max": 0,
+      "dark_pixels": 16906
+    },
+    {
+      "mode": "on",
+      "file": "TEMPLETE_10대1.pdf",
+      "width_mm": 297.0388888888889,
+      "height_mm": 209.90277777777777,
+      "pdf_rotation": 0,
+      "chroma_max": 0,
+      "dark_pixels": 16895
+    },
+    {
+      "mode": "on",
+      "file": "TEMPLETE_1대1.pdf",
+      "width_mm": 297.0388888888889,
+      "height_mm": 209.90277777777777,
+      "pdf_rotation": 0,
+      "chroma_max": 0,
+      "dark_pixels": 17546
+    },
+    {
+      "mode": "on",
+      "file": "TEMPLETE_1대10.pdf",
+      "width_mm": 297.0388888888889,
+      "height_mm": 209.90277777777777,
+      "pdf_rotation": 0,
+      "chroma_max": 0,
+      "dark_pixels": 16953
+    },
+    {
+      "mode": "on",
+      "file": "TEMPLETE_1대100.pdf",
+      "width_mm": 297.0388888888889,
+      "height_mm": 209.90277777777777,
+      "pdf_rotation": 0,
+      "chroma_max": 0,
+      "dark_pixels": 16917
+    },
+    {
+      "mode": "on",
+      "file": "TEMPLETE_1대100_blank.pdf",
+      "width_mm": 297.0388888888889,
+      "height_mm": 209.90277777777777,
+      "pdf_rotation": 0,
+      "chroma_max": 0,
+      "dark_pixels": 16849
+    },
+    {
+      "mode": "on",
+      "file": "TEMPLETE_1대100_na.pdf",
+      "width_mm": 297.0388888888889,
+      "height_mm": 209.90277777777777,
+      "pdf_rotation": 0,
+      "chroma_max": 0,
+      "dark_pixels": 16913
+    },
+    {
+      "mode": "on",
+      "file": "TEMPLETE_1대100_rotate180.pdf",
+      "width_mm": 297.0388888888889,
+      "height_mm": 209.90277777777777,
+      "pdf_rotation": 0,
+      "chroma_max": 0,
+      "dark_pixels": 16917
+    },
+    {
+      "mode": "on",
+      "file": "TEMPLETE_1대100_rotate270.pdf",
+      "width_mm": 297.0388888888889,
+      "height_mm": 209.90277777777777,
+      "pdf_rotation": 0,
+      "chroma_max": 0,
+      "dark_pixels": 16917
+    },
+    {
+      "mode": "on",
+      "file": "TEMPLETE_1대100_rotate90.pdf",
+      "width_mm": 297.0388888888889,
+      "height_mm": 209.90277777777777,
+      "pdf_rotation": 0,
+      "chroma_max": 0,
+      "dark_pixels": 16917
+    },
+    {
+      "mode": "on",
+      "file": "TEMPLETE_1대100_shift.pdf",
+      "width_mm": 297.0388888888889,
+      "height_mm": 209.90277777777777,
+      "pdf_rotation": 0,
+      "chroma_max": 0,
+      "dark_pixels": 16917
+    },
+    {
+      "mode": "on",
+      "file": "TEMPLETE_1대10_blank.pdf",
+      "width_mm": 297.0388888888889,
+      "height_mm": 209.90277777777777,
+      "pdf_rotation": 0,
+      "chroma_max": 0,
+      "dark_pixels": 16900
+    },
+    {
+      "mode": "on",
+      "file": "TEMPLETE_1대10_na.pdf",
+      "width_mm": 297.0388888888889,
+      "height_mm": 209.90277777777777,
+      "pdf_rotation": 0,
+      "chroma_max": 0,
+      "dark_pixels": 16963
+    },
+    {
+      "mode": "on",
+      "file": "TEMPLETE_1대10_rotate180.pdf",
+      "width_mm": 297.0388888888889,
+      "height_mm": 209.90277777777777,
+      "pdf_rotation": 0,
+      "chroma_max": 0,
+      "dark_pixels": 16953
+    },
+    {
+      "mode": "on",
+      "file": "TEMPLETE_1대10_rotate270.pdf",
+      "width_mm": 297.0388888888889,
+      "height_mm": 209.90277777777777,
+      "pdf_rotation": 0,
+      "chroma_max": 0,
+      "dark_pixels": 16953
+    },
+    {
+      "mode": "on",
+      "file": "TEMPLETE_1대10_rotate90.pdf",
+      "width_mm": 297.0388888888889,
+      "height_mm": 209.90277777777777,
+      "pdf_rotation": 0,
+      "chroma_max": 0,
+      "dark_pixels": 16953
+    },
+    {
+      "mode": "on",
+      "file": "TEMPLETE_1대10_shift.pdf",
+      "width_mm": 297.0388888888889,
+      "height_mm": 209.90277777777777,
+      "pdf_rotation": 0,
+      "chroma_max": 0,
+      "dark_pixels": 16953
+    },
+    {
+      "mode": "on",
+      "file": "TEMPLETE_1대1_blank.pdf",
+      "width_mm": 297.0388888888889,
+      "height_mm": 209.90277777777777,
+      "pdf_rotation": 0,
+      "chroma_max": 0,
+      "dark_pixels": 17512
+    },
+    {
+      "mode": "on",
+      "file": "TEMPLETE_1대1_na.pdf",
+      "width_mm": 297.0388888888889,
+      "height_mm": 209.90277777777777,
+      "pdf_rotation": 0,
+      "chroma_max": 0,
+      "dark_pixels": 17575
+    },
+    {
+      "mode": "on",
+      "file": "TEMPLETE_1대1_rotate180.pdf",
+      "width_mm": 297.0388888888889,
+      "height_mm": 209.90277777777777,
+      "pdf_rotation": 0,
+      "chroma_max": 0,
+      "dark_pixels": 17546
+    },
+    {
+      "mode": "on",
+      "file": "TEMPLETE_1대1_rotate270.pdf",
+      "width_mm": 297.0388888888889,
+      "height_mm": 209.90277777777777,
+      "pdf_rotation": 0,
+      "chroma_max": 0,
+      "dark_pixels": 17546
+    },
+    {
+      "mode": "on",
+      "file": "TEMPLETE_1대1_rotate90.pdf",
+      "width_mm": 297.0388888888889,
+      "height_mm": 209.90277777777777,
+      "pdf_rotation": 0,
+      "chroma_max": 0,
+      "dark_pixels": 17546
+    },
+    {
+      "mode": "on",
+      "file": "TEMPLETE_1대1_shift.pdf",
+      "width_mm": 297.0388888888889,
+      "height_mm": 209.90277777777777,
+      "pdf_rotation": 0,
+      "chroma_max": 0,
+      "dark_pixels": 17546
+    },
+    {
+      "mode": "on",
+      "file": "TEMPLETE_1대2.pdf",
+      "width_mm": 297.0388888888889,
+      "height_mm": 209.90277777777777,
+      "pdf_rotation": 0,
+      "chroma_max": 0,
+      "dark_pixels": 17215
+    },
+    {
+      "mode": "on",
+      "file": "TEMPLETE_1대20.pdf",
+      "width_mm": 297.0388888888889,
+      "height_mm": 209.90277777777777,
+      "pdf_rotation": 0,
+      "chroma_max": 0,
+      "dark_pixels": 16932
+    },
+    {
+      "mode": "on",
+      "file": "TEMPLETE_1대2_blank.pdf",
+      "width_mm": 297.0388888888889,
+      "height_mm": 209.90277777777777,
+      "pdf_rotation": 0,
+      "chroma_max": 0,
+      "dark_pixels": 17176
+    },
+    {
+      "mode": "on",
+      "file": "TEMPLETE_1대2_na.pdf",
+      "width_mm": 297.0388888888889,
+      "height_mm": 209.90277777777777,
+      "pdf_rotation": 0,
+      "chroma_max": 0,
+      "dark_pixels": 17239
+    },
+    {
+      "mode": "on",
+      "file": "TEMPLETE_1대2_rotate180.pdf",
+      "width_mm": 297.0388888888889,
+      "height_mm": 209.90277777777777,
+      "pdf_rotation": 0,
+      "chroma_max": 0,
+      "dark_pixels": 17215
+    },
+    {
+      "mode": "on",
+      "file": "TEMPLETE_1대2_rotate270.pdf",
+      "width_mm": 297.0388888888889,
+      "height_mm": 209.90277777777777,
+      "pdf_rotation": 0,
+      "chroma_max": 0,
+      "dark_pixels": 17215
+    },
+    {
+      "mode": "on",
+      "file": "TEMPLETE_1대2_rotate90.pdf",
+      "width_mm": 297.0388888888889,
+      "height_mm": 209.90277777777777,
+      "pdf_rotation": 0,
+      "chroma_max": 0,
+      "dark_pixels": 17215
+    },
+    {
+      "mode": "on",
+      "file": "TEMPLETE_1대2_shift.pdf",
+      "width_mm": 297.0388888888889,
+      "height_mm": 209.90277777777777,
+      "pdf_rotation": 0,
+      "chroma_max": 0,
+      "dark_pixels": 17215
+    },
+    {
+      "mode": "on",
+      "file": "TEMPLETE_1대5.pdf",
+      "width_mm": 297.0388888888889,
+      "height_mm": 209.90277777777777,
+      "pdf_rotation": 0,
+      "chroma_max": 0,
+      "dark_pixels": 17017
+    },
+    {
+      "mode": "on",
+      "file": "TEMPLETE_1대50.pdf",
+      "width_mm": 297.0388888888889,
+      "height_mm": 209.90277777777777,
+      "pdf_rotation": 0,
+      "chroma_max": 0,
+      "dark_pixels": 16912
+    },
+    {
+      "mode": "on",
+      "file": "TEMPLETE_20대1.pdf",
+      "width_mm": 297.0388888888889,
+      "height_mm": 209.90277777777777,
+      "pdf_rotation": 0,
+      "chroma_max": 0,
+      "dark_pixels": 16897
+    },
+    {
+      "mode": "on",
+      "file": "TEMPLETE_2대1.pdf",
+      "width_mm": 297.0388888888889,
+      "height_mm": 209.90277777777777,
+      "pdf_rotation": 0,
+      "chroma_max": 0,
+      "dark_pixels": 18226
+    },
+    {
+      "mode": "on",
+      "file": "TEMPLETE_50대1.pdf",
+      "width_mm": 297.0388888888889,
+      "height_mm": 209.90277777777777,
+      "pdf_rotation": 0,
+      "chroma_max": 0,
+      "dark_pixels": 16899
+    },
+    {
+      "mode": "on",
+      "file": "TEMPLETE_5대1.pdf",
+      "width_mm": 297.0388888888889,
+      "height_mm": 209.90277777777777,
+      "pdf_rotation": 0,
+      "chroma_max": 0,
+      "dark_pixels": 19677
+    }
+  ]
+}
