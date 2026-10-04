@@ -58,7 +58,7 @@ if ($LASTEXITCODE -ne 0) { throw '출력/판정/OFF-ON 차이: 근거 보존 후
 ```powershell
 git worktree add --detach '..\DWG-PDF-gstar-before' a546c4fc8bc960b6e5e2a36a3317e507db4d4352
 $regressionBefore = (Resolve-Path '..\DWG-PDF-gstar-before').Path
-& '.\.venv\Scripts\python.exe' tools\benchmark_conversion.py --code-root $regressionBefore --source-root "$regressionBefore\template_profiles" --input-root "$regressionKit\inputs" --config $env:GSTAR_REGRESSION_CONFIG --result "$regressionRun\before.json"
+& '.\.venv\Scripts\python.exe' "$regressionBefore\tools\benchmark_conversion.py" --code-root $regressionBefore --source-root "$regressionBefore\template_profiles" --input-root "$regressionKit\inputs" --config $env:GSTAR_REGRESSION_CONFIG --result "$regressionRun\before.json"
 if ($LASTEXITCODE -ne 0) { throw 'BEFORE 실패' }
 & '.\.venv\Scripts\python.exe' tools\benchmark_conversion.py --code-root $regressionRepo --source-root "$regressionRepo\template_profiles" --input-root "$regressionKit\inputs" --config $env:GSTAR_REGRESSION_CONFIG --result "$regressionRun\after.json"
 if ($LASTEXITCODE -ne 0) { throw 'AFTER 실패' }
@@ -66,5 +66,7 @@ if ($LASTEXITCODE -ne 0) { throw 'AFTER 실패' }
 & '.\.venv\Scripts\python.exe' tools\compare_benchmark_results.py "$regressionRun\before.json" "$regressionRun\after.json" --output "$regressionRun\comparison.json"
 if ($LASTEXITCODE -ne 0) { throw '이전 버전 대비 판정/픽셀 차이' }
 ```
+
+BEFORE는 이전 checkout의 benchmark 스크립트를 사용한다. 현재 스크립트가 새 PDF 검증 인자를 이전 코드에 전달하면 변환과 무관한 API 불일치가 생길 수 있다. 두 실행의 엔진·설정·입력은 동일하게 유지한다.
 
 기존 `GSTARCAD_WINDOW_LEARNING_DWGS`는 잘못된 저장창을 가진 원래 PC의 승인 자료2개가 별도로 필요하다. 이 폴더의 일반 도면으로 대체해 통과 처리하지 않는다. 기존 gstarcad 표식6개의 환경변수는 `tests/integration`을 참조한다. 여기의 통합3개가 모든 특수 목적시험을 자동 대체하지 않는다. G3 검토 후 frozen EXE·Python 없는 PC의 G5를 진행한다.

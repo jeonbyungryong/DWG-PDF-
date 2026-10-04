@@ -40,6 +40,9 @@ try {
     & $Python -m PyInstaller --noconfirm --clean --workpath build --distpath dist 'packaging\dwg_to_pdf.spec'
     if ($LASTEXITCODE -ne 0) { throw 'PyInstaller build failed.' }
     & (Join-Path $PSScriptRoot 'verify_bundle.ps1') -BundlePath (Join-Path $root 'dist\dwg-to-pdf-validation') -ChecksumsPath (Join-Path $root 'dist\dwg-to-pdf-validation-checksums.csv')
+    $verificationSucceeded = $?
+    $verificationExitCode = $LASTEXITCODE
+    if (-not $verificationSucceeded -or $verificationExitCode -ne 0) { throw 'Bundle verification failed; ZIP publication stopped.' }
     $zip = Join-Path $root 'dist\dwg-to-pdf-validation.zip'
     if (Test-Path -LiteralPath $zip) { Remove-Item -LiteralPath $zip -Force }
     Compress-Archive -Path (Join-Path $root 'dist\dwg-to-pdf-validation'),(Join-Path $root 'dist\dwg-to-pdf-validation-checksums.csv') -DestinationPath $zip -Force
