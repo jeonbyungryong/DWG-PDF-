@@ -1,8 +1,10 @@
 # AutoCAD 확장 개발 허브
 
-**현재 단계: G1 승인 / 개발 브랜치 T1~T6 구현 / T7~T9 실기·배포 게이트 미통과 / AutoCAD 실기 NOT_RUN.**
+**현재 단계: G1 승인 / 개발 브랜치 구현 / 두 번째 PC의 AutoCAD 2021 소스 통합 실기 3 PASS / G3·G5 및 배포 미완료.**
 
 다른 PC에서는 `codex/autocad-support`와 관리 이슈의 마지막 push SHA를 확인한다. 현재 배포 실행 파일은 GstarCAD용이며 AutoCAD 지원 기능이 추가된 것이 아니다. 소스의 실험적 구현과 검증 상태는 [검증 현황](VALIDATION.md)을 참조한다.
+
+2026-10-04 현재 PC에서 확인한 수정은 로컬 격리 브랜치 `codex/autocad-pc-validation`에 있다. GitHub 게시 또는 공식 지원 승인과 구분한다. AutoCAD 전용 플로터 복사본/설정과 검증 범위는 위 검증 현황의 추가 기록을 따른다.
 
 | 자료 | 역할 |
 |---|---|

@@ -125,3 +125,59 @@ def test_diagnostic_sink_failure_cannot_strand_session(setup_session, monkeypatc
     assert "handle-close" in events and "uninit" in events
     assert session.mutex is None and session._legacy_mutex is None
     assert not session._owns_app
+
+
+def test_owned_autocad_waits_through_busy_startup_before_mutation(setup_session, monkeypatch):
+    import pywintypes
+    from dwg_to_pdf.autocad.com_session import AutoCADSession
+    _, app, events = setup_session
+    ready = {"value": False}
+    states = iter(("rejected", False, True))
+    def state():
+        value = next(states)
+        if value == "rejected":
+            raise pywintypes.com_error(-2147418111, "busy", None, None)
+        ready["value"] = value
+        return SimpleNamespace(IsQuiescent=value)
+    app.GetAcadState = state
+    app.Documents.Count = 1
+    original_setter = App.Visible.fset
+    def visible(instance, value):
+        if not ready["value"]:
+            raise ValueError("mutation before AutoCAD readiness")
+        original_setter(instance, value)
+    monkeypatch.setattr(App, "Visible", property(App.Visible.fget, visible))
+    candidate = CadCandidate("autocad", "AutoCAD.Application.25", "clsid", Path("acad.exe"), "AutoCAD", None)
+    with AutoCADSession(candidate) as session:
+        assert session.is_usable
+    assert app.quit_count == 1 and "handle-close" in events
+
+
+def test_owned_autocad_readiness_timeout_releases_resources(setup_session, monkeypatch):
+    import time
+    from dwg_to_pdf.autocad import com_session as autocad
+    _, app, events = setup_session
+    app.GetAcadState = lambda: SimpleNamespace(IsQuiescent=False)
+    ticks = iter((0., 121.))
+    monkeypatch.setattr(time, "monotonic", lambda: next(ticks))
+    candidate = CadCandidate("autocad", "AutoCAD.Application.25", "clsid", Path("acad.exe"), "AutoCAD", None)
+    session = autocad.AutoCADSession(candidate)
+    with pytest.raises(AppError) as error:
+        session.__enter__()
+    assert error.value.code == "E201"
+    assert app.writes == [] and app.quit_count == 1
+    assert "handle-close" in events and "uninit" in events
+
+
+def test_owned_autocad_permanent_readiness_failure_is_not_retried(setup_session):
+    import pywintypes
+    from dwg_to_pdf.autocad.com_session import AutoCADSession
+    _, app, events = setup_session
+    def state():
+        raise pywintypes.com_error(-2147024891, "access denied", None, None)
+    app.GetAcadState = state
+    candidate = CadCandidate("autocad", "AutoCAD.Application.25", "clsid", Path("acad.exe"), "AutoCAD", None)
+    with pytest.raises(AppError) as error:
+        AutoCADSession(candidate).__enter__()
+    assert error.value.code == "E201"
+    assert app.writes == [] and app.quit_count == 1

@@ -43,8 +43,8 @@ class Layout:
         self.window = (lower.value, upper.value)
 
 
-@pytest.mark.parametrize("rotation,expected", [(0, 0), (90, 3), (180, 2), (270, 1)])
-def test_four_rotations_inverse_mapping_and_measured_media(tmp_path, monkeypatch, rotation, expected):
+@pytest.mark.parametrize("rotation,expected", [(0, 0), (90, 1), (180, 2), (270, 3)])
+def test_four_rotations_autocad_mapping_and_measured_media(tmp_path, monkeypatch, rotation, expected):
     layout = Layout()
     output = tmp_path / "plot.pdf"
     calls = []
@@ -63,6 +63,30 @@ def test_four_rotations_inverse_mapping_and_measured_media(tmp_path, monkeypatch
     assert layout.order == ["Window", "PlotType"]
     assert layout.PlotRotation == expected
     assert output.read_bytes() == calls[0]
+
+
+@pytest.mark.parametrize("frame_rotation,pdf_rotation", [(90,270),(180,180),(270,90)])
+def test_verified_2021_rotation_metadata_removed_without_changing_vectors(tmp_path, frame_rotation, pdf_rotation):
+    from dwg_to_pdf.autocad.plotting import normalize_verified_orientation
+    from dwg_to_pdf.pdf_reader import read_pdf
+    output=tmp_path/'verified.pdf'
+    pdf(output,rotation=pdf_rotation)
+    content=read_pdf(output.read_bytes()).pages[0].get_contents().get_data()
+    normalize_verified_orientation(output,frame_rotation,reported_version="24.0s (LMS Tech)")
+    reader=read_pdf(output.read_bytes())
+    assert reader.pages[0].rotation==0
+    assert reader.pages[0].get_contents().get_data()==content
+    validate_orientation(output)
+
+
+@pytest.mark.parametrize("version,frame_rotation,pdf_rotation", [("25.0",90,270),("24.0s (LMS Tech)",90,90),("24.0s (LMS Tech)",0,180)])
+def test_unverified_rotation_is_rejected_without_changing_pdf(tmp_path,version,frame_rotation,pdf_rotation):
+    from dwg_to_pdf.autocad.plotting import normalize_verified_orientation
+    output=tmp_path/'unverified.pdf'; pdf(output,rotation=pdf_rotation)
+    before=output.read_bytes()
+    with pytest.raises(AppError):
+        normalize_verified_orientation(output,frame_rotation,reported_version=version)
+    assert output.read_bytes()==before
 
 
 @pytest.mark.parametrize("width,height,rotation", [(595, 842, 0), (842, 595, 90), (842, 595, 180), (500, 500, 0)])
@@ -93,3 +117,43 @@ def test_invalid_pdf_rejected(tmp_path):
     with pytest.raises(AppError) as error:
         validate_orientation(output)
     assert error.value.code == "E420"
+
+
+def test_plot_succeeds_when_driver_requires_refresh_before_paper_units(tmp_path):
+    class RefreshRequiredLayout(Layout):
+        refreshed = False
+        def RefreshPlotDeviceInfo(self):
+            self.refreshed = True
+        def __setattr__(self, name, value):
+            if name == "PaperUnits" and not self.refreshed:
+                raise ValueError("AutoCAD Invalid input before device refresh")
+            super().__setattr__(name, value)
+    layout = RefreshRequiredLayout()
+    output = tmp_path / "plot.pdf"
+    def plot(path):
+        pdf(Path(path))
+        return True
+    raw = SimpleNamespace(ActiveLayout=layout, GetVariable=lambda name: 2,
+        SetVariable=lambda name, value: None, Plot=SimpleNamespace(PlotToFile=plot))
+    plot_pdf(raw, output, Rect(Point(1, 2), Point(301, 202)), 0, ())
+    validate_orientation(output)
+
+
+def test_private_pc3_is_passed_to_plot_without_changing_installed_device(tmp_path):
+    from dwg_to_pdf.autocad.document import AutoCADDocument
+    output = tmp_path / "plot.pdf"
+    pc3 = tmp_path / "DWG To PDF.pc3"
+    pc3.write_bytes(b"private plotter")
+    calls = []
+    def plot(path, config):
+        calls.append(config)
+        pdf(Path(path))
+        return True
+    raw = SimpleNamespace(ActiveLayout=Layout(), GetVariable=lambda name: 2,
+        SetVariable=lambda name, value: None, Plot=SimpleNamespace(PlotToFile=plot))
+    document = AutoCADDocument(raw)
+    raw.Layers = raw.Blocks = SimpleNamespace(Count=0)
+    document.configure_plotter(pc3)
+    document.plot_pdf(output, Rect(Point(1, 2), Point(301, 202)), 0, ())
+    assert calls == [str(pc3.resolve())]
+    assert raw.ActiveLayout.ConfigName == "DWG To PDF.pc3"

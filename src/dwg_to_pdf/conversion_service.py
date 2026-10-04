@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+from functools import partial
 from typing import Literal
 import uuid
 
@@ -79,6 +80,8 @@ class ConversionService:
                 emit(stage)
                 with session.working_document(workspace) as document:
                     document.configure_extraction(self.config.use_native_extraction)
+                    if self.config.cad_provider == "autocad" and self.config.autocad_pc3_path is not None:
+                        document.configure_plotter(self.config.autocad_pc3_path)
                     stage = "detect"
                     emit(stage)
                     structural = {}
@@ -115,7 +118,12 @@ class ConversionService:
                                       decision.candidate.rotation, self.config.preferred_media_names)
             stage = "validate"
             emit(stage)
-            publish_pdf(temporary, final_output)
+            if self.config.cad_provider == "autocad":
+                from .pdf_validator import validate_pdf
+                publish_pdf(temporary, final_output,
+                    validator=partial(validate_pdf, allow_duplicate_page_mode=True))
+            else:
+                publish_pdf(temporary, final_output)
         except Exception as primary:
             emit(stage, getattr(primary, "code", "E900"))
             _cleanup_temporary_after_failure(temporary, primary)

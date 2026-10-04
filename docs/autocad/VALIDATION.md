@@ -2,6 +2,33 @@
 
 ## 결론
 
+### 2026-10-04 두 번째 PC 추가 검증
+
+`codex/autocad-pc-validation`은 인계 SHA `a546c4fc8bc960b6e5e2a36a3317e507db4d4352`의 격리 작업 브랜치다. Windows 일반 AutoCAD 2021, 실제 COM `24.0s (LMS Tech)`를 확인했다. 최종 오프라인 회귀는 **809 PASS / 13 SKIP (33.77초)**, 실제 AutoCAD 통합 시험은 **3 PASS (1696.80초)**다. 승인 원본13종과 변형30종을 OFF/ON으로 변환한 **86개 PDF 및 86개 기대 판정값**이 모두 통과했다. 원본 해시·mtime, 기존 사용자 CAD 공존, 작업용 CAD 종료, 실패 파일 이후 다음 정상 파일 진행을 확인했다. G3/G5 또는 배포 승인 완료를 의미하지 않는다.
+
+별도 읽기 전용 출력 감사에서 각 PDF의 단일 비암호화 페이지, A4 가로(±0.2mm), Rotate=0, 비어 있지 않은 흑백 렌더를 확인했다. 기대 축척·회전·출력 창 좌표(오차 0.001 도면 단위 미만)를 독립 대조했다. 원본13종 접촉판과 1:1 네 회전 표본을 육안 검토했다. 13 SKIP은 GstarCAD 미설치6개, 오프라인 AutoCAD opt-in 미지정3개(별도 실기로 통과), 심볼릭 링크 권한4개다. ON은 현 보안 정책에서 COM fallback이며 직접 LISP 실행 검증이 아니다. 폰트·선가중치의 엔진 간 동등성, 전체 G4 수용 항목, frozen EXE 검증은 별도다.
+
+수정 범위는 시작 시 읽기 전용 준비 대기, 장치 정보 갱신 후 PaperUnits 설정, SECURELOAD/TRUSTEDPATHS 확인 후 COM fallback, AutoCAD PDF catalogue의 합법적 중복 PageMode만 메모리에서 처리하는 검증 호환, 선택적 전용 PC3 경로다. 사용자 보안 설정을 변경하지 않는다.
+
+4각도 실측으로 확인한 AutoCAD 2021의 직접 PlotRotation 매핑을 적용한다. 비정상 회전 PDF를 무조건 보정하지 않는다. COM 버전 `24.0s (LMS Tech)`, 단일 비암호화 A4 가로 MediaBox, 도면 회전의 역방향 PDF Rotate 패턴이 일치할 때만 작업용 PDF의 회전 메타데이터를 제거한다. 문서를 복제해 벡터 내용 보존을 확인하며 GstarCAD의 방향 보정은 사용하지 않는다. 0도 출력은 원래 바이트를 유지한다.
+
+원본 템플릿의 RGB True Color는 monochrome CTB를 우회했다. 작업용 도면에서만 레이어·블록 정의·붙은 속성/상수 속성을 제한 안에서 먼저 읽고, 흰색 마스크를 제외한 RGB를 승인 CTB의 색상7로 변환한다. 형상·선가중치·원본 저장은 변경하지 않는다. 외부 참조 블록은 소유 범위 밖이므로 거부한다. 1:1 표본 4각도 실제 출력에서 가로 방향과 흑백 픽셀을 확인했다. [Autodesk의 True Color/CTB 안내](https://www.autodesk.com/support/technical/article/caas/sfdcarticles/sfdcarticles/Plotting-True-Color-objects-in-monochrome.html)를 참고했다.
+
+#### 이 PC의 플로터 준비
+
+설치된 `DWG To PDF.pc3`의 자동 뷰어 옵션은 PDF를 Adobe Reader에서 열어 임시 파일 게시/삭제를 막았다. 전용 복사본에서 **Open in PDF viewer when done / Show results in viewer**를 끄고 다음 AutoCAD 전용 설정을 지정한다. 기존 설치 PC3를 덮어쓰지 않는다.
+
+```toml
+[plot]
+# 기존 승인 plotter_name/A4/monochrome 설정 유지
+autocad_pc3_path = "C:/project/local-plotter/DWG To PDF.pc3"
+preferred_media_names = ["ISO_A4_(297.00_x_210.00_MM)"]
+```
+
+위 경로와 매체명은 설치 환경에서 확인해야 한다. 설정 경로는 기존 일반 파일의 절대 경로여야 하며 AutoCAD에서만 허용한다. 제품은 PC3를 자동 편집하거나 PDF 뷰어를 종료하지 않는다. `SECURELOAD=1`에서 번들 LISP가 신뢰되지 않으면 native ON도 COM 추출로 전환한다.
+
+아래 2026-10-03 표는 이전 PC의 이력을 보존한 기록이다.
+
 2026-10-03 기준 **개발 브랜치 구현 / 실기·배포 미승인**이다. T1~T6의 오프라인 구현과 T7/T8 시험 장치를 준비했다. AutoCAD 지원 버전은 아직 없다. 기존 main/릴리스 ZIP은 변경하지 않는다.
 
 ## 확인된 사실

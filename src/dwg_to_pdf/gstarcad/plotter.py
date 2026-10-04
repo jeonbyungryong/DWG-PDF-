@@ -77,6 +77,7 @@ def plot_to_file(
     *,
     stability_checks: int = 3,
     stability_interval_sec: float = 0.20,
+    plot_config: Path | None = None,
 ) -> None:
     requested_output = Path(output)
     resolved_output: Path | None = None
@@ -95,7 +96,10 @@ def plot_to_file(
         previous_background = document.GetVariable("BACKGROUNDPLOT")
         document.SetVariable("BACKGROUNDPLOT", 0)
         background_changed = True
-        result = document.Plot.PlotToFile(str(resolved_output))
+        if plot_config is None:
+            result = document.Plot.PlotToFile(str(resolved_output))
+        else:
+            result = document.Plot.PlotToFile(str(resolved_output), str(plot_config))
         if result is not True and result != 1:
             raise AppError("E410", "GstarCAD PDF 플롯 호출이 실패했습니다.", resolved_output)
         _wait_for_stable_pdf(

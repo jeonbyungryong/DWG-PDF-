@@ -22,6 +22,7 @@ class AppConfig:
     use_native_extraction: bool = True
     cad_provider: ProviderId = "gstarcad"
     allow_experimental_autocad: bool = False
+    autocad_pc3_path: Path | None = None
 
 
 def _require_string(value: Any, field: str) -> str:
@@ -75,6 +76,13 @@ def _parse_config(path: Path) -> AppConfig:
     plotter_name = _require_string(plot["plotter_name"], "plot.plotter_name")
     if plotter_name != "DWG To PDF.pc3":
         raise AppError("E001", "only the approved DWG To PDF.pc3 plotter is allowed", path)
+    pc3_path = None
+    if "autocad_pc3_path" in plot:
+        pc3_path = Path(_require_string(plot["autocad_pc3_path"], "plot.autocad_pc3_path"))
+        if (provider != "autocad" or not pc3_path.is_absolute()
+                or pc3_path.name.casefold() != "dwg to pdf.pc3" or not pc3_path.is_file()):
+            raise AppError("E001", "AutoCAD PC3 override must be an existing absolute DWG To PDF.pc3 path", path)
+        pc3_path = pc3_path.resolve(strict=True)
     media_width_mm = _require_number(plot["media_width_mm"], "plot.media_width_mm")
     media_height_mm = _require_number(plot["media_height_mm"], "plot.media_height_mm")
     if (media_width_mm, media_height_mm) != (297.0, 210.0):
@@ -100,6 +108,7 @@ def _parse_config(path: Path) -> AppConfig:
         use_native_extraction=native,
         cad_provider=provider,
         allow_experimental_autocad=allow_experimental,
+        autocad_pc3_path=pc3_path,
     )
 
 

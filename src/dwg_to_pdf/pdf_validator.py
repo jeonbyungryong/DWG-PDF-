@@ -10,6 +10,7 @@ import pypdfium2 as pdfium
 from pypdf import PdfReader
 
 from .errors import AppError
+from .pdf_reader import read_pdf
 
 _POINT_TO_MM = 25.4 / 72.0
 
@@ -22,11 +23,11 @@ class PdfValidation:
     nonblank: bool
 
 
-def _read_pdf(path: Path) -> tuple[Any, BytesIO]:
+def _read_pdf(path: Path, *, allow_duplicate_page_mode: bool = False) -> tuple[Any, BytesIO]:
     # Keeping the PDF in memory guarantees no source handle survives validation
     # and blocks Windows atomic rename/cleanup.
-    buffer = BytesIO(path.read_bytes())
-    return PdfReader(buffer, strict=True), buffer
+    reader = read_pdf(path.read_bytes(), allow_duplicate_page_mode=allow_duplicate_page_mode)
+    return reader, reader.stream
 
 
 def _render_nonblank(path: Path) -> bool:
@@ -56,7 +57,8 @@ def _render_nonblank(path: Path) -> bool:
         document.close()
 
 
-def validate_pdf(path: Path, *, size_tolerance_mm: float = 0.20) -> PdfValidation:
+def validate_pdf(path: Path, *, size_tolerance_mm: float = 0.20,
+                 allow_duplicate_page_mode: bool = False) -> PdfValidation:
     path = Path(path)
     try:
         if not math.isfinite(size_tolerance_mm) or size_tolerance_mm <= 0:
@@ -66,7 +68,7 @@ def validate_pdf(path: Path, *, size_tolerance_mm: float = 0.20) -> PdfValidatio
         with path.open("rb") as stream:
             if stream.read(5) != b"%PDF-":
                 raise ValueError("missing PDF header")
-        reader, buffer = _read_pdf(path)
+        reader, buffer = _read_pdf(path, allow_duplicate_page_mode=allow_duplicate_page_mode)
         try:
             if bool(reader.is_encrypted):
                 raise ValueError("encrypted PDF")

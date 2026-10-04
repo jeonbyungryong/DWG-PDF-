@@ -27,6 +27,29 @@ def _assert_e001(path: Path) -> None:
     assert exc.value.path == path
 
 
+@pytest.mark.parametrize("provider,valid", [("autocad", True), ("gstarcad", False)])
+def test_private_autocad_pc3_config(tmp_path, provider, valid):
+    pc3 = tmp_path / "DWG To PDF.pc3"
+    pc3.write_bytes(b"private PC3")
+    path = tmp_path / "config.toml"
+    text = _config_text().replace('[gstarcad]\nprog_id="GStarCAD.Application.26"',
+                                f'[cad]\nprovider="{provider}"')
+    path.write_text(text + f'autocad_pc3_path="{pc3.as_posix()}"\n', encoding="utf-8")
+    if valid:
+        assert load_config(path).autocad_pc3_path == pc3
+    else:
+        _assert_e001(path)
+
+
+@pytest.mark.parametrize("name", ["Other.pc3", "missing/DWG To PDF.pc3", "relative/DWG To PDF.pc3"])
+def test_private_pc3_requires_existing_absolute_approved_filename(tmp_path, name):
+    path = tmp_path / "config.toml"
+    value = name if name.startswith("relative") else (tmp_path / name).as_posix()
+    text = _config_text().replace('[gstarcad]\nprog_id="GStarCAD.Application.26"', '[cad]\nprovider="autocad"')
+    path.write_text(text + f'autocad_pc3_path="{value}"\n', encoding="utf-8")
+    _assert_e001(path)
+
+
 def test_scale_ratio_returns_expected_a3_model_size() -> None:
     assert ScaleRatio(Decimal("1"), Decimal("50")).a3_model_size() == (
         Decimal("21000"), Decimal("14850")

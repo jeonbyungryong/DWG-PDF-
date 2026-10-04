@@ -28,6 +28,52 @@ def _blank_pdf(path: Path, width: float = 842, height: float = 595, pages: int =
         writer.write(stream)
 
 
+def _duplicate_view_mode_pdf(path, extra=b""):
+    # Hand-authored driver-shaped fixture; xref offsets are genuine.
+    content = b"0 0 0 rg 40 60 20 30 re f"
+    objects = [
+        b"<< /Type /Catalog /Pages 2 0 R /PageMode /UseOC /PageMode /UseOutlines " + extra + b" >>",
+        b"<< /Type /Pages /Kids [3 0 R] /Count 1 >>",
+        b"<< /Type /Page /Parent 2 0 R /MediaBox [0 0 842 595] /Resources << >> /Contents 4 0 R >>",
+        b"<< /Length " + str(len(content)).encode() + b" >>\nstream\n" + content + b"\nendstream",
+    ]
+    data = b"%PDF-1.4\n"
+    offsets = [0]
+    for index, body in enumerate(objects, 1):
+        offsets.append(len(data))
+        data += str(index).encode() + b" 0 obj\n" + body + b"\nendobj\n"
+    xref = len(data)
+    data += b"xref\n0 5\n0000000000 65535 f \n"
+    data += b"".join(f"{offset:010d} 00000 n \n".encode() for offset in offsets[1:])
+    data += b"trailer\n<< /Size 5 /Root 1 0 R >>\nstartxref\n" + str(xref).encode() + b"\n%%EOF\n"
+    path.write_bytes(data)
+
+
+def test_autocad_view_mode_duplicates_preserve_bytes_and_geometry(tmp_path):
+    path = tmp_path / "autocad.pdf"
+    _duplicate_view_mode_pdf(path)
+    before = path.read_bytes()
+    result = validate_pdf(path, allow_duplicate_page_mode=True)
+    assert result.page_count == 1 and result.nonblank
+    assert result.width_mm == pytest.approx(297.04, abs=.2)
+    assert path.read_bytes() == before
+
+
+def test_default_validation_remains_strict_for_duplicate_view_mode(tmp_path):
+    path = tmp_path / "strict.pdf"
+    _duplicate_view_mode_pdf(path)
+    with pytest.raises(AppError):
+        validate_pdf(path)
+
+
+@pytest.mark.parametrize("extra", [b"/Pages 2 0 R", b"/Nested << /A 1 /A 2 >>", b"/PageMode /NotAViewMode"])
+def test_autocad_compatibility_rejects_other_ambiguous_pdf_entries(tmp_path, extra):
+    path = tmp_path / "ambiguous.pdf"
+    _duplicate_view_mode_pdf(path, extra)
+    with pytest.raises(AppError):
+        validate_pdf(path, allow_duplicate_page_mode=True)
+
+
 @pytest.mark.parametrize("payload", [b"", b"not a pdf", b"%PDF-"])
 def test_invalid_header_or_malformed_pdf_is_rejected(tmp_path: Path, payload: bytes) -> None:
     path = tmp_path / "bad.pdf"

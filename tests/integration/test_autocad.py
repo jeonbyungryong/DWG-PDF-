@@ -54,7 +54,7 @@ def convert_sources(config, candidate, profiles, sources, output):
             for source in sources:
                 result = service.convert_in_session(session, source, output, "overwrite")
                 assert len(result.frames) == 1
-                validate_pdf(result.frames[0].output)
+                validate_pdf(result.frames[0].output, allow_duplicate_page_mode=True)
                 outcomes.append(result)
     finally:
         after_pids = provider_pids("autocad")
@@ -79,6 +79,15 @@ def test_autocad_13_profiles_and_30_variants(tmp_path):
     on = convert_sources(replace(config, use_native_extraction=True), candidate, profiles, sources, tmp_path / "on")
     decisions = lambda results: [(item.frames[0].scale, item.frames[0].rotation, item.frames[0].plot_window) for item in results]
     assert decisions(off) == decisions(on)
+    def record(results):
+        return [{"source": str(item.source), "sha256": sha256(item.source),
+                 "numerator": str(item.frames[0].scale.numerator),
+                 "denominator": str(item.frames[0].scale.denominator),
+                 "rotation": item.frames[0].rotation,
+                 "window": [item.frames[0].plot_window.lower_left.x, item.frames[0].plot_window.lower_left.y,
+                            item.frames[0].plot_window.upper_right.x, item.frames[0].plot_window.upper_right.y],
+                 "output": str(item.frames[0].output)} for item in results]
+    (tmp_path / "matrix-decisions.json").write_text(json.dumps({"off": record(off), "on": record(on)}, indent=2), encoding="utf-8")
 
 
 def test_autocad_failed_file_does_not_stop_next(tmp_path):
@@ -111,7 +120,7 @@ def test_autocad_failed_file_does_not_stop_next(tmp_path):
     try:
         results = run_jobs(ConversionService(config, profiles), (broken, sources[0]), output, "overwrite", factory)
         assert [result.status for result in results] == ["failed", "success"]
-        validate_pdf(results[1].outputs[0])
+        validate_pdf(results[1].outputs[0], allow_duplicate_page_mode=True)
     finally:
         assert evidence(sources[:1]) == before
         require_process_cleanup(user_pids, acquired_pids, provider_pids("autocad"))

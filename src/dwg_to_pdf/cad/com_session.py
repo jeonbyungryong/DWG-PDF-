@@ -156,6 +156,9 @@ class ComSession(AbstractContextManager["ComSession"]):
             raise AppError("E202", "CAD candidate is required")
         return self.candidate
 
+    def _wait_until_ready(self) -> None:
+        """Provider hook, called only after exact process ownership is proven."""
+
     def __enter__(self) -> "ComSession":
         if self.mutex is not None or self._com_initialized or self.app is not None:
             raise RuntimeError("session cannot be entered more than once")
@@ -174,6 +177,7 @@ class ComSession(AbstractContextManager["ComSession"]):
             self._owned_process_handle = process.handle
             self.owned_pid = process.pid
             self._owns_app = True
+            self._wait_until_ready()
             self.app.Visible = False
             try:
                 version = self.app.Version
