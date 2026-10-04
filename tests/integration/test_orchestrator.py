@@ -160,7 +160,7 @@ class _CloseOnlyWorkingService:
 
 def test_working_document_close_chain_preserves_body_reason_and_logs_close(tmp_path: Path) -> None:
     source = tmp_path / "body-and-close.dwg"
-    source.write_bytes(b"dwg")
+    source.write_bytes(b"AC1032fixture")
     events: list[str] = []
     serial = iter((2001, 2002))
     factory = lambda: _WorkingSession(next(serial), events)
@@ -177,7 +177,7 @@ def test_working_document_close_chain_preserves_body_reason_and_logs_close(tmp_p
 
 def test_working_document_close_chain_with_runtime_body_normalizes_to_e900_and_logs_both(tmp_path: Path) -> None:
     source = tmp_path / "runtime-and-close.dwg"
-    source.write_bytes(b"dwg")
+    source.write_bytes(b"AC1032fixture")
     events: list[str] = []
     serial = iter((2001, 2002))
 
@@ -198,7 +198,7 @@ def test_working_document_close_chain_with_runtime_body_normalizes_to_e900_and_l
 
 def test_working_document_close_only_failure_remains_e203_not_e900(tmp_path: Path) -> None:
     source = tmp_path / "close-only.dwg"
-    source.write_bytes(b"dwg")
+    source.write_bytes(b"AC1032fixture")
     events: list[str] = []
     serial = iter((2001, 2002))
 

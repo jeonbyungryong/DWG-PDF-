@@ -254,6 +254,16 @@ class ComSession(AbstractContextManager["ComSession"]):
             raise
         except Exception as exc:
             raise AppError("E400", "active source workspace is required") from exc
+        # Reject obvious non-DWG contents before Open can enter a modal CAD
+        # error dialog. This signature check is not a full integrity parser;
+        # valid-looking but corrupt drawings still need CAD error handling.
+        try:
+            with working_copy.open("rb") as stream:
+                signature = stream.read(6)
+        except OSError as exc:
+            raise AppError("E203", "could not read temporary DWG signature", working_copy) from exc
+        if len(signature) != 6 or signature[:2] != b"AC" or not signature[2:].isdigit():
+            raise AppError("E203", "input contents do not have a modern DWG signature", working_copy)
         try:
             raw = self.app.Documents.Open(str(working_copy), False)
         except Exception as exc:

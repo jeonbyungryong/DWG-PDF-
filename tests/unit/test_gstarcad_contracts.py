@@ -335,7 +335,7 @@ def test_close_failure_marks_session_unusable_and_never_saves(tmp_path: Path) ->
 
 def test_working_document_preserves_body_error_when_close_also_fails(tmp_path: Path) -> None:
     source = tmp_path / "body-and-close-fail.dwg"
-    source.write_bytes(b"source")
+    source.write_bytes(b"AC1032source")
     raw = FakeRawDocument(readonly=False, close_error=RuntimeError("close failed"))
     session = _open_fake_session([raw])
 

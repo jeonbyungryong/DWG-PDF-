@@ -78,7 +78,7 @@ def test_partial_initialization_releases_only_owned_resources(setup_session, mon
 def test_second_file_reuses_session(setup_session, tmp_path):
     session, app, events = setup_session
     source = tmp_path / "source.dwg"
-    source.write_bytes(b"original")
+    source.write_bytes(b"AC1032original")
     with session:
         assert session.reported_version == "25.0-test"
         for _ in range(2):
@@ -89,14 +89,14 @@ def test_second_file_reuses_session(setup_session, tmp_path):
     assert app.closed == [False, False]
     assert app.quit_count == 1
     assert len(app.opened) == 2
-    assert source.read_bytes() == b"original"
+    assert source.read_bytes() == b"AC1032original"
     assert "handle-close" in events
 
 
 def test_wrong_document_identity_rejected(setup_session, tmp_path):
     session, app, _ = setup_session
     source = tmp_path / "source.dwg"
-    source.write_bytes(b"original")
+    source.write_bytes(b"AC1032original")
     app.Documents.Open = lambda *args: SimpleNamespace(ReadOnly=False, FullName=str(source), Close=lambda save: app.closed.append(save))
     with session, SourceWorkspace(source) as workspace:
         with pytest.raises(AppError) as error:
