@@ -2,7 +2,10 @@ from types import SimpleNamespace
 
 import pytest
 
-from dwg_to_pdf.errors import AppError
+from pathlib import Path
+from pypdf import PdfReader, PdfWriter
+from pypdf.generic import DecodedStreamObject, NameObject
+from dwg_to_pdf.domain import Point, Rect
 from dwg_to_pdf.gstarcad.document import GstarDocument
 from dwg_to_pdf.autocad.document import AutoCADDocument
 
@@ -25,57 +28,45 @@ def raw_document():
     return SimpleNamespace(Layers=Collection([colored]), Blocks=Collection([]), ActiveLayout=object()), colored
 
 
-def test_gstar_prepares_colors_before_any_plot_configuration(monkeypatch, tmp_path):
-    raw, colored = raw_document()
-    events = []
-
-    def environment(layout, names):
-        assert colored.Color == 7
-        events.append("environment")
-        return "A4"
-
-    monkeypatch.setattr("dwg_to_pdf.gstarcad.document.require_plot_environment", environment)
-    monkeypatch.setattr("dwg_to_pdf.gstarcad.document.apply_plot_settings", lambda *a: events.append("settings"))
-    monkeypatch.setattr("dwg_to_pdf.gstarcad.document.plot_to_file", lambda *a: events.append("plot"))
-    monkeypatch.setattr("dwg_to_pdf.gstarcad.document.normalize_portrait_plot", lambda *a: events.append("normalize"))
-    GstarDocument(raw).plot_pdf(tmp_path / "out.pdf", (0, 0, 1, 1), 0, ())
-    assert events == ["environment", "settings", "plot", "normalize"]
+class Layout:
+    def GetPlotDeviceNames(self): return ("DWG To PDF.pc3",)
+    def RefreshPlotDeviceInfo(self): pass
+    def GetPlotStyleTableNames(self): return ("monochrome.ctb",)
+    def GetCanonicalMediaNames(self): return ("A4",)
+    def GetPaperSize(self): return (297., 210.)
+    def SetWindowToPlot(self, lower, upper): self.window = lower.value, upper.value
 
 
 @pytest.mark.parametrize("document_type", [GstarDocument, AutoCADDocument])
-def test_preparation_failure_does_not_configure_or_plot(monkeypatch, tmp_path, document_type):
+@pytest.mark.parametrize("unreadable_colors", [False, True])
+def test_monochrome_plot_keeps_true_color_without_extra_color_traversal(tmp_path, document_type, unreadable_colors):
     raw, colored = raw_document()
-    raw.Blocks = Collection([SimpleNamespace(IsXRef=True)])
-    monkeypatch.setattr("dwg_to_pdf.gstarcad.document.require_plot_environment", lambda *a: pytest.fail("plot settings touched"))
-    monkeypatch.setattr("dwg_to_pdf.autocad.plotting.plot_pdf", lambda *a, **k: pytest.fail("plot touched"))
-    with pytest.raises(AppError) as error:
-        document_type(raw).plot_pdf(tmp_path / "out.pdf", (0, 0, 1, 1), 0, ())
-    assert error.value.code == "E410"
+    raw.ActiveLayout = Layout()
+    raw.GetVariable = lambda name: 2
+    raw.SetVariable = lambda name, value: None
+    if unreadable_colors:
+        class UnreadableCollection:
+            @property
+            def Count(self):
+                raise AssertionError("plot must not inspect color collections")
+        raw.Layers = raw.Blocks = UnreadableCollection()
+
+    def driver_plot(path):
+        writer = PdfWriter()
+        page = writer.add_blank_page(297 * 72 / 25.4, 210 * 72 / 25.4)
+        stream = DecodedStreamObject()
+        # The driver models a True Color exception to the CTB.
+        color = b"1 0 0" if colored.Color == 256 else b"0 0 0"
+        stream.set_data(color + b" rg 40 60 20 30 re f")
+        page[NameObject("/Contents")] = writer._add_object(stream)
+        writer.write(Path(path))
+        return True
+
+    raw.Plot = SimpleNamespace(PlotToFile=driver_plot)
+    output = tmp_path / "out.pdf"
+    document_type(raw).plot_pdf(output, Rect(Point(0, 0), Point(420, 297)), 0, ())
     assert colored.Color == 256
-    assert not (tmp_path / "out.pdf").exists()
-
-
-@pytest.mark.parametrize("document_type", [GstarDocument, AutoCADDocument])
-def test_each_adapter_calls_shared_preparation_exactly_once(monkeypatch, tmp_path, document_type):
-    from dwg_to_pdf.cad.monochrome import prepare_monochrome
-    from dwg_to_pdf.autocad.monochrome import prepare_monochrome as compatible
-    assert compatible is prepare_monochrome
-    raw, colored = raw_document()
-    calls = []
-
-    def prepare(document):
-        calls.append(document)
-        prepare_monochrome(document)
-
-    def plot(*a, **k):
-        assert calls == [raw]
-        assert colored.Color == 7
-
-    monkeypatch.setattr("dwg_to_pdf.cad.monochrome.prepare_monochrome", prepare)
-    monkeypatch.setattr("dwg_to_pdf.autocad.plotting.plot_pdf", plot)
-    monkeypatch.setattr("dwg_to_pdf.gstarcad.document.require_plot_environment", lambda *a: "A4")
-    monkeypatch.setattr("dwg_to_pdf.gstarcad.document.apply_plot_settings", lambda *a: None)
-    monkeypatch.setattr("dwg_to_pdf.gstarcad.document.plot_to_file", plot)
-    monkeypatch.setattr("dwg_to_pdf.gstarcad.document.normalize_portrait_plot", lambda *a: None)
-    document_type(raw).plot_pdf(tmp_path / "out.pdf", (0, 0, 1, 1), 0, ())
-    assert calls == [raw]
+    assert raw.ActiveLayout.StyleSheet == "monochrome.ctb"
+    assert raw.ActiveLayout.PlotWithPlotStyles is True
+    assert raw.ActiveLayout.window == ((0., 0.), (420., 297.))
+    assert b"1 0 0 rg" in PdfReader(output, strict=True).pages[0].get_contents().get_data()

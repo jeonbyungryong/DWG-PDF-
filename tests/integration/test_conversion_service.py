@@ -189,7 +189,7 @@ def test_convert_in_session_preserves_old_final_when_workspace_identity_gate_fai
     assert not tuple(output_dir.glob(".*.tmp.pdf"))
 
 
-def test_partial_monochrome_failure_preserves_final_and_next_file_converts(tmp_path, monkeypatch):
+def test_partial_plot_failure_preserves_final_and_next_file_converts_without_color_changes(tmp_path, monkeypatch):
     from test_shared_monochrome import Colored, document as color_document
     bad, good = tmp_path / "bad.dwg", tmp_path / "good.dwg"
     for source in (bad, good):
@@ -229,17 +229,22 @@ def test_partial_monochrome_failure_preserves_final_and_next_file_converts(tmp_p
     monkeypatch.setattr("dwg_to_pdf.gstarcad.document.require_plot_environment", lambda *a: "A4")
     monkeypatch.setattr("dwg_to_pdf.gstarcad.document.apply_plot_settings", lambda *a: None)
     plotted = []
-    monkeypatch.setattr("dwg_to_pdf.gstarcad.document.plot_to_file", lambda raw, p: plotted.append(raw) or _write_pdf(p))
+    def plot(raw, path):
+        _write_pdf(path)
+        if raw is bad_raw:
+            raise AppError("E410", "driver failed after partial PDF")
+        plotted.append(raw)
+    monkeypatch.setattr("dwg_to_pdf.gstarcad.document.plot_to_file", plot)
     service = ConversionService(_config(), SimpleNamespace(all=lambda: (profile,)))
     session = BatchSession()
     with pytest.raises(AppError) as error:
         service.convert_in_session(session, bad, output, "overwrite")
     assert error.value.code == "E410"
-    assert first.Color == 7  # No fictional rollback; this copy is discarded.
+    assert first.Color == rejected.Color == 256
     assert existing.read_bytes() == b"keep existing final"
     assert not tuple(output.glob(".*.tmp.pdf"))
     outcome = service.convert_in_session(session, good, output, "overwrite")
-    assert good_color.Color == 7
+    assert good_color.Color == 256
     assert plotted == [good_raw]
     assert outcome.frames[0].output.is_file()
     assert bad.read_bytes() == original_bytes[0] and good.read_bytes() == original_bytes[1]

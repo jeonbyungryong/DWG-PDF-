@@ -1,4 +1,4 @@
-"""Read-only 144-dpi audit of approved benchmark outputs (not dimensional proof)."""
+"""Read-only approved-output audit; residual color policy must be explicit."""
 import argparse
 import json
 import hashlib
@@ -72,13 +72,15 @@ def main():
     parser.add_argument("summary", type=Path)
     parser.add_argument("--manifest", type=Path, default=Path(__file__).with_name("inputs-manifest.json"))
     parser.add_argument("--expected-count", type=int, default=43)
+    parser.add_argument("--allow-residual-colors", action="store_true", help="MC-02 CTB-only acceptance; report colors without rejecting them")
     args = parser.parse_args()
     if not 1 <= args.expected_count <= 43:
         parser.error("expected count must be between 1 and 43")
     result = audit(json.loads(args.summary.read_text(encoding="utf-8")),
                    json.loads(args.manifest.read_text(encoding="utf-8")), args.expected_count)
+    result["color_policy"] = "ctb_only_allow_residual" if args.allow_residual_colors else "strict_full_monochrome"
     print(json.dumps(result, ensure_ascii=False, indent=2))
-    return int(result["non_monochrome_pdfs"] != 0)
+    return int(not args.allow_residual_colors and result["non_monochrome_pdfs"] != 0)
 
 
 if __name__ == "__main__":

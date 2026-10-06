@@ -73,3 +73,19 @@ def test_optimized_python_cannot_bypass_protection_checks(tmp_path):
     script = Path(__file__).parents[2] / "tools/regression/gstarcad/audit_monochrome.py"
     result = subprocess.run([sys.executable, "-O", str(script), str(summary_path), "--manifest", str(manifest_path), "--expected-count", "1"], capture_output=True, text=True)
     assert result.returncode != 0 and "protection failed" in result.stderr
+
+
+def test_ctb_only_audit_explicitly_accepts_but_reports_residual_color(tmp_path):
+    summary, manifest = evidence(tmp_path, b"1 0 0")
+    summary_path, manifest_path = tmp_path / "summary.json", tmp_path / "manifest.json"
+    summary_path.write_text(json.dumps(summary), encoding="utf-8")
+    manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+    script = Path(__file__).parents[2] / "tools/regression/gstarcad/audit_monochrome.py"
+    command = [sys.executable, str(script), str(summary_path), "--manifest", str(manifest_path), "--expected-count", "1"]
+    strict = subprocess.run(command, capture_output=True, text=True)
+    allowed = subprocess.run(command + ["--allow-residual-colors"], capture_output=True, text=True)
+    assert strict.returncode == 1
+    assert allowed.returncode == 0
+    report = json.loads(allowed.stdout)
+    assert report["non_monochrome_pdfs"] == 1
+    assert report["color_policy"] == "ctb_only_allow_residual"
