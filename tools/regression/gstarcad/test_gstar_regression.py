@@ -1,5 +1,6 @@
 """Portable GstarCAD regression; no CAD execution without explicit opt-in."""
 import json
+import math
 import os
 from dataclasses import replace
 from pathlib import Path
@@ -24,6 +25,28 @@ from dwg_to_pdf.gstarcad.bulk_snapshot import NativeExtractionUnavailable
 
 pytestmark = pytest.mark.gstarcad
 ROOT = Path(os.environ.get("GSTAR_REGRESSION_REPO", ".")).resolve()
+WINDOW_TOLERANCE = 0.001  # Approved absolute tolerance in model coordinates.
+
+
+def window_coordinates(window):
+    return (window.lower_left.x, window.lower_left.y,
+            window.upper_right.x, window.upper_right.y)
+
+
+def assert_matching_decisions(off, on):
+    """Compare extraction paths without treating floating-point noise as drift."""
+    assert len(off) == len(on), "native/COM result count differs"
+    for index, (left, right) in enumerate(zip(off, on)):
+        context = f"decision {index}: {left.source}"
+        assert left.source == right.source, f"{context}: source/order differs"
+        assert len(left.frames) == len(right.frames) == 1, f"{context}: expected one frame"
+        a, b = left.frames[0], right.frames[0]
+        assert a.scale == b.scale, f"{context}: scale differs"
+        assert a.rotation == b.rotation, f"{context}: rotation differs"
+        for coordinate, (x, y) in enumerate(zip(window_coordinates(a.plot_window),
+                                               window_coordinates(b.plot_window))):
+            assert math.isfinite(x) and math.isfinite(y), f"{context}: nonfinite window coordinate {coordinate}"
+            assert abs(x - y) < WINDOW_TOLERANCE, f"{context}: window coordinate {coordinate} differs by {abs(x - y)}"
 
 
 def observe_extraction(original, events):
@@ -123,8 +146,7 @@ def test_gstarcad_13_profiles_and_30_variants(tmp_path):
     assert len(approved) == 13 and approved <= {sha256(path).casefold() for path in sources}
     off = convert_sources(replace(config, use_native_extraction=False), candidate, profiles, sources, tmp_path / "off")
     on = convert_sources(replace(config, use_native_extraction=True), candidate, profiles, sources, tmp_path / "on")
-    decisions = lambda results: [(item.frames[0].scale, item.frames[0].rotation, item.frames[0].plot_window) for item in results]
-    assert decisions(off) == decisions(on)
+    assert_matching_decisions(off, on)
     manifest = json.loads((Path(__file__).resolve().parent / "inputs-manifest.json").read_text(encoding="utf-8"))
     for results in (off, on):
         for result, case in zip(results, manifest["cases"]):
@@ -134,7 +156,7 @@ def test_gstarcad_13_profiles_and_30_variants(tmp_path):
             assert frame.rotation == case["rotation"]
             actual_window = [frame.plot_window.lower_left.x, frame.plot_window.lower_left.y,
                              frame.plot_window.upper_right.x, frame.plot_window.upper_right.y]
-            assert max(abs(a-b) for a,b in zip(actual_window,case["window"])) < 0.001
+            assert max(abs(a-b) for a,b in zip(actual_window,case["window"])) < WINDOW_TOLERANCE
 
     def record(results):
         return [{"source": str(item.source), "sha256": sha256(item.source),
