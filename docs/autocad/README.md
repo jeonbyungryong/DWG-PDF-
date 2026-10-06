@@ -8,11 +8,14 @@
 
 PC-A 후속 검토·수정은 `codex/gstarcad-main-regression`의 [2026-10-04 회귀 기록](PC-A-REGRESSION-2026-10-04.md)에 있다. 기본43종은 통과했지만 잔존 색상 판단·전체G3/G5는 미완료이며 MAIN에 이 후속 수정이 병합되었다는 뜻은 아니다.
 
+2026-10-06 사용자가 완전 흑백 보정 방향을 선택했다. [흑백 보정 수정 명세 REV01](../superpowers/specs/2026-10-06-monochrome-amendment.md)은 작성·게시 승인 상태이며 세부 명세 검토 대기다. 기존 원본/사용자 CAD 보호를 유지하고,명세 승인 후 구현한다. 새 보정의 실기·성능은 미검증이며 MAIN/배포 승인과 구분한다.
+
 수정과 인계 자료는 `codex/autocad-pc-validation` PR을 통해 MAIN으로 통합한다. 소스 게시와 공식 지원 승인을 구분한다. AutoCAD 전용 플로터 복사본/설정과 검증 범위는 검증 현황의 추가 기록을 따른다.
 
 | 자료 | 역할 |
 |---|---|
 | [기획·명세 REV01](../superpowers/specs/2026-10-02-autocad-support-design.md) | 범위,요구사항,설계 제안,검증/승인 게이트 |
+| [흑백 보정 수정 명세 REV01](../superpowers/specs/2026-10-06-monochrome-amendment.md) | 공통 색상 보정,예외/보호 규칙,43종 감사·성능 비교,승인 게이트 |
 | [상세 구현 계획](../superpowers/plans/2026-10-02-autocad-support.md) | T1~T9 파일·인터페이스·실패시험·완료 기준 |
 | [작업 로드맵](ROADMAP.md) | AC-00~07 산출물·의존성·완료 기준 |
 | [PC 간 협업·인계](COLLABORATION.md) | 시작/동기화/소유권/PR/인계 규칙 |
