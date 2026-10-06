@@ -10,7 +10,7 @@ class AutoCADDocument(ComDocument):
         return extract_snapshot(self.raw, types, bounds)
 
     def plot_pdf(self, output, window, rotation, preferred_media_names):
-        from .monochrome import prepare_monochrome
+        from ..cad.monochrome import prepare_monochrome
         from .plotting import plot_pdf
         prepare_monochrome(self.raw)
         plot_pdf(self.raw, output, window, rotation, preferred_media_names,

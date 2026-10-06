@@ -18,7 +18,9 @@ import shutil
 
 def validate_output(path, provider):
     from dwg_to_pdf.pdf_validator import validate_pdf
-    return validate_pdf(path, allow_duplicate_page_mode=provider == "autocad")
+    if provider == "autocad":
+        return validate_pdf(path, allow_duplicate_page_mode=True)
+    return validate_pdf(path)
 
 
 def make_diagnostic_publisher(original_publish, result_path):
@@ -159,6 +161,13 @@ def main():
     for name in ("require_stable", "detect_scale_cell", "choose_profile_by_structure", "publish_pdf"):
         instrument(service_module, name)
     instrument(document_type, "plot_pdf")
+    # Preparation is also included in plot_pdf; do not sum these stages.
+    try:
+        from dwg_to_pdf.cad import monochrome
+    except ImportError:
+        monochrome = None  # Baseline revisions before common preparation.
+    if monochrome is not None:
+        instrument(monochrome, "prepare_monochrome")
     for name in ("__enter__", "_open_working_copy", "close_document", "_release"):
         instrument(type(selected_session), name)
     store = ProfileStore(args.code_root / "template_profiles", source_root=args.source_root)
@@ -184,7 +193,7 @@ def main():
                 try:
                     outcome = service.convert_in_session(session, source, output, "overwrite")
                     validation = validate_output(outcome.frames[0].output, candidate.provider)
-                    outcomes.append({"source": source.name, "outcome": asdict(outcome), "pdf": asdict(validation), "seconds": time.perf_counter() - file_start})
+                    outcomes.append({"source": source.name, "source_sha256": before[str(source)][0], "outcome": asdict(outcome), "pdf": asdict(validation), "seconds": time.perf_counter() - file_start})
                 except Exception as exc:
                     outcomes.append({"source": source.name, "error": str(exc), "cause": str(exc.__cause__), "code": getattr(exc, "code", None), "seconds": time.perf_counter() - file_start})
                 print(json.dumps(outcomes[-1], default=str), flush=True)

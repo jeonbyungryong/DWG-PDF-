@@ -25,6 +25,12 @@ class FakeSession:
         yield self.document
 
 
+def _raw(layout):
+    # Real monochrome preparation sees valid empty CAD collections in these
+    # plot-order tests. Color behavior has dedicated nonempty integration tests.
+    return SimpleNamespace(ActiveLayout=layout, Layers=SimpleNamespace(Count=0), Blocks=SimpleNamespace(Count=0))
+
+
 class SavedWindowGetterSentinel:
     def __init__(self) -> None:
         self.windows: list[tuple[object, object]] = []
@@ -72,7 +78,7 @@ def test_convert_in_session_uses_the_supplied_session_and_computed_plot_window(
     window = Rect(Point(1, 2), Point(3, 4))
     candidate = FrameCandidate("p", SimpleNamespace(), 0, window, window, 0.0)
     decision = MatchDecision(candidate, 0.9, 0.2)
-    raw = SimpleNamespace(ActiveLayout=object())
+    raw = _raw(object())
     document = GstarDocument(raw)
     session = FakeSession(document)
     profile = SimpleNamespace(profile_id="p", scale=ScaleRatio(1, 1))
@@ -111,7 +117,7 @@ def test_convert_in_session_orders_plot_then_workspace_identity_then_publish_wit
     candidate = FrameCandidate("p", SimpleNamespace(), 0, window, window, 0.0)
     decision = MatchDecision(candidate, 0.9, 0.2)
     layout = SavedWindowGetterSentinel()
-    raw = SimpleNamespace(ActiveLayout=layout)
+    raw = _raw(layout)
     profile = SimpleNamespace(profile_id="p", scale=ScaleRatio(1, 1))
     service = ConversionService(_config(), SimpleNamespace(all=lambda: (profile,)))
     session = FakeSession(GstarDocument(raw))
@@ -161,7 +167,7 @@ def test_convert_in_session_preserves_old_final_when_workspace_identity_gate_fai
     decision = MatchDecision(candidate, 0.9, 0.2)
     profile = SimpleNamespace(profile_id="p", scale=ScaleRatio(1, 1))
     service = ConversionService(_config(), SimpleNamespace(all=lambda: (profile,)))
-    session = FakeSession(GstarDocument(SimpleNamespace(ActiveLayout=SavedWindowGetterSentinel())))
+    session = FakeSession(GstarDocument(_raw(SavedWindowGetterSentinel())))
 
     monkeypatch.setattr("dwg_to_pdf.conversion_service.require_stable", lambda path: None)
     monkeypatch.setattr("dwg_to_pdf.conversion_service.detect_scale_cell", lambda *args: object())
@@ -181,6 +187,63 @@ def test_convert_in_session_preserves_old_final_when_workspace_identity_gate_fai
     assert raised.value.code == "E400"
     assert final.read_bytes() == old_final
     assert not tuple(output_dir.glob(".*.tmp.pdf"))
+
+
+def test_partial_monochrome_failure_preserves_final_and_next_file_converts(tmp_path, monkeypatch):
+    from test_shared_monochrome import Colored, document as color_document
+    bad, good = tmp_path / "bad.dwg", tmp_path / "good.dwg"
+    for source in (bad, good):
+        source.write_bytes(b"AC1032fixture")
+    original_bytes = bad.read_bytes(), good.read_bytes()
+    output = tmp_path / "output"
+    output.mkdir()
+    existing = output / "bad.pdf"
+    existing.write_bytes(b"keep existing final")
+    profile = SimpleNamespace(profile_id="p", scale=ScaleRatio(1, 1))
+    window = Rect(Point(0, 0), Point(420, 297))
+    decision = MatchDecision(FrameCandidate("p", SimpleNamespace(), 0, window, window, 0.), .9, .2)
+    for name, replacement in {
+        "require_stable": lambda *a: None,
+        "detect_scale_cell": lambda *a: object(),
+        "profiles_for_scale_cell": lambda *a: (profile,),
+        "choose_profile_by_structure": lambda *a: decision,
+    }.items():
+        monkeypatch.setattr("dwg_to_pdf.conversion_service." + name, replacement)
+    first, rejected = Colored(), Colored(fail=True)
+    bad_raw = color_document([first, rejected])
+    good_color = Colored()
+    good_raw = color_document([good_color])
+    bad_raw.ActiveLayout = good_raw.ActiveLayout = SavedWindowGetterSentinel()
+    documents = iter([GstarDocument(bad_raw), GstarDocument(good_raw)])
+    closed = []
+
+    class BatchSession:
+        @contextmanager
+        def working_document(self, workspace):
+            wrapped = next(documents)
+            try:
+                yield wrapped
+            finally:
+                closed.append(workspace.source)
+
+    monkeypatch.setattr("dwg_to_pdf.gstarcad.document.require_plot_environment", lambda *a: "A4")
+    monkeypatch.setattr("dwg_to_pdf.gstarcad.document.apply_plot_settings", lambda *a: None)
+    plotted = []
+    monkeypatch.setattr("dwg_to_pdf.gstarcad.document.plot_to_file", lambda raw, p: plotted.append(raw) or _write_pdf(p))
+    service = ConversionService(_config(), SimpleNamespace(all=lambda: (profile,)))
+    session = BatchSession()
+    with pytest.raises(AppError) as error:
+        service.convert_in_session(session, bad, output, "overwrite")
+    assert error.value.code == "E410"
+    assert first.Color == 7  # No fictional rollback; this copy is discarded.
+    assert existing.read_bytes() == b"keep existing final"
+    assert not tuple(output.glob(".*.tmp.pdf"))
+    outcome = service.convert_in_session(session, good, output, "overwrite")
+    assert good_color.Color == 7
+    assert plotted == [good_raw]
+    assert outcome.frames[0].output.is_file()
+    assert bad.read_bytes() == original_bytes[0] and good.read_bytes() == original_bytes[1]
+    assert len(closed) == 2
 
 
 def test_convert_in_session_wraps_source_disappearance_after_stability_check(

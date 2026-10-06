@@ -19,7 +19,9 @@ def test_follow_up_pdf_validation_uses_actual_provider(monkeypatch, name, provid
     monkeypatch.setattr(validator, 'validate_pdf', lambda path, **kwargs: calls.append((path, kwargs)) or sentinel)
     path = tmp_path / 'drawing.pdf'
     assert tool(name).validate_output(path, provider) is sentinel
-    assert calls == [(path, {'allow_duplicate_page_mode': compatible})]
+    assert len(calls) == 1 and calls[0][0] == path
+    # Omitting the False default also supports pre-AutoCAD baseline revisions.
+    assert calls[0][1].get('allow_duplicate_page_mode', False) is compatible
 
 def test_diagnostic_publisher_preserves_validator_and_success_cleanup(tmp_path):
     module = tool('benchmark_conversion')

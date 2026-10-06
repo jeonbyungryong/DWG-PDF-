@@ -8,7 +8,7 @@
 
 PC-A 후속 검토·수정은 `codex/gstarcad-main-regression`의 [2026-10-04 회귀 기록](PC-A-REGRESSION-2026-10-04.md)에 있다. 기본43종은 통과했지만 잔존 색상 판단·전체G3/G5는 미완료이며 MAIN에 이 후속 수정이 병합되었다는 뜻은 아니다.
 
-2026-10-06 사용자가 완전 흑백 보정 방향을 선택했다. [흑백 보정 수정 명세 REV01](../superpowers/specs/2026-10-06-monochrome-amendment.md)은 작성·게시 승인 상태이며 세부 명세 검토 대기다. 기존 원본/사용자 CAD 보호를 유지하고,명세 승인 후 구현한다. 새 보정의 실기·성능은 미검증이며 MAIN/배포 승인과 구분한다.
+2026-10-06 [흑백 보정 수정 명세 REV01](../superpowers/specs/2026-10-06-monochrome-amendment.md)이 승인되어 공통화/GstarCAD 연결을 구현했다. [MC-01 구현·검증 인계](MC-01-HANDOFF-2026-10-06.md): 실제1종은 완전 흑백이나 COM 보정에45초 이상이 추가되어 심각한 성능 저하가 있다. 43종/AutoCAD 실기와 MAIN/배포는 미완료다. CAD 내부 일괄 보정은 아직 제안이며 별도 수정안 승인 전 구현하지 않는다.
 
 수정과 인계 자료는 `codex/autocad-pc-validation` PR을 통해 MAIN으로 통합한다. 소스 게시와 공식 지원 승인을 구분한다. AutoCAD 전용 플로터 복사본/설정과 검증 범위는 검증 현황의 추가 기록을 따른다.
 

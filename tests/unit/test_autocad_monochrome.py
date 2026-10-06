@@ -3,7 +3,7 @@ import pytest
 from dwg_to_pdf.errors import AppError
 
 class Collection:
-    def __init__(self,items):self.items=items; self.Count=len(items)
+    def __init__(self,items):self.items=items; self.Count=len(items); self.IsXRef=False
     def Item(self,index):return self.items[index]
 
 def item(method,rgb=(0,255,0)):

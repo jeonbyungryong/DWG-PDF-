@@ -46,3 +46,15 @@ def test_benchmark_uses_selected_config_provider_without_starting_cad(monkeypatc
     received, candidate, session = benchmark().prepare_session(tmp_path, explicit)
     assert paths == [explicit] and candidates == [selected]
     assert received is config and candidate.provider == "autocad"
+
+
+def test_gstar_baseline_validation_supports_pre_autocad_signature(monkeypatch, tmp_path):
+    import dwg_to_pdf.pdf_validator as validator
+    calls = []
+    def old_validate(path):
+        calls.append(path)
+        return "valid"
+    monkeypatch.setattr(validator, "validate_pdf", old_validate)
+    path = tmp_path / "out.pdf"
+    assert benchmark().validate_output(path, "gstarcad") == "valid"
+    assert calls == [path]

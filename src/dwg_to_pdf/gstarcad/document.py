@@ -12,6 +12,8 @@ class GstarDocument(ComDocument):
         return extract_snapshot(self.raw, types, bounds)
 
     def plot_pdf(self, output, window, rotation, preferred_media_names):
+        from ..cad.monochrome import prepare_monochrome
+        prepare_monochrome(self.raw)
         layout = self.raw.ActiveLayout
         media = require_plot_environment(layout, preferred_media_names)
         apply_plot_settings(layout, window, rotation, media)
