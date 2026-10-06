@@ -1,5 +1,7 @@
 # AutoCAD 확장 개발 허브
 
+2026-10-06 PC-A의 최신 COM 형상 재사용 개선과 검증은 [GC-01 인계](GC-01-HANDOFF-2026-10-06.md)를 따른다. 개발 브랜치 게시와 MAIN·실행파일 배포를 구분한다. 아래 AutoCAD 실기/지원 게이트는 별도다.
+
 **현재 단계: G1 승인 / 개발 브랜치 구현 / 두 번째 PC의 AutoCAD 2021 소스 통합 실기 3 PASS / G3·G5 및 배포 미완료.**
 
 2026-10-04 사용자는 현재 소스와 검증 자료의 MAIN 병합을 승인했다. [최신 인계·복구점](HANDOFF-2026-10-04.md), [원래 PC GstarCAD 회귀](../../tools/regression/gstarcad/README.md), [PC-B 실제 출력 증거](../../validation/autocad-2021-pc-b/README.md)를 따른다. 병합 후에도 G3/G5와 공식 지원은 미완료다.

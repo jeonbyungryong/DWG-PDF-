@@ -289,13 +289,24 @@ class ComDocument:
     _geometry_cache: dict[
         tuple[Rect, int, int], tuple[dict[str, object], ...]
     ] = field(default_factory=dict, init=False, repr=False)
+    _geometry_reuse_enabled: bool = field(default=False, init=False, repr=False)
+    _geometry_entities: dict[tuple[str, bool], dict[str, object]] = field(default_factory=dict, init=False, repr=False)
+    _geometry_blocks: dict[str, tuple[dict[str, object] | None, ...]] = field(
+        default_factory=dict, init=False, repr=False
+    )
+    _geometry_block_entries: int = field(default=0, init=False, repr=False)
 
     def configure_extraction(self, enabled: bool) -> None:
         if type(enabled) is not bool:
             raise ValueError("native extraction flag must be boolean")
-        if enabled != self._bulk_enabled:
-            self._bulk_raw = None
-            self._geometry_cache.clear()
+        # This is the conversion analysis boundary, even when the transport
+        # setting did not change. Registration readers do not opt into reuse.
+        self._bulk_raw = None
+        self._geometry_cache.clear()
+        self._geometry_entities.clear()
+        self._geometry_blocks.clear()
+        self._geometry_block_entries = 0
+        self._geometry_reuse_enabled = True
         self._bulk_enabled = enabled
 
     def plot_pdf(self, output: Path, window: Rect, rotation: Rotation,
@@ -324,6 +335,9 @@ class ComDocument:
             view._bulk_enabled = False
         view._lightweight_text = True
         view._geometry_cache = {}
+        view._geometry_entities = {}
+        view._geometry_blocks = {}
+        view._geometry_block_entries = 0
         return view
 
     def approved_reference_window(self) -> tuple[tuple[float, float], tuple[float, float]]:
@@ -405,7 +419,10 @@ class ComDocument:
             snapshots: list[dict[str, object]] = []
             for index in range(_collection_count(selection, "selection")):
                 entity = selection.Item(index)
-                snapshot = _snapshot(entity, lightweight=self._lightweight_text)
+                if bounds is not None and set(normalized) == {"LINE", "LWPOLYLINE", "INSERT"}:
+                    snapshot = self._geometry_snapshot(entity)
+                else:
+                    snapshot = _snapshot(entity, lightweight=self._lightweight_text)
                 snapshots.append(snapshot)
                 if snapshot["type"] == "INSERT":
                     snapshots.extend(_attribute_snapshots(entity, lightweight=self._lightweight_text))
@@ -641,6 +658,60 @@ class ComDocument:
         self._geometry_cache[cache_key] = tuple(dict(item) for item in output)
         return [dict(item) for item in output]
 
+    def _geometry_snapshot(
+        self, entity: Any, kind: str | None = None, *, lightweight: bool | None = None
+    ) -> dict[str, object]:
+        """Reuse validated properties only during immutable conversion analysis."""
+        lightweight = self._lightweight_text if lightweight is None else lightweight
+        if not self._geometry_reuse_enabled:
+            return _snapshot(entity, kind, lightweight=lightweight)
+        try:
+            handle = str(entity.Handle)
+        except Exception as exc:
+            raise AppError("E303", "could not snapshot filtered entity") from exc
+        key = (handle, lightweight)
+        cached = self._geometry_entities.get(key) if handle else None
+        if cached is not None:
+            return dict(cached)
+        snapshot = _snapshot(entity, kind, lightweight=lightweight)
+        # Bound storage independently of traversal: reaching the cap stops
+        # caching, never skips a read, a validation, or an entity budget charge.
+        if handle and len(self._geometry_entities) + self._geometry_block_entries < 5000:
+            self._geometry_entities[key] = dict(snapshot)
+        return snapshot
+
+    def _geometry_block_entities(self, name: str, budget: TraversalBudget):
+        cached = self._geometry_blocks.get(name) if self._geometry_reuse_enabled else None
+        if cached is not None:
+            for local in cached:
+                budget.visit_entity()
+                if local is not None:
+                    yield dict(local)
+            return
+        try:
+            block = self.raw.Blocks.Item(name)
+        except Exception as exc:
+            raise AppError("E303", f"could not access reached block definition: {name}") from exc
+        complete: list[dict[str, object] | None] = []
+        for index in range(_collection_count(block, f"block {name}")):
+            budget.visit_entity()
+            entity = block.Item(index)
+            try:
+                kind = _entity_type(entity)
+            except AppError as exc:
+                if "unsupported filtered entity type" in str(exc):
+                    complete.append(None)  # skipped objects still consume budget
+                    continue
+                raise
+            local = self._geometry_snapshot(entity, kind, lightweight=False)
+            complete.append(dict(local))
+            yield local
+        # Partial/error results must never be promoted to a complete block.
+        retained = len(self._geometry_entities) + self._geometry_block_entries + len(complete)
+        if self._geometry_reuse_enabled and len(self._geometry_blocks) < 64 and retained <= 5000:
+            self._geometry_blocks[name] = tuple(complete)
+            self._geometry_block_entries += len(complete)
+
     def nested_geometry_snapshots(
         self,
         reference: dict[str, object],
@@ -667,21 +738,9 @@ class ComDocument:
             if name in ancestry:
                 continue
             budget.visit_block()
-            try:
-                block = self.raw.Blocks.Item(name)
-            except Exception as exc:
-                raise AppError("E303", f"could not access reached block definition: {name}") from exc
             child_ancestry = ancestry | {name}
-            for index in range(_collection_count(block, f"block {name}")):
-                budget.visit_entity()
-                entity = block.Item(index)
-                try:
-                    kind = _entity_type(entity)
-                except AppError as exc:
-                    if "unsupported filtered entity type" in str(exc):
-                        continue
-                    raise
-                local = _snapshot(entity, kind)
+            for local in self._geometry_block_entities(name, budget):
+                kind = local["type"]
                 if kind == "INSERT":
                     child_name = str(local.get("block_name", ""))
                     if child_name and child_name not in child_ancestry:
