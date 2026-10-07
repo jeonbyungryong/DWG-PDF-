@@ -15,12 +15,12 @@ class AutoCADDocument(ComDocument):
         from .readiness import wait_for_document_ready
         wait_for_document_ready(self.raw, error_code="E303")
 
-    def _selection_entity_snapshots(self, entity, *, geometry):
-        # Only repeat this read-only entity snapshot, never Add/Select/Delete.
+    def _read_com(self, reader):
+        # Only repeat the supplied read; never Add/Select/Delete or traversal.
         deadline = time.monotonic() + 30.0
         while True:
             try:
-                return super()._selection_entity_snapshots(entity, geometry=geometry)
+                return super()._read_com(reader)
             except (AppError, pywintypes.com_error) as error:
                 cause = error
                 seen = set()

@@ -88,16 +88,16 @@ def test_busy_entity_read_is_retried_without_repeating_selection_mutations(monke
 
 
 @pytest.mark.parametrize("hresult,expired", [(-1, False), (-2147418111, True)])
-def test_entity_read_failure_or_timeout_does_not_repeat_mutations(monkeypatch, hresult, expired):
+def test_filtered_read_failure_or_timeout_does_not_repeat_mutations(monkeypatch, hresult, expired):
     import pywintypes
     from types import SimpleNamespace
     from dwg_to_pdf.autocad import document as adapter
     from dwg_to_pdf.cad.com_document import ComDocument
     calls = []
-    def fail(self, entity, *, geometry):
+    def fail(self, reader):
         calls.append("read")
         raise pywintypes.com_error(hresult, "failure", None, None)
-    monkeypatch.setattr(ComDocument, "_selection_entity_snapshots", fail)
+    monkeypatch.setattr(ComDocument, "_read_com", fail)
     if expired:
         ticks = [0.]
         def clock():
@@ -150,3 +150,31 @@ def test_native_pure_snapshot_view_never_queries_cad_readiness(monkeypatch):
     monkeypatch.setattr(readiness, "wait_for_document_ready", lambda *args, **kwargs: pytest.fail("pure snapshot must not query CAD"))
     document = AutoCADDocument(raw_text(), _bulk_enabled=True)
     assert document.for_scale_detection().filtered_snapshots(("TEXT",))[0]["text"] == "Scale"
+
+
+@pytest.mark.parametrize("mode", ["text", "geometry", "noncontributing"])
+def test_busy_nested_block_read_does_not_repeat_traversal_budget(mode):
+    import pywintypes
+    from dwg_to_pdf.cad.com_document import TraversalBudget
+    entity = SimpleNamespace(ObjectName="AcDbLine", Handle="1", StartPoint=(0.,0.,0.), EndPoint=(10.,0.,0.))
+    block = SimpleNamespace(Count=1, Item=lambda index: entity)
+    reads = []
+    class Blocks:
+        def Item(self, name):
+            reads.append(name)
+            if len(reads) == 1:
+                raise pywintypes.com_error(-2147418111, "busy block read", None, None)
+            return block
+    document = AutoCADDocument(SimpleNamespace(Blocks=Blocks()))
+    reference = {"block_name":"ROOT", "handle":"A", "point":(0.,0.),
+        "rotation":0., "x_scale":1., "y_scale":1.}
+    budget = TraversalBudget(1, 1, 1)
+    budget.visit_root()
+    if mode == "text":
+        assert len(document.nested_text_snapshots(reference, budget=budget)) == 1
+    elif mode == "geometry":
+        assert len(document.nested_geometry_snapshots(reference, budget=budget)) == 1
+    else:
+        assert document.is_noncontributing_text_insert(reference, budget=budget)
+    assert reads == ["ROOT", "ROOT"]
+    assert (budget.roots, budget.blocks, budget.entities) == (1, 1, 1)
