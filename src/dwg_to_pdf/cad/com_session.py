@@ -159,6 +159,12 @@ class ComSession(AbstractContextManager["ComSession"]):
     def _wait_until_ready(self) -> None:
         """Provider hook, called only after exact process ownership is proven."""
 
+    def _after_document_open(self) -> None:
+        """Provider read-only readiness hook; raw document is already tracked."""
+
+    def _before_document_close(self) -> None:
+        """Provider read-only readiness hook; never retry Close."""
+
     def __enter__(self) -> "ComSession":
         if self.mutex is not None or self._com_initialized or self.app is not None:
             raise RuntimeError("session cannot be entered more than once")
@@ -210,6 +216,7 @@ class ComSession(AbstractContextManager["ComSession"]):
         # access can fail, so all later errors cross the same close boundary.
         self.document = raw
         try:
+            self._after_document_open()
             readonly = bool(getattr(raw, "ReadOnly", False))
         except Exception as exc:
             try:
@@ -270,6 +277,7 @@ class ComSession(AbstractContextManager["ComSession"]):
             raise AppError("E203", "CAD could not open the temporary DWG copy", working_copy) from exc
         self.document = raw
         try:
+            self._after_document_open()
             readonly = bool(raw.ReadOnly)
             if Path(raw.FullName).resolve(strict=True) != working_copy.resolve(strict=True):
                 raise AppError("E203", "CAD opened a different document than the authorized copy")
@@ -329,6 +337,7 @@ class ComSession(AbstractContextManager["ComSession"]):
         if raw is None:
             return
         try:
+            self._before_document_close()
             raw.Close(False)
         except Exception as exc:
             self._document_close_failed = True
