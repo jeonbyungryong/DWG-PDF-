@@ -330,6 +330,7 @@ class ComDocument:
                 if self._bulk_raw is None:
                     self._bulk_raw = self._extract_snapshot()
                 view.raw = self._bulk_raw
+                view._bulk_raw = self._bulk_raw
             except NativeExtractionUnavailable:
                 self._bulk_enabled = False
             view._bulk_enabled = False
@@ -344,7 +345,7 @@ class ComDocument:
         """Read the saved Plot Window; callers must restrict this to approved references."""
 
         try:
-            lower, upper = self.raw.ActiveLayout.GetWindowToPlot()
+            lower, upper = self._read_com(lambda: self.raw.ActiveLayout.GetWindowToPlot())
             result = (
                 (_finite_number(lower[0], "reference Window lower x"), _finite_number(lower[1], "reference Window lower y")),
                 (_finite_number(upper[0], "reference Window upper x"), _finite_number(upper[1], "reference Window upper y")),
@@ -355,6 +356,22 @@ class ComDocument:
             raise AppError("E306", "approved reference Plot Window could not be read") from exc
         if result[0][0] >= result[1][0] or result[0][1] >= result[1][1]:
             raise AppError("E306", "approved reference Plot Window is inverted")
+        return result
+
+    def _read_com(self, reader):
+        """Provider hook for a read-only COM operation, without traversal writes."""
+        return reader()
+
+    def _before_selection_mutation(self) -> None:
+        """Provider readiness hook; selection changes are never retried."""
+
+    def _selection_entity_snapshots(self, entity, *, geometry: bool) -> list[dict[str, object]]:
+        """Read one selected entity and its attributes; no selection mutations."""
+        snapshot = (self._geometry_snapshot(entity) if geometry
+                    else self._read_com(lambda: _snapshot(entity, lightweight=self._lightweight_text)))
+        result = [snapshot]
+        if snapshot["type"] == "INSERT":
+            result.extend(self._read_com(lambda: _attribute_snapshots(entity, lightweight=self._lightweight_text)))
         return result
 
     def filtered_snapshots(
@@ -374,6 +391,7 @@ class ComDocument:
         except Exception:
             pass
         try:
+            self._before_selection_mutation()
             selection = self.raw.SelectionSets.Add(name)
         except Exception as exc:
             raise AppError("E303", "could not create filtered selection set") from exc
@@ -382,6 +400,7 @@ class ComDocument:
         filter_data = VARIANT(pythoncom.VT_ARRAY | pythoncom.VT_VARIANT, (",".join(normalized),))
         pending_error: BaseException | None = None
         try:
+            self._before_selection_mutation()
             if bounds is None:
                 # GstarCAD rejects VT_NULL, while VT_ERROR/Missing causes the
                 # trailing filters to be ignored. VT_EMPTY preserves them.
@@ -417,15 +436,10 @@ class ComDocument:
                     filter_data,
                 )
             snapshots: list[dict[str, object]] = []
-            for index in range(_collection_count(selection, "selection")):
-                entity = selection.Item(index)
-                if bounds is not None and set(normalized) == {"LINE", "LWPOLYLINE", "INSERT"}:
-                    snapshot = self._geometry_snapshot(entity)
-                else:
-                    snapshot = _snapshot(entity, lightweight=self._lightweight_text)
-                snapshots.append(snapshot)
-                if snapshot["type"] == "INSERT":
-                    snapshots.extend(_attribute_snapshots(entity, lightweight=self._lightweight_text))
+            for index in range(self._read_com(lambda: _collection_count(selection, "selection"))):
+                entity = self._read_com(lambda: selection.Item(index))
+                snapshots.extend(self._selection_entity_snapshots(entity,
+                    geometry=bounds is not None and set(normalized) == {"LINE", "LWPOLYLINE", "INSERT"}))
             return snapshots
         except AppError as exc:
             pending_error = exc
@@ -436,6 +450,7 @@ class ComDocument:
             raise error from exc
         finally:
             try:
+                self._before_selection_mutation()
                 selection.Delete()
             except Exception as exc:
                 if pending_error is None:
@@ -473,24 +488,24 @@ class ComDocument:
                 continue
             budget.visit_block()
             try:
-                block = self.raw.Blocks.Item(name)
+                block = self._read_com(lambda: self.raw.Blocks.Item(name))
             except Exception as exc:
                 raise AppError("E303", f"could not access reached block definition: {name}") from exc
             child_ancestry = ancestry | {name}
-            for index in range(_collection_count(block, f"block {name}")):
+            for index in range(self._read_com(lambda: _collection_count(block, f"block {name}"))):
                 budget.visit_entity()
                 try:
-                    entity = block.Item(index)
-                    kind = _entity_type(entity)
+                    entity = self._read_com(lambda: block.Item(index))
+                    kind = self._read_com(lambda: _entity_type(entity))
                 except AppError as exc:
                     if "unsupported filtered entity type" in str(exc):
                         continue
                     raise
-                local = _snapshot(entity, kind, lightweight=self._lightweight_text)
+                local = self._read_com(lambda: _snapshot(entity, kind, lightweight=self._lightweight_text))
                 if kind == "ATTRIB" and suppress_attribute_definitions:
                     continue
                 if kind == "INSERT":
-                    for attribute in _attribute_snapshots(entity, lightweight=self._lightweight_text):
+                    for attribute in self._read_com(lambda: _attribute_snapshots(entity, lightweight=self._lightweight_text)):
                         budget.visit_entity()
                         attribute["point"] = _apply(matrix, attribute["point"])
                         if "bbox" in attribute:
@@ -558,24 +573,24 @@ class ComDocument:
                 continue
             budget.visit_block()
             try:
-                block = self.raw.Blocks.Item(name)
+                block = self._read_com(lambda: self.raw.Blocks.Item(name))
             except Exception as exc:
                 raise AppError("E303", f"could not access reached block definition: {name}") from exc
             child_ancestry = ancestry | {name}
-            for index in range(_collection_count(block, f"block {name}")):
+            for index in range(self._read_com(lambda: _collection_count(block, f"block {name}"))):
                 budget.visit_entity()
-                entity = block.Item(index)
+                entity = self._read_com(lambda: block.Item(index))
                 try:
-                    kind = _entity_type(entity)
+                    kind = self._read_com(lambda: _entity_type(entity))
                 except AppError as exc:
                     if (
                         "unsupported filtered entity type" in str(exc)
-                        or _is_permitted_annotation_only_entity(entity)
+                        or self._read_com(lambda: _is_permitted_annotation_only_entity(entity))
                     ):
                         continue
                     raise
                 if kind in {"TEXT", "MTEXT", "ATTRIB"}:
-                    text = str(getattr(entity, "TextString", "")).strip()
+                    text = self._read_com(lambda: str(getattr(entity, "TextString", "")).strip())
                     if text.casefold() in {"scale", "n/a"}:
                         return False
                     try:
@@ -589,7 +604,7 @@ class ComDocument:
                     return False
                 if kind in {"LINE", "LWPOLYLINE"}:
                     continue
-                local = _snapshot(entity, kind)
+                local = self._read_com(lambda: _snapshot(entity, kind))
                 if kind == "INSERT":
                     if bool(local.get("has_attributes", False)):
                         return False
@@ -664,16 +679,16 @@ class ComDocument:
         """Reuse validated properties only during immutable conversion analysis."""
         lightweight = self._lightweight_text if lightweight is None else lightweight
         if not self._geometry_reuse_enabled:
-            return _snapshot(entity, kind, lightweight=lightweight)
+            return self._read_com(lambda: _snapshot(entity, kind, lightweight=lightweight))
         try:
-            handle = str(entity.Handle)
+            handle = self._read_com(lambda: str(entity.Handle))
         except Exception as exc:
             raise AppError("E303", "could not snapshot filtered entity") from exc
         key = (handle, lightweight)
         cached = self._geometry_entities.get(key) if handle else None
         if cached is not None:
             return dict(cached)
-        snapshot = _snapshot(entity, kind, lightweight=lightweight)
+        snapshot = self._read_com(lambda: _snapshot(entity, kind, lightweight=lightweight))
         # Bound storage independently of traversal: reaching the cap stops
         # caching, never skips a read, a validation, or an entity budget charge.
         if handle and len(self._geometry_entities) + self._geometry_block_entries < 5000:
@@ -689,15 +704,15 @@ class ComDocument:
                     yield dict(local)
             return
         try:
-            block = self.raw.Blocks.Item(name)
+            block = self._read_com(lambda: self.raw.Blocks.Item(name))
         except Exception as exc:
             raise AppError("E303", f"could not access reached block definition: {name}") from exc
         complete: list[dict[str, object] | None] = []
-        for index in range(_collection_count(block, f"block {name}")):
+        for index in range(self._read_com(lambda: _collection_count(block, f"block {name}"))):
             budget.visit_entity()
-            entity = block.Item(index)
+            entity = self._read_com(lambda: block.Item(index))
             try:
-                kind = _entity_type(entity)
+                kind = self._read_com(lambda: _entity_type(entity))
             except AppError as exc:
                 if "unsupported filtered entity type" in str(exc):
                     complete.append(None)  # skipped objects still consume budget

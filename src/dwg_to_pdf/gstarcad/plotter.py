@@ -3,7 +3,7 @@ from __future__ import annotations
 import math
 from pathlib import Path
 import time
-from typing import Any
+from typing import Any, Callable
 
 from ..errors import AppError
 
@@ -78,6 +78,7 @@ def plot_to_file(
     stability_checks: int = 3,
     stability_interval_sec: float = 0.20,
     plot_config: Path | None = None,
+    before_background_restore: Callable[[], None] | None = None,
 ) -> None:
     requested_output = Path(output)
     resolved_output: Path | None = None
@@ -115,6 +116,8 @@ def plot_to_file(
     finally:
         if background_changed:
             try:
+                if before_background_restore is not None:
+                    before_background_restore()
                 document.SetVariable("BACKGROUNDPLOT", previous_background)
             except Exception as restore_exc:
                 if primary_error is None:

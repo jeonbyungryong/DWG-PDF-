@@ -18,11 +18,20 @@ class AutoCADSession(ComSession):
         super().__init__(candidate, document_factory)
 
     def _wait_until_ready(self) -> None:
+        self._wait_for_ready(120.0)
+
+    def _after_document_open(self) -> None:
+        self._wait_for_ready(30.0, min_documents=1)
+
+    def _before_document_close(self) -> None:
+        self._wait_for_ready(30.0)
+
+    def _wait_for_ready(self, timeout_sec: float, *, min_documents: int = 0) -> None:
         # Read-only polling; never retry Open/SendCommand or other mutations.
-        deadline = time.monotonic() + 120.0
+        deadline = time.monotonic() + timeout_sec
         while True:
             try:
-                if self.app.GetAcadState().IsQuiescent and int(self.app.Documents.Count) >= 0:
+                if self.app.GetAcadState().IsQuiescent and int(self.app.Documents.Count) >= min_documents:
                     return
             except pywintypes.com_error as error:
                 if error.hresult not in (-2147418111, -2147417846):
@@ -31,6 +40,6 @@ class AutoCADSession(ComSession):
                 # Startup may temporarily expose incomplete dispatch metadata.
                 pass
             if time.monotonic() >= deadline:
-                raise AppError("E201", "AutoCAD did not become ready within 120 seconds")
+                raise AppError("E201", f"AutoCAD did not become ready within {timeout_sec:g} seconds")
             pythoncom.PumpWaitingMessages()
             time.sleep(0.05)

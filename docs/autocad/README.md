@@ -1,4 +1,7 @@
-# AutoCAD 확장 개발 허브
+﻿# AutoCAD 확장 개발 허브
+
+2026-10-07 AC02 추가 검증과 복구: 현재 PC AutoCAD2021 소스 OFF43/ON43·일반 실행파일43종·일반 GUI7종 및 원본/사용자 CAD 보호 통과. 최신 오프라인947 PASS/4 SKIP/9 CAD 별도. 우측 하단 표제란 겹침은 사용자 수용으로 무시. 과거 GUI E203 원인 미확정. [로컬 MAIN 복구·다른 PC 인계](AC02-MAIN-ROLLBACK-2026-10-07.md)를 우선 확인한다. 공식지원·타PC 수용·GitHub 게시 완료를 뜻하지 않는다.
+
 
 2026-10-07 최신 상태: [GUI-01 검증 인계](GUI-01-HANDOFF-2026-10-07.md)에 현재 PC 선택 창 실기와 파일/폴더 입력 각7개 변환,931 PASS/13 SKIP을 정리했다. CAD 회귀는 [GC-02 검증 인계](GC-02-HANDOFF-2026-10-07.md), 후속 검증은 [다른 PC 검증 패키지](PC-VALIDATION-KIT-2026-10-07.md)를 따른다. 로컬 MAIN 병합과 GitHub 게시·공식 배포는 [통합 기록](../releases/2026-10-07-local-main-integration.md)에서 구분한다. G3/G5 미완료 표기는 전체 수용 게이트이며 완료한 현재 PC 시험을 NOT_RUN으로 되돌리는 뜻이 아니다.
 

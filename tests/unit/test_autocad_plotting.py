@@ -53,7 +53,8 @@ def test_four_rotations_autocad_mapping_and_measured_media(tmp_path, monkeypatch
         calls.append(Path(path).read_bytes())
         return True
     raw = SimpleNamespace(ActiveLayout=layout, GetVariable=lambda name: 2,
-        SetVariable=lambda name, value: None, Plot=SimpleNamespace(PlotToFile=plot))
+        SetVariable=lambda name, value: None, Plot=SimpleNamespace(PlotToFile=plot),
+        Application=SimpleNamespace(GetAcadState=lambda: SimpleNamespace(IsQuiescent=True)))
     monkeypatch.setattr("dwg_to_pdf.pdf_orientation.normalize_portrait_plot", lambda *args: pytest.fail("AutoCAD must not normalize Gstar output"))
     window = Rect(Point(1, 2), Point(301, 202))
     plot_pdf(raw, output, window, rotation, ("User77",))
@@ -134,7 +135,8 @@ def test_plot_succeeds_when_driver_requires_refresh_before_paper_units(tmp_path)
         pdf(Path(path))
         return True
     raw = SimpleNamespace(ActiveLayout=layout, GetVariable=lambda name: 2,
-        SetVariable=lambda name, value: None, Plot=SimpleNamespace(PlotToFile=plot))
+        SetVariable=lambda name, value: None, Plot=SimpleNamespace(PlotToFile=plot),
+        Application=SimpleNamespace(GetAcadState=lambda: SimpleNamespace(IsQuiescent=True)))
     plot_pdf(raw, output, Rect(Point(1, 2), Point(301, 202)), 0, ())
     validate_orientation(output)
 
@@ -150,10 +152,88 @@ def test_private_pc3_is_passed_to_plot_without_changing_installed_device(tmp_pat
         pdf(Path(path))
         return True
     raw = SimpleNamespace(ActiveLayout=Layout(), GetVariable=lambda name: 2,
-        SetVariable=lambda name, value: None, Plot=SimpleNamespace(PlotToFile=plot))
+        SetVariable=lambda name, value: None, Plot=SimpleNamespace(PlotToFile=plot),
+        Application=SimpleNamespace(GetAcadState=lambda: SimpleNamespace(IsQuiescent=True)))
     document = AutoCADDocument(raw)
     raw.Layers = raw.Blocks = SimpleNamespace(Count=0)
     document.configure_plotter(pc3)
     document.plot_pdf(output, Rect(Point(1, 2), Point(301, 202)), 0, ())
     assert calls == [str(pc3.resolve())]
     assert raw.ActiveLayout.ConfigName == "DWG To PDF.pc3"
+
+
+def test_plot_waits_for_cad_idle_before_restoring_background(tmp_path, monkeypatch):
+    busy = [True]
+    queries = []
+    writes = []
+    plots = []
+    def state():
+        queries.append(True)
+        if len(queries) == 3:
+            busy[0] = False
+        return SimpleNamespace(IsQuiescent=not busy[0])
+    def write(name, value):
+        if value == 2 and busy[0]:
+            raise RuntimeError("CAD rejected restore while plotting")
+        writes.append(value)
+    def plot(path):
+        plots.append(path)
+        pdf(Path(path))
+        return True
+    raw = SimpleNamespace(ActiveLayout=Layout(), GetVariable=lambda name: 2,
+        SetVariable=write, Plot=SimpleNamespace(PlotToFile=plot),
+        Application=SimpleNamespace(GetAcadState=state))
+    output = tmp_path / "busy.pdf"
+    plot_pdf(raw, output, Rect(Point(1, 2), Point(301, 202)), 0, ())
+    assert len(queries) == 3
+    assert writes == [0, 2]
+    assert len(plots) == 1
+    validate_orientation(output)
+
+
+@pytest.mark.parametrize("hresult", [-2147418111, -2147417846])
+def test_post_plot_wait_retries_only_busy_reads(monkeypatch, hresult):
+    import pywintypes
+    from dwg_to_pdf.autocad import readiness as plotting
+    calls = []
+    def state():
+        calls.append(True)
+        if len(calls) == 1:
+            raise pywintypes.com_error(hresult, "busy", None, None)
+        return SimpleNamespace(IsQuiescent=True)
+    raw = SimpleNamespace(Application=SimpleNamespace(GetAcadState=state))
+    monkeypatch.setattr(plotting.time, "sleep", lambda seconds: None)
+    plotting.wait_for_document_ready(raw)
+    assert len(calls) == 2
+
+
+def test_post_plot_wait_propagates_non_busy_error(monkeypatch):
+    import pywintypes
+    from dwg_to_pdf.autocad import readiness as plotting
+    def state():
+        raise pywintypes.com_error(-1, "fatal", None, None)
+    monkeypatch.setattr(plotting.time, "sleep", lambda seconds: pytest.fail("must not retry"))
+    with pytest.raises(pywintypes.com_error):
+        plotting.wait_for_document_ready(SimpleNamespace(Application=SimpleNamespace(GetAcadState=state)))
+
+
+def test_post_plot_timeout_does_not_restore_or_repeat_plot(tmp_path, monkeypatch):
+    from dwg_to_pdf.autocad import readiness as plotting
+    clock = iter([0., 31.])
+    writes, plots = [], []
+    def plot(path):
+        plots.append(path)
+        pdf(Path(path))
+        return True
+    raw = SimpleNamespace(ActiveLayout=Layout(), GetVariable=lambda name: 2,
+        SetVariable=lambda name, value: writes.append(value),
+        Plot=SimpleNamespace(PlotToFile=plot),
+        Application=SimpleNamespace(GetAcadState=lambda: SimpleNamespace(IsQuiescent=False)))
+    monkeypatch.setattr(plotting.time, "monotonic", lambda: next(clock))
+    output = tmp_path / "timeout.pdf"
+    with pytest.raises(AppError) as error:
+        plot_pdf(raw, output, Rect(Point(1, 2), Point(301, 202)), 0, ())
+    assert error.value.code == "E410"
+    assert writes == [0]
+    assert len(plots) == 1
+    assert not output.exists()

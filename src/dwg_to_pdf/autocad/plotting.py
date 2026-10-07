@@ -6,6 +6,7 @@ from pypdf import PdfWriter
 from pypdf.generic import NameObject, NumberObject
 
 
+from .readiness import wait_for_document_ready
 from ..errors import AppError
 from ..pdf_reader import read_pdf
 from ..gstarcad.media_resolver import require_plot_environment
@@ -67,9 +68,10 @@ def plot_pdf(raw, output: Path, window, rotation, preferred_media_names: tuple[s
         # direct enum, unlike the shared GstarCAD inverse mapping.
         layout.PlotRotation = rotation // 90
         if plot_config is None:
-            plot_to_file(raw, output)
+            plot_to_file(raw, output, before_background_restore=lambda: wait_for_document_ready(raw))
         else:
-            plot_to_file(raw, output, plot_config=plot_config)
+            plot_to_file(raw, output, plot_config=plot_config,
+                before_background_restore=lambda: wait_for_document_ready(raw))
         normalize_verified_orientation(output, rotation,
             reported_version=getattr(getattr(raw, "Application", None), "Version", None))
         validate_orientation(output)

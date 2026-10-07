@@ -181,3 +181,73 @@ def test_owned_autocad_permanent_readiness_failure_is_not_retried(setup_session)
         AutoCADSession(candidate).__enter__()
     assert error.value.code == "E201"
     assert app.writes == [] and app.quit_count == 1
+
+
+@pytest.mark.parametrize("phase", ["open", "close"])
+def test_autocad_waits_at_document_boundary_without_repeating_mutations(setup_session, tmp_path, phase):
+    import pywintypes
+    from dwg_to_pdf.autocad.com_session import AutoCADSession
+    _, app, _ = setup_session
+    pending = [0]
+    def state():
+        pending[0] = max(0, pending[0] - 1)
+        return SimpleNamespace(IsQuiescent=pending[0] == 0)
+    app.GetAcadState = state
+    app.Documents.Count = 1
+    class Document:
+        def __init__(self, path): self.FullName = path
+        @property
+        def ReadOnly(self):
+            if pending[0]: raise pywintypes.com_error(-2147418111, "opening", None, None)
+            return False
+        def Close(self, save):
+            if pending[0]: raise pywintypes.com_error(-2147418111, "busy before close", None, None)
+            app.closed.append(save)
+    def open_document(path, readonly):
+        app.opened.append((path, readonly))
+        if phase == "open": pending[0] = 2
+        return Document(path)
+    app.Documents.Open = open_document
+    source = tmp_path / "source.dwg"
+    source.write_bytes(b"AC1032original")
+    with AutoCADSession(CadCandidate("autocad", "AutoCAD.Application.25", "clsid", Path("acad.exe"), "AutoCAD", None)) as session:
+        with SourceWorkspace(source) as workspace:
+            with session.working_document(workspace):
+                if phase == "close": pending[0] = 2
+    assert len(app.opened) == 1
+    assert app.closed == [False]
+    assert app.quit_count == 1
+    assert source.read_bytes() == b"AC1032original"
+
+
+def test_open_readiness_timeout_never_exposes_document_or_repeats_writes(setup_session, tmp_path, monkeypatch):
+    from dwg_to_pdf.autocad import com_session as autocad
+    _, app, events = setup_session
+    busy = [False]
+    app.GetAcadState = lambda: SimpleNamespace(IsQuiescent=not busy[0])
+    app.Documents.Count = 1
+    original_open = app.open
+    def open_document(path, readonly):
+        raw = original_open(path, readonly)
+        busy[0] = True
+        return raw
+    app.Documents.Open = open_document
+    ticks = [0.]
+    def clock():
+        ticks[0] += 31.
+        return ticks[0]
+    monkeypatch.setattr(autocad.time, "monotonic", clock)
+    source = tmp_path / "source.dwg"
+    source.write_bytes(b"AC1032original")
+    with autocad.AutoCADSession(CadCandidate("autocad", "AutoCAD.Application.25", "clsid", Path("acad.exe"), "AutoCAD", None)) as session:
+        with SourceWorkspace(source) as workspace:
+            with pytest.raises(AppError) as error:
+                with session.working_document(workspace):
+                    pytest.fail("unready drawing must not be exposed")
+            assert error.value.code == "E203"
+            assert not session.is_usable
+    assert len(app.opened) == 1
+    assert app.closed == []
+    assert app.quit_count == 1
+    assert "handle-close" in events and "uninit" in events
+    assert source.read_bytes() == b"AC1032original"
