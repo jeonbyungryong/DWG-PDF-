@@ -1,7 +1,34 @@
+import time
+
+import pythoncom
+import pywintypes
+
+from ..errors import AppError
 from ..cad.com_document import ComDocument
 
 
 class AutoCADDocument(ComDocument):
+    def _selection_entity_snapshots(self, entity, *, geometry):
+        # Only repeat this read-only entity snapshot, never Add/Select/Delete.
+        deadline = time.monotonic() + 30.0
+        while True:
+            try:
+                return super()._selection_entity_snapshots(entity, geometry=geometry)
+            except (AppError, pywintypes.com_error) as error:
+                cause = error
+                seen = set()
+                busy = False
+                while cause is not None and id(cause) not in seen:
+                    seen.add(id(cause))
+                    if isinstance(cause, pywintypes.com_error):
+                        busy = cause.hresult in (-2147418111, -2147417846)
+                        break
+                    cause = cause.__cause__
+                if not busy or time.monotonic() >= deadline:
+                    raise
+                pythoncom.PumpWaitingMessages()
+                time.sleep(0.05)
+
     def configure_plotter(self, path):
         self._plot_config = path.resolve(strict=True)
 

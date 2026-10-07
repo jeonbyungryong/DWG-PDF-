@@ -357,6 +357,15 @@ class ComDocument:
             raise AppError("E306", "approved reference Plot Window is inverted")
         return result
 
+    def _selection_entity_snapshots(self, entity, *, geometry: bool) -> list[dict[str, object]]:
+        """Read one selected entity and its attributes; no selection mutations."""
+        snapshot = (self._geometry_snapshot(entity) if geometry
+                    else _snapshot(entity, lightweight=self._lightweight_text))
+        result = [snapshot]
+        if snapshot["type"] == "INSERT":
+            result.extend(_attribute_snapshots(entity, lightweight=self._lightweight_text))
+        return result
+
     def filtered_snapshots(
         self,
         types: tuple[str, ...],
@@ -419,13 +428,8 @@ class ComDocument:
             snapshots: list[dict[str, object]] = []
             for index in range(_collection_count(selection, "selection")):
                 entity = selection.Item(index)
-                if bounds is not None and set(normalized) == {"LINE", "LWPOLYLINE", "INSERT"}:
-                    snapshot = self._geometry_snapshot(entity)
-                else:
-                    snapshot = _snapshot(entity, lightweight=self._lightweight_text)
-                snapshots.append(snapshot)
-                if snapshot["type"] == "INSERT":
-                    snapshots.extend(_attribute_snapshots(entity, lightweight=self._lightweight_text))
+                snapshots.extend(self._selection_entity_snapshots(entity,
+                    geometry=bounds is not None and set(normalized) == {"LINE", "LWPOLYLINE", "INSERT"}))
             return snapshots
         except AppError as exc:
             pending_error = exc

@@ -48,3 +48,60 @@ def test_identity_failure_has_no_fallback(monkeypatch):
     monkeypatch.setattr(native_extract, "extract_snapshot", lambda *args: (_ for _ in ()).throw(AppError("E303", "identity mismatch")))
     with pytest.raises(AppError, match="identity"):
         AutoCADDocument(raw_text(), _bulk_enabled=True).for_scale_detection()
+
+
+def test_busy_entity_read_is_retried_without_repeating_selection_mutations(monkeypatch):
+    import pywintypes
+    from types import SimpleNamespace
+    calls = []
+    class Entity:
+        ObjectName = "AcDbText"
+        Handle = "1"
+        InsertionPoint = (0., 0., 0.)
+        reads = 0
+        @property
+        def TextString(self):
+            self.reads += 1
+            if self.reads == 1:
+                raise pywintypes.com_error(-2147418111, "busy reading text", None, None)
+            return "1:1"
+    entity = Entity()
+    selection = SimpleNamespace(Count=1, Item=lambda index: entity,
+        Select=lambda *args: calls.append("select"), Delete=lambda: calls.append("delete"))
+    class Selections:
+        def Item(self, name): raise KeyError(name)
+        def Add(self, name):
+            calls.append("add")
+            return selection
+    document = AutoCADDocument(SimpleNamespace(SelectionSets=Selections()))
+    result = document.filtered_snapshots(("TEXT",))
+    assert result[0]["text"] == "1:1"
+    assert entity.reads == 2
+    assert calls == ["add", "select", "delete"]
+
+
+@pytest.mark.parametrize("hresult,expired", [(-1, False), (-2147418111, True)])
+def test_entity_read_failure_or_timeout_does_not_repeat_mutations(monkeypatch, hresult, expired):
+    import pywintypes
+    from types import SimpleNamespace
+    from dwg_to_pdf.autocad import document as adapter
+    from dwg_to_pdf.cad.com_document import ComDocument
+    calls = []
+    def fail(self, entity, *, geometry):
+        calls.append("read")
+        raise pywintypes.com_error(hresult, "failure", None, None)
+    monkeypatch.setattr(ComDocument, "_selection_entity_snapshots", fail)
+    if expired:
+        ticks = iter((0., 31.))
+        monkeypatch.setattr(adapter.time, "monotonic", lambda: next(ticks))
+    monkeypatch.setattr(adapter.time, "sleep", lambda seconds: pytest.fail("must not retry"))
+    selection = SimpleNamespace(Count=1, Item=lambda index: object(),
+        Select=lambda *args: calls.append("select"), Delete=lambda: calls.append("delete"))
+    class Selections:
+        def Item(self, name): raise KeyError(name)
+        def Add(self, name):
+            calls.append("add")
+            return selection
+    with pytest.raises(AppError):
+        AutoCADDocument(SimpleNamespace(SelectionSets=Selections())).filtered_snapshots(("TEXT",))
+    assert calls == ["add", "select", "read", "delete"]
