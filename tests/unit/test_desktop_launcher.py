@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from types import SimpleNamespace
 from pathlib import Path
 import pytest
 from dwg_to_pdf.cad.selection import CadCandidate
@@ -132,28 +131,31 @@ def test_windows_source_mode_maps_native_yes_no_cancel(monkeypatch) -> None:
 def test_windows_file_picker_returns_utf8_paths_without_tk(monkeypatch) -> None:
     from dwg_to_pdf import desktop_launcher
 
-    calls: list[list[str]] = []
-
-    def fake_run(command, **kwargs):
-        calls.append(command)
-        assert kwargs["encoding"] == "utf-8"
-        return SimpleNamespace(returncode=0, stdout="D:/도면/a.dwg\nD:/도면/b.dwg\n", stderr="")
-
-    monkeypatch.setattr(desktop_launcher.subprocess, "run", fake_run)
+    monkeypatch.setattr(desktop_launcher, "pick_dwg_files", lambda title: ("D:/도면/a.dwg", "D:/도면/b.dwg"))
 
     assert desktop_launcher.WindowsDesktopUI().choose_files() == ("D:/도면/a.dwg", "D:/도면/b.dwg")
-    assert calls[0][:4] == ["powershell.exe", "-NoProfile", "-NonInteractive", "-STA"]
 
 
 def test_windows_folder_picker_returns_selected_path(monkeypatch) -> None:
     from dwg_to_pdf import desktop_launcher
 
     monkeypatch.setattr(
-        desktop_launcher.subprocess,
-        "run",
-        lambda *_args, **_kwargs: SimpleNamespace(returncode=0, stdout="D:/PDF 출력\n", stderr=""),
+        desktop_launcher,
+        "pick_folder",
+        lambda title: "D:/PDF 출력",
     )
     ui = desktop_launcher.WindowsDesktopUI()
 
     assert ui.choose_input_folder() == "D:/PDF 출력"
     assert ui.choose_output_folder() == "D:/PDF 출력"
+
+
+def test_path_dialog_error_reports_failure_without_conversion(monkeypatch):
+    from dwg_to_pdf.desktop_launcher import run_desktop
+    ui = FakeUI(mode="files")
+    def fail():
+        raise OSError("native dialog failed")
+    monkeypatch.setattr(ui, "choose_files", fail)
+    assert run_desktop(lambda _: pytest.fail("must not convert"), ui=ui) == 2
+    assert ui.result == 2
+    assert ui.closed

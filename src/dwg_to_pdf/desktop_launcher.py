@@ -11,6 +11,7 @@ from .cad.discovery import discover_candidates
 from .cad.selection import CadCandidate, CadSelection, ProviderId, select_candidate
 from .cad.factory import EXPERIMENTAL_WARNING
 from .errors import AppError
+from .windows_picker import pick_dwg_files, pick_folder
 
 
 class DesktopUI(Protocol):
@@ -89,16 +90,7 @@ class WindowsDesktopUI:
         return {6: "files", 7: "folder"}.get(answer)
 
     def choose_files(self) -> Sequence[str]:
-        return _run_picker(
-            "$ErrorActionPreference='Stop';"
-            "[Console]::OutputEncoding=[Text.UTF8Encoding]::new($false);"
-            "Add-Type -AssemblyName System.Windows.Forms;"
-            "$d=New-Object System.Windows.Forms.OpenFileDialog;"
-            "$d.Title='변환할 DWG 파일 선택';$d.Filter='DWG 도면 (*.dwg)|*.dwg';"
-            "$d.Multiselect=$true;"
-            "if($d.ShowDialog() -eq [System.Windows.Forms.DialogResult]::OK){$d.FileNames|ForEach-Object{Write-Output $_}};"
-            "$d.Dispose()"
-        )
+        return pick_dwg_files("변환할 DWG 파일 선택")
 
     def choose_input_folder(self) -> str:
         return self._choose_folder("DWG 입력 폴더 선택")
@@ -108,17 +100,7 @@ class WindowsDesktopUI:
 
     @staticmethod
     def _choose_folder(title: str) -> str:
-        safe_title = title.replace("'", "''")
-        selected = _run_picker(
-            "$ErrorActionPreference='Stop';"
-            "[Console]::OutputEncoding=[Text.UTF8Encoding]::new($false);"
-            "Add-Type -AssemblyName System.Windows.Forms;"
-            "$d=New-Object System.Windows.Forms.FolderBrowserDialog;"
-            f"$d.Description='{safe_title}';$d.ShowNewFolderButton=$true;"
-            "if($d.ShowDialog() -eq [System.Windows.Forms.DialogResult]::OK){Write-Output $d.SelectedPath};"
-            "$d.Dispose()"
-        )
-        return selected[0] if selected else ""
+        return pick_folder(title)
 
     def show_result(self, exit_code: int) -> None:
         if exit_code == 0:
