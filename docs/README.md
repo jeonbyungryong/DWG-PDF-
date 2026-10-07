@@ -12,6 +12,7 @@
 | 사전 검토 | [PHASE_0_FEASIBILITY_REPORT.md](PHASE_0_FEASIBILITY_REPORT.md) |
 | 승인 설계·계획 | [specs](superpowers/specs/), [plans](superpowers/plans/) |
 | 최신 GUI 검증 | [GUI-01 인계](autocad/GUI-01-HANDOFF-2026-10-07.md) |
+| 최신 타PC GUI 검증 키트 | [GUI-01 키트 갱신](autocad/GUI-01-PC-KIT-2026-10-07.md) |
 | 로컬 MAIN 통합·정리 | [2026-10-07](releases/2026-10-07-local-main-integration.md) |
 | GitHub 인계 | [2026-10-02](releases/2026-10-02-github-handoff.md) |
 | 성능 개선 배포 | [2026-10-02](releases/2026-10-02-performance.md) |
