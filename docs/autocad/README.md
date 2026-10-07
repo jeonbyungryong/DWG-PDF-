@@ -1,6 +1,6 @@
 # AutoCAD 확장 개발 허브
 
-2026-10-07 후속 상태: [GC-02 검증 인계](GC-02-HANDOFF-2026-10-07.md)에 현재 PC 자동 GstarCAD/frozen 검증 완료 범위와 GUI 사용자 제외·남은 게이트를 정리했다. [다른 PC 검증 패키지](PC-VALIDATION-KIT-2026-10-07.md)를 준비한다. 아래 G3/G5 미완료 표기는 전체 수용 게이트를 뜻하며 이미 완료한 현재 PC 자동 시험을 NOT_RUN으로 되돌리는 뜻이 아니다.
+2026-10-07 최신 상태: [GUI-01 검증 인계](GUI-01-HANDOFF-2026-10-07.md)에 현재 PC 선택 창 실기와 파일/폴더 입력 각7개 변환,931 PASS/13 SKIP을 정리했다. CAD 회귀는 [GC-02 검증 인계](GC-02-HANDOFF-2026-10-07.md), 후속 검증은 [다른 PC 검증 패키지](PC-VALIDATION-KIT-2026-10-07.md)를 따른다. 로컬 MAIN 병합과 GitHub 게시·공식 배포는 [통합 기록](../releases/2026-10-07-local-main-integration.md)에서 구분한다. G3/G5 미완료 표기는 전체 수용 게이트이며 완료한 현재 PC 시험을 NOT_RUN으로 되돌리는 뜻이 아니다.
 
 2026-10-06 PC-A의 최신 COM 형상 재사용 개선과 검증은 [GC-01 인계](GC-01-HANDOFF-2026-10-06.md)를 따른다. 개발 브랜치 게시와 MAIN·실행파일 배포를 구분한다. 아래 AutoCAD 실기/지원 게이트는 별도다.
 
@@ -14,12 +14,12 @@ PC-A 후속 검토·수정은 `codex/gstarcad-main-regression`의 [2026-10-04 �
 
 2026-10-06 최신 사용자 결정은 **monochrome.ctb 플롯 유지/변환되지 않는 색상 허용/추가 RGB 보정 제거**다. [MC-02 적용·검증 인계](MC-02-HANDOFF-2026-10-06.md)를 따른다. 이전 [MC-01 보정 기록](MC-01-HANDOFF-2026-10-06.md)과 [완전 흑백 수정 명세](../superpowers/specs/2026-10-06-monochrome-amendment.md)는 역사적 기록이며 현재 색상 수용 기준이 아니다. CAD 내부 일괄 보정은 개발하지 않는다. MAIN/배포 및 이번 AutoCAD 실기 검증은 별도다.
 
-수정과 인계 자료는 `codex/autocad-pc-validation` PR을 통해 MAIN으로 통합한다. 소스 게시와 공식 지원 승인을 구분한다. AutoCAD 전용 플로터 복사본/설정과 검증 범위는 검증 현황의 추가 기록을 따른다.
+소스 통합과 공식 지원 승인을 구분한다. AutoCAD 전용 플로터 복사본/설정과 검증 범위는 검증 현황의 추가 기록을 따른다.
 
 | 자료 | 역할 |
 |---|---|
 | [기획·명세 REV01](../superpowers/specs/2026-10-02-autocad-support-design.md) | 범위,요구사항,설계 제안,검증/승인 게이트 |
-| [흑백 보정 수정 명세 REV01](../superpowers/specs/2026-10-06-monochrome-amendment.md) | 공통 색상 보정,예외/보호 규칙,43종 감사·성능 비교,승인 게이트 |
+| [흑백 보정 수정 명세 REV01](../superpowers/specs/2026-10-06-monochrome-amendment.md) | 역사적 기록; 현재 색상 기준은 MC-02이며 RGB 보정은 적용하지 않음 |
 | [상세 구현 계획](../superpowers/plans/2026-10-02-autocad-support.md) | T1~T9 파일·인터페이스·실패시험·완료 기준 |
 | [작업 로드맵](ROADMAP.md) | AC-00~07 산출물·의존성·완료 기준 |
 | [PC 간 협업·인계](COLLABORATION.md) | 시작/동기화/소유권/PR/인계 규칙 |
@@ -30,7 +30,7 @@ PC-A 후속 검토·수정은 `codex/gstarcad-main-regression`의 [2026-10-04 �
 
 ## 다음 결정
 
-G1/Native 실행과 Antigravity 없는 직접 작업트리 방식은 승인되었다. 다음 게이트는 독립 코드 리뷰 및 GstarCAD 실제 회귀다. AutoCAD 실기,타PC 검증,main 병합/릴리스 승인은 별도다. 다른 템플릿 양식 지원은 이번 범위에서 제외한다.
+G1/Native 실행과 Antigravity 없는 직접 작업트리 방식은 승인되었다. 현재 PC 독립 검토·GstarCAD 회귀·GUI 검증 이후 남은 게이트는 최신 변경의 AutoCAD 실기,타PC 검증 및 공식 릴리스 승인이다. 다른 템플릿 양식 지원은 이번 범위에서 제외한다.
 
 ## 지원 상태 해석
 

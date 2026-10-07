@@ -1,12 +1,7 @@
 .worktrees/
 .superpowers/
-build/
-dist/
 packaging/bundle-assets/
-__pycache__/
-*.py[cod]
 .pytest-tmp/
-.pytest_cache/
 
 # Original target repository ignore rules
 # Byte-compiled / optimized / DLL files

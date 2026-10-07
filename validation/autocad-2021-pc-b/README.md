@@ -16,7 +16,11 @@
 
 9 SKIP는 GstarCAD 실기 6개(미설치)와 오프라인 AutoCAD 3개(별도 실기로 통과)다. 링크 4개는 시험 프로세스만 관리자 권한으로 실행했다. 영구 보안·권한 정책은 변경하지 않았다.
 
-`evidence/`의 실제 XML·감사 JSON에서 호스트명과 개인 경로를 비식별화했다. `pdfs/off,on`에는 승인 도면에서 나온 최종 86개 출력이 있다. `previews/`에는 13종 접촉판 및 1:1 네 회전 표본이 있다. `checksums.json`으로 파일 무결성을 확인한다. 원본 hash/mtime와 사용자 CAD를 보존했으며, 작업용 CAD 종료 및 손상 DWG 이후 정상 파일 진행을 확인했다.
+`evidence/`의 실제 XML·감사 JSON에서 호스트명과 개인 경로를 비식별화했다. `pdfs/off,on`에는 승인 도면에서 나온 최종 86개 출력이 있다. `previews/`에는 13종 접촉판 및 1:1 회전 정규화 대표 표본이 있다. `checksums.json`으로 파일 무결성을 확인한다. 원본 hash/mtime와 사용자 CAD를 보존했으며, 작업용 CAD 종료 및 손상 DWG 이후 정상 파일 진행을 확인했다.
+
+## 2026-10-07 중복 미리보기 정리
+
+기존 `autocad-verified-0.png`, `autocad-verified-90.png`, `autocad-verified-180.png`, `autocad-verified-270.png`의 파일 SHA-256은 모두 `3018415ea58e6681775b4c0141ca20bb1281bb8efa4e4583793a4de8360a4424`로 동일했다. 대표 파일 `autocad-verified-0.png`만 유지하고 나머지 복사본 3개를 제거했다. 각 회전 PDF와 감사 증거는 그대로 보존한다. 정리 전 전체 자료는 로컬 백업 브랜치 `codex/backup-main-before-gui1-20261007`에 있다.
 
 ## 실패 기록과 한계
 

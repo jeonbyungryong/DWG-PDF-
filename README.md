@@ -4,11 +4,11 @@
 
 ## 먼저 읽을 문서
 
-2026-10-07 현재 PC의 최신 자동 검증 범위와 미완료 항목은 [GC-02 검증 인계](docs/autocad/GC-02-HANDOFF-2026-10-07.md), 다른 PC 검증 절차는 [검증 패키지 안내](docs/autocad/PC-VALIDATION-KIT-2026-10-07.md)를 따릅니다. 현재 PC 검증용 EXE와 MAIN·공식 배포본은 구분합니다.
+2026-10-07 현재 PC의 최신 GUI 검증은 [GUI-01 검증 인계](docs/autocad/GUI-01-HANDOFF-2026-10-07.md), CAD 회귀는 [GC-02 검증 인계](docs/autocad/GC-02-HANDOFF-2026-10-07.md), 다른 PC 검증 절차는 [검증 패키지 안내](docs/autocad/PC-VALIDATION-KIT-2026-10-07.md)를 따릅니다. 로컬 MAIN 통합과 GitHub 게시·공식 배포는 구분합니다. [통합·백업 기록](docs/releases/2026-10-07-local-main-integration.md)을 참조하세요.
 
 후속 개발: [AutoCAD 확장 개발 허브](docs/autocad/README.md) — 소스 개발·검증 상태와 실행파일 배포 상태를 구분합니다. 현재 실행 파일의 AutoCAD 지원을 의미하지 않습니다.
 
-2026-10-06 개발 브랜치 색상 정책: 두 CAD 모두 `monochrome.ctb` 플롯을 유지하며,이에 의해 흑백으로 바뀌지 않는 색상은 허용합니다. 추가 RGB 보정은 하지 않습니다. [MC-02 검증·인계](docs/autocad/MC-02-HANDOFF-2026-10-06.md)를 참조하세요. 기존 실행파일/MAIN 반영 및 AutoCAD 이번변경 실기는 별도입니다.
+최신 소스 색상 정책: 두 CAD 모두 `monochrome.ctb` 플롯을 유지하며,이에 의해 흑백으로 바뀌지 않는 색상은 허용합니다. 추가 RGB 보정은 하지 않습니다. [MC-02 검증·인계](docs/autocad/MC-02-HANDOFF-2026-10-06.md)를 참조하세요. 공식 실행파일 배포 및 AutoCAD 이번변경 실기는 별도입니다.
 
 | 알고 싶은 내용 | 문서 |
 | --- | --- |
@@ -62,7 +62,7 @@ EXE를 열고 입력 DWG/폴더 → PDF 출력 폴더 → 충돌 정책을 선�
 
 ## 자료와 백업
 
-`src/`, `tests/`, `tools/`, `packaging/`에는 구현·검증·빌드 도구가 있습니다. `template_profiles/`에는 13개 프로파일과 기준 DWG를, `docs/`에는 요구사항·설계·계획·검증 자료를 보관합니다. `.superpowers/sdd/`의 기존 tracked 개발 보고서도 유지합니다. 배포 ZIP과 SHA-256은 `releases/windows/`에 있습니다. 고객 작업 DWG와 변환 테스트 PDF는 포함하지 않습니다.
+`src/`, `tests/`, `tools/`, `packaging/`에는 구현·검증·빌드 도구가 있습니다. `template_profiles/`에는 13개 프로파일과 기준 DWG를, `docs/`에는 요구사항·설계·계획·검증 자료를 보관합니다. 배포 ZIP과 SHA-256은 `releases/windows/`에 있습니다. 고객 작업 DWG와 변환 테스트 PDF는 포함하지 않습니다.
 
 직전 main은 [backup/main-before-native-extraction-20261002](https://github.com/jeonbyungryong/DWG-PDF-/tree/backup/main-before-native-extraction-20261002)에 보존합니다. 기존 Release와 태그도 유지합니다.
 
