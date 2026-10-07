@@ -39,7 +39,7 @@ detached HEAD는 검증 SHA를 고정하기 위한 상태다. 코드 수정이 �
 ## 검증 순서
 1. AGENTS.md, AutoCAD 개발 허브, [복구 안내](AC02-MAIN-ROLLBACK-2026-10-07.md), [개발 안내](../DEVELOPMENT.md)와 관리 이슈 #1의 최신 기록을 읽는다. 실제 Windows/PowerShell/Python/CAD 제품·버전과 기존 사용자 CAD 상태를 확인한다. AutoCAD가 없거나 LT/수직제품/등록 충돌이면 AutoCAD 실기는 NOT_RUN 또는 차단으로 남긴다.
 2. Python 개발 환경이 있으면 개발 안내의 의존성 계약을 확인한다. 실행 정책이나 CAD 보안/신뢰 설정은 낮추지 않는다. Python이 없으면 소스 검증 환경 준비 또는 새 검증 runtime 빌드를 먼저 한다. 이전 GUI-01/GstarCAD EXE로 이번 AC02 AutoCAD 소스 성공을 대신하지 않는다.
-3. 새 출력/로그 폴더를 사용한다. `python -m dwg_to_pdf --list-cad`로 실제 ProgID를 확인한다. AutoCAD 설정은 받는 PC의 새 로컬 TOML에만 작성한다. `[cad]`의 provider/정확한 ProgID/allow_experimental_autocad=true와 받는 PC의 PC3 경로·A4 가로 용지명을 확인한다. 기존 matching 수용값과 monochrome.ctb 정책을 유지한다. 이전 PC의 개인 경로·설정·라이선스를 복사하지 않는다.
+3. 새 출력/로그 폴더를 사용한다. `python -m dwg_to_pdf --list-cad`로 실제 ProgID를 확인한다. AutoCAD 설정은 받는 PC의 새 로컬 TOML에만 작성한다. `[cad]`의 provider/정확한 ProgID/allow_experimental_autocad=true와 받는 PC의 PC3 경로·A4 가로 용지명을 확인한다. `[plot].autocad_pc3_path`는 실제 존재하는 절대 경로이며 파일명은 `DWG To PDF.pc3`이어야 한다. `[cad]` 설정 시 기존 `[gstarcad]` 절을 제거한다. 기존 matching 수용값과 monochrome.ctb 정책을 유지한다. 이전 PC의 개인 경로·설정·라이선스를 복사하지 않는다.
 4. `tools/regression/gstarcad/inputs-manifest.json`의 cases43개와 `tools/regression/gstarcad/inputs/`의 DWG43개가 정확히 대응하는지 SHA256으로 확인한다. 배열 count는 ConvertFrom-Json 후 별도 변수에 담아 검사한다. 새 고객 도면은 검증 표본에 추가하지 않는다.
 5. 전체 오프라인 회귀를 먼저 실행한다: `python -m pytest -m 'not autocad and not gstarcad' -q -ra`. CAD deselect와 환경 SKIP은 실기 성공이 아니다.
 6. 사용자 AutoCAD가 준비되어 있으면 PID/생성시각/창·열린 도면/미저장 상태 및 입력 해시·수정시각을 읽기 전용으로 기록한다. 기존 업무 도면을 저장/닫기/수정하지 않는다. 아래 실기 계약에 따라 smoke → OFF43/ON43 → 실패 후 정상 파일 계속 진행을 시험한다. 앱이 소유한 새 CAD만 제어·종료한다.
@@ -60,7 +60,8 @@ if ($cases.Count -ne 43) { throw 'Expected 43 approved cases' }
 $inputs = Join-Path $PWD 'tools/regression/gstarcad/inputs'
 $env:AUTOCAD_TEST_DWGS = ($cases | ForEach-Object { Join-Path $inputs $_.file }) -join ';'
 # 실행 전에 43개 존재/해시 및 공존 사용자 AutoCAD 준비 상태를 검증한다.
-$run = Join-Path (Split-Path $PWD) ('AC02-validation-' + (Get-Date -Format 'yyyyMMdd-HHmmss-fff'))
+$run = Join-Path (Split-Path $PWD) ('AC02-validation-' + [guid]::NewGuid().ToString('N'))
+if (Test-Path -LiteralPath $run) { throw 'Output path exists; preserve previous evidence' }
 python -m pytest tests/integration/test_autocad.py -q -s -p no:cacheprovider --basetemp $run
 $testExit = $LASTEXITCODE
 if ($testExit -ne 0) { throw 'CAD validation failed; preserve outputs/logs and return to previous version' }
