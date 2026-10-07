@@ -194,7 +194,7 @@ def test_plot_waits_for_cad_idle_before_restoring_background(tmp_path, monkeypat
 @pytest.mark.parametrize("hresult", [-2147418111, -2147417846])
 def test_post_plot_wait_retries_only_busy_reads(monkeypatch, hresult):
     import pywintypes
-    from dwg_to_pdf.autocad import plotting
+    from dwg_to_pdf.autocad import readiness as plotting
     calls = []
     def state():
         calls.append(True)
@@ -203,22 +203,22 @@ def test_post_plot_wait_retries_only_busy_reads(monkeypatch, hresult):
         return SimpleNamespace(IsQuiescent=True)
     raw = SimpleNamespace(Application=SimpleNamespace(GetAcadState=state))
     monkeypatch.setattr(plotting.time, "sleep", lambda seconds: None)
-    plotting._wait_after_plot(raw)
+    plotting.wait_for_document_ready(raw)
     assert len(calls) == 2
 
 
 def test_post_plot_wait_propagates_non_busy_error(monkeypatch):
     import pywintypes
-    from dwg_to_pdf.autocad import plotting
+    from dwg_to_pdf.autocad import readiness as plotting
     def state():
         raise pywintypes.com_error(-1, "fatal", None, None)
     monkeypatch.setattr(plotting.time, "sleep", lambda seconds: pytest.fail("must not retry"))
     with pytest.raises(pywintypes.com_error):
-        plotting._wait_after_plot(SimpleNamespace(Application=SimpleNamespace(GetAcadState=state)))
+        plotting.wait_for_document_ready(SimpleNamespace(Application=SimpleNamespace(GetAcadState=state)))
 
 
 def test_post_plot_timeout_does_not_restore_or_repeat_plot(tmp_path, monkeypatch):
-    from dwg_to_pdf.autocad import plotting
+    from dwg_to_pdf.autocad import readiness as plotting
     clock = iter([0., 31.])
     writes, plots = [], []
     def plot(path):

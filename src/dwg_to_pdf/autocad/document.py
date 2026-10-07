@@ -8,6 +8,13 @@ from ..cad.com_document import ComDocument
 
 
 class AutoCADDocument(ComDocument):
+    def _before_selection_mutation(self) -> None:
+        # Native views select from a verified pure snapshot model, not CAD.
+        if self._bulk_raw is not None and self.raw is self._bulk_raw:
+            return
+        from .readiness import wait_for_document_ready
+        wait_for_document_ready(self.raw, error_code="E303")
+
     def _selection_entity_snapshots(self, entity, *, geometry):
         # Only repeat this read-only entity snapshot, never Add/Select/Delete.
         deadline = time.monotonic() + 30.0

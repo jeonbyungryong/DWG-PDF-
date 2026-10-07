@@ -1,3 +1,4 @@
+from types import SimpleNamespace
 import json
 import pytest
 
@@ -7,9 +8,15 @@ from dwg_to_pdf.cad.bulk_snapshot import parse_snapshot, NativeExtractionUnavail
 from dwg_to_pdf.errors import AppError
 
 
+def ready_app():
+    return SimpleNamespace(GetAcadState=lambda: SimpleNamespace(IsQuiescent=True))
+
+
 def raw_text(value="Scale"):
-    return parse_snapshot(json.dumps({"version": 1, "token": "n", "document": "C:/work.dwg", "complete": True,
+    raw = parse_snapshot(json.dumps({"version": 1, "token": "n", "document": "C:/work.dwg", "complete": True,
         "entities": [{"ObjectName": "AcDbText", "Handle": "1", "TextString": value, "InsertionPoint": [1, 2, 0]}], "blocks": {}}), "n", "C:/work.dwg")
+    raw.Application = ready_app()
+    return raw
 
 
 def test_com_and_native_snapshot_decisions_equal(monkeypatch):
@@ -73,7 +80,7 @@ def test_busy_entity_read_is_retried_without_repeating_selection_mutations(monke
         def Add(self, name):
             calls.append("add")
             return selection
-    document = AutoCADDocument(SimpleNamespace(SelectionSets=Selections()))
+    document = AutoCADDocument(SimpleNamespace(SelectionSets=Selections(), Application=ready_app()))
     result = document.filtered_snapshots(("TEXT",))
     assert result[0]["text"] == "1:1"
     assert entity.reads == 2
@@ -92,8 +99,11 @@ def test_entity_read_failure_or_timeout_does_not_repeat_mutations(monkeypatch, h
         raise pywintypes.com_error(hresult, "failure", None, None)
     monkeypatch.setattr(ComDocument, "_selection_entity_snapshots", fail)
     if expired:
-        ticks = iter((0., 31.))
-        monkeypatch.setattr(adapter.time, "monotonic", lambda: next(ticks))
+        ticks = [0.]
+        def clock():
+            ticks[0] += 31.
+            return ticks[0]
+        monkeypatch.setattr(adapter.time, "monotonic", clock)
     monkeypatch.setattr(adapter.time, "sleep", lambda seconds: pytest.fail("must not retry"))
     selection = SimpleNamespace(Count=1, Item=lambda index: object(),
         Select=lambda *args: calls.append("select"), Delete=lambda: calls.append("delete"))
@@ -103,5 +113,40 @@ def test_entity_read_failure_or_timeout_does_not_repeat_mutations(monkeypatch, h
             calls.append("add")
             return selection
     with pytest.raises(AppError):
-        AutoCADDocument(SimpleNamespace(SelectionSets=Selections())).filtered_snapshots(("TEXT",))
+        AutoCADDocument(SimpleNamespace(SelectionSets=Selections(), Application=ready_app())).filtered_snapshots(("TEXT",))
     assert calls == ["add", "select", "read", "delete"]
+
+
+def test_selection_mutations_wait_for_ready_and_run_once():
+    import pywintypes
+    from types import SimpleNamespace
+    pending = [2]
+    calls = []
+    def state():
+        pending[0] = max(0, pending[0] - 1)
+        return SimpleNamespace(IsQuiescent=pending[0] == 0)
+    def mutate(name):
+        if pending[0]: raise pywintypes.com_error(-2147418111, "busy mutation", None, None)
+        calls.append(name)
+        if name != "delete": pending[0] = 2
+    entity = SimpleNamespace(ObjectName="AcDbText", TextString="1:1", Handle="1", InsertionPoint=(0.,0.,0.))
+    selection = SimpleNamespace(Count=1, Item=lambda index: entity,
+        Select=lambda *args: mutate("select"), Delete=lambda: mutate("delete"))
+    class Selections:
+        def Item(self, name): raise KeyError(name)
+        def Add(self, name):
+            mutate("add")
+            return selection
+    raw = SimpleNamespace(SelectionSets=Selections(),Application=SimpleNamespace(GetAcadState=state))
+    assert AutoCADDocument(raw).filtered_snapshots(("TEXT",))[0]["text"] == "1:1"
+    assert calls == ["add", "select", "delete"]
+
+
+def test_native_pure_snapshot_view_never_queries_cad_readiness(monkeypatch):
+    from dwg_to_pdf.autocad import readiness
+    pure = raw_text()
+    del pure.Application
+    monkeypatch.setattr(native_extract, "extract_snapshot", lambda *args: pure)
+    monkeypatch.setattr(readiness, "wait_for_document_ready", lambda *args, **kwargs: pytest.fail("pure snapshot must not query CAD"))
+    document = AutoCADDocument(raw_text(), _bulk_enabled=True)
+    assert document.for_scale_detection().filtered_snapshots(("TEXT",))[0]["text"] == "Scale"

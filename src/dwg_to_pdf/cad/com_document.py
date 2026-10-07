@@ -330,6 +330,7 @@ class ComDocument:
                 if self._bulk_raw is None:
                     self._bulk_raw = self._extract_snapshot()
                 view.raw = self._bulk_raw
+                view._bulk_raw = self._bulk_raw
             except NativeExtractionUnavailable:
                 self._bulk_enabled = False
             view._bulk_enabled = False
@@ -357,6 +358,9 @@ class ComDocument:
             raise AppError("E306", "approved reference Plot Window is inverted")
         return result
 
+    def _before_selection_mutation(self) -> None:
+        """Provider readiness hook; selection changes are never retried."""
+
     def _selection_entity_snapshots(self, entity, *, geometry: bool) -> list[dict[str, object]]:
         """Read one selected entity and its attributes; no selection mutations."""
         snapshot = (self._geometry_snapshot(entity) if geometry
@@ -383,6 +387,7 @@ class ComDocument:
         except Exception:
             pass
         try:
+            self._before_selection_mutation()
             selection = self.raw.SelectionSets.Add(name)
         except Exception as exc:
             raise AppError("E303", "could not create filtered selection set") from exc
@@ -391,6 +396,7 @@ class ComDocument:
         filter_data = VARIANT(pythoncom.VT_ARRAY | pythoncom.VT_VARIANT, (",".join(normalized),))
         pending_error: BaseException | None = None
         try:
+            self._before_selection_mutation()
             if bounds is None:
                 # GstarCAD rejects VT_NULL, while VT_ERROR/Missing causes the
                 # trailing filters to be ignored. VT_EMPTY preserves them.
@@ -440,6 +446,7 @@ class ComDocument:
             raise error from exc
         finally:
             try:
+                self._before_selection_mutation()
                 selection.Delete()
             except Exception as exc:
                 if pending_error is None:
