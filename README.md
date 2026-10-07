@@ -4,6 +4,8 @@
 
 ## 먼저 읽을 문서
 
+다른 PC의 Codex 검증 시작: [GitHub 키트·작업 지시](docs/autocad/OTHER-PC-CODEX-2026-10-07.md). [GUI-01 검증용 ZIP](https://github.com/jeonbyungryong/DWG-PDF-/releases/tag/windows-gui1-pc-validation-20261007)은 공식 릴리스가 아닌 타PC 수용 검증용 사전 배포입니다.
+
 2026-10-07 현재 PC의 최신 GUI 검증은 [GUI-01 검증 인계](docs/autocad/GUI-01-HANDOFF-2026-10-07.md), CAD 회귀는 [GC-02 검증 인계](docs/autocad/GC-02-HANDOFF-2026-10-07.md), 다른 PC 검증 절차는 [검증 패키지 안내](docs/autocad/PC-VALIDATION-KIT-2026-10-07.md)를 따릅니다. 로컬 MAIN 통합과 GitHub 게시·공식 배포는 구분합니다. [통합·백업 기록](docs/releases/2026-10-07-local-main-integration.md)을 참조하세요.
 
 후속 개발: [AutoCAD 확장 개발 허브](docs/autocad/README.md) — 소스 개발·검증 상태와 실행파일 배포 상태를 구분합니다. 현재 실행 파일의 AutoCAD 지원을 의미하지 않습니다.
