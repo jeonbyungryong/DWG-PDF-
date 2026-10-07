@@ -42,6 +42,7 @@ class Layout:
 def test_monochrome_plot_keeps_true_color_without_extra_color_traversal(tmp_path, document_type, unreadable_colors):
     raw, colored = raw_document()
     raw.ActiveLayout = Layout()
+    raw.Application = SimpleNamespace(GetAcadState=lambda: SimpleNamespace(IsQuiescent=True))
     raw.GetVariable = lambda name: 2
     raw.SetVariable = lambda name, value: None
     if unreadable_colors:

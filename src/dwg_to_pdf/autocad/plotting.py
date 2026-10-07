@@ -1,6 +1,10 @@
 """Experimental public ActiveX plotting contract, not AutoCAD certification."""
 from io import BytesIO
 import math
+import time
+
+import pythoncom
+import pywintypes
 from pathlib import Path
 from pypdf import PdfWriter
 from pypdf.generic import NameObject, NumberObject
@@ -58,6 +62,22 @@ def validate_orientation(output: Path) -> None:
         raise AppError("E420", "AutoCAD PDF must be unrotated A4 landscape; no automatic correction applied", output) from exc
 
 
+def _wait_after_plot(raw) -> None:
+    """Wait on read-only state before restoration; never retry a mutation."""
+    deadline = time.monotonic() + 30.0
+    while True:
+        try:
+            if raw.Application.GetAcadState().IsQuiescent:
+                return
+        except pywintypes.com_error as exc:
+            if exc.hresult not in (-2147418111, -2147417846):
+                raise
+        if time.monotonic() >= deadline:
+            raise AppError("E410", "AutoCAD did not become ready after plotting within 30 seconds")
+        pythoncom.PumpWaitingMessages()
+        time.sleep(0.05)
+
+
 def plot_pdf(raw, output: Path, window, rotation, preferred_media_names: tuple[str, ...], *, plot_config: Path | None = None) -> None:
     try:
         layout = raw.ActiveLayout
@@ -67,9 +87,10 @@ def plot_pdf(raw, output: Path, window, rotation, preferred_media_names: tuple[s
         # direct enum, unlike the shared GstarCAD inverse mapping.
         layout.PlotRotation = rotation // 90
         if plot_config is None:
-            plot_to_file(raw, output)
+            plot_to_file(raw, output, before_background_restore=lambda: _wait_after_plot(raw))
         else:
-            plot_to_file(raw, output, plot_config=plot_config)
+            plot_to_file(raw, output, plot_config=plot_config,
+                before_background_restore=lambda: _wait_after_plot(raw))
         normalize_verified_orientation(output, rotation,
             reported_version=getattr(getattr(raw, "Application", None), "Version", None))
         validate_orientation(output)
