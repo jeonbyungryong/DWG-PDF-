@@ -1,6 +1,8 @@
 ﻿# AutoCAD 확장 개발 허브
 
-2026-10-09 최신 후속: [AC04 조사·통합·배포 판단](AC04-INTEGRATION-2026-10-09.md), [AC03 현재 PC 검증](AC03-READINESS-2026-10-09.md)을 먼저 확인한다. AutoCAD 수정 후보의 CLI43종·GUI각7·취소4·소스3시험 통과. 과거 DBMOD17→21 원인은 미확정이며 최신 GstarCAD 실기는 사용자 요청으로 연기했다. 사용자 요청에 따라 소스 통합과 검증용 prerelease를 진행하며 정식 stable Release·공식지원은 보류한다. 실제 원격 결과는 관리 이슈#1 AC04 인계를 따른다.
+2026-10-09 최신 GUI 후속: [AC07 AutoCAD 설정 자동 적용](AC07-AUTO-CONFIG-2026-10-09.md). 이전 검증본의 사용자 실사용 수용 후 매번 TOML 선택을 생략하도록 개발했다. 최신979 PASS/13 SKIP, 로컬 새 실행본·설정 자동 적용 준비 완료. 새 후보 사용자 재수용과 MAIN 반영 승인·정식 배포는 별도이며 GstarCAD 실기는 연기 상태다.
+
+2026-10-09 이전 후속: [AC04 조사·통합·배포 판단](AC04-INTEGRATION-2026-10-09.md), [AC03 현재 PC 검증](AC03-READINESS-2026-10-09.md). AutoCAD 수정 후보의 CLI43종·GUI각7·취소4·소스3시험 통과. 과거 DBMOD17→21 원인은 미확정이며 최신 GstarCAD 실기는 사용자 요청으로 연기했다. 사용자 요청에 따라 소스 통합과 검증용 prerelease를 진행하며 정식 stable Release·공식지원은 보류한다. 실제 원격 결과는 관리 이슈#1 AC04 인계를 따른다.
 
 2026-10-07 PC-A 새 AC02 frozen 후보: GstarCAD43종 및 실제GUI 파일/폴더 각7개 검증 완료. 다른 PC는 [새 EXE·ZIP 전달 안내](AC02-FROZEN-OTHER-PC-2026-10-07.md)와 [검증 결과](AC02-PC-A-FROZEN-VALIDATION-2026-10-07.md)를 따른다. 전달 브랜치는 `codex/ac02-gstar-frozen-validation`이며 이전 GUI-01 실행본과 구분한다. AutoCAD 최종 실기·MAIN 병합·정식지원은 별도다.
 

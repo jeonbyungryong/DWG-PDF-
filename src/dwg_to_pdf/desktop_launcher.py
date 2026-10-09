@@ -12,6 +12,7 @@ from .cad.selection import CadCandidate, CadSelection, ProviderId, select_candid
 from .cad.factory import EXPERIMENTAL_WARNING
 from .errors import AppError
 from .windows_picker import pick_dwg_files, pick_folder, pick_config_file
+from .desktop_settings import autocad_config_snapshot, remembered_autocad_config, remember_autocad_config
 
 
 class DesktopUI(Protocol):
@@ -171,11 +172,16 @@ def run_desktop(
         arguments = [*sources, "--output", output, "--conflict", "copy", "--cad", provider, "--cad-prog-id", selected]
         if experimental:
             arguments.append("--allow-experimental-autocad")
-            config = desktop.choose_autocad_config()
+            candidate = select_candidate(CadSelection(provider, selected, True), candidates)
+            cached_config = remembered_autocad_config(candidate)
+            config = cached_config or desktop.choose_autocad_config()
             if not config:
                 return 0
+            selected_record = autocad_config_snapshot(config) if cached_config is None else None
             arguments.extend(["--config", config])
         exit_code = run_cli(arguments)
+        if experimental and exit_code == 0 and cached_config is None:
+            remember_autocad_config(candidate, config, selected_record)
         desktop.show_result(exit_code)
         return exit_code
     except (AppError, OSError, ValueError) as error:
