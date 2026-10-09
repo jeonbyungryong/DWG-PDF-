@@ -96,7 +96,8 @@ def _path(item: _ComPtr, ole) -> str:
             ole.CoTaskMemFree(allocated)
 
 
-def _pick(title: str, *, folder: bool) -> tuple[str, ...]:
+def _pick(title: str, *, folder: bool, multiple: bool = True,
+          file_filter: tuple[str, str] = ("DWG 도면 (*.dwg)", "*.dwg")) -> tuple[str, ...]:
     ole = _load_ole32()
     # S_OK and S_FALSE both acquire an initialization reference. Failed init
     # (including RPC_E_CHANGED_MODE) must not call CoUninitialize or be retried.
@@ -113,17 +114,19 @@ def _pick(title: str, *, folder: bool) -> tuple[str, ...]:
             if folder:
                 options = (options & ~(_MULTISELECT | _FILE_EXISTS)) | _PICKFOLDERS
             else:
-                options = (options & ~_PICKFOLDERS) | _MULTISELECT | _FILE_EXISTS
+                options = (options & ~(_PICKFOLDERS | _MULTISELECT)) | _FILE_EXISTS
+                if multiple:
+                    options |= _MULTISELECT
             _check(dialog.invoke(9, (_DWORD,), options), "SetOptions")
             _check(dialog.invoke(17, (ctypes.c_wchar_p,), title), "SetTitle")
             if not folder:
-                filters = (_Filter * 1)(_Filter("DWG 도면 (*.dwg)", "*.dwg"))
+                filters = (_Filter * 1)(_Filter(*file_filter))
                 _check(dialog.invoke(4, (_DWORD, ctypes.POINTER(_Filter)), 1, filters), "SetFileTypes")
             hr = dialog.invoke(3, (_PTR,), None)
             if hr & 0xFFFFFFFF == _CANCELLED:
                 return ()
             _check(hr, "Show")
-            if folder:
+            if folder or not multiple:
                 with _interface("GetResult", lambda out: dialog.invoke(20, (_PVOID,), out)) as item:
                     return (_path(item, ole),)
             with _interface("GetResults", lambda out: dialog.invoke(27, (_PVOID,), out)) as items:
@@ -144,4 +147,10 @@ def pick_dwg_files(title: str) -> tuple[str, ...]:
 
 def pick_folder(title: str) -> str:
     result = _pick(title, folder=True)
+    return result[0] if result else ""
+
+
+def pick_config_file(title: str) -> str:
+    result = _pick(title, folder=False, multiple=False,
+                   file_filter=("TOML 설정 (*.toml)", "*.toml"))
     return result[0] if result else ""
