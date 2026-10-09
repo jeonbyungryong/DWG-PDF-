@@ -11,12 +11,13 @@ from .cad.discovery import discover_candidates
 from .cad.selection import CadCandidate, CadSelection, ProviderId, select_candidate
 from .cad.factory import EXPERIMENTAL_WARNING
 from .errors import AppError
-from .windows_picker import pick_dwg_files, pick_folder
+from .windows_picker import pick_dwg_files, pick_folder, pick_config_file
 
 
 class DesktopUI(Protocol):
     def choose_cad_provider(self) -> ProviderId | None: ...
     def choose_cad_candidate(self, candidates: tuple[CadCandidate, ...]) -> str | None: ...
+    def choose_autocad_config(self) -> str: ...
     def confirm_experimental_autocad(self) -> bool: ...
     def choose_source_mode(self) -> str | None: ...
     def choose_files(self) -> Sequence[str]: ...
@@ -55,6 +56,9 @@ class WindowsDesktopUI:
 
     def confirm_experimental_autocad(self) -> bool:
         return _message_box("AutoCAD 실험적 지원", EXPERIMENTAL_WARNING + "\n계속하시겠습니까?", 0x134) == 6
+
+    def choose_autocad_config(self) -> str:
+        return pick_config_file("AutoCAD 용지·플로터 설정 TOML 선택")
 
     def choose_cad_candidate(self, candidates: tuple[CadCandidate, ...]) -> str | None:
         if len(candidates) == 1:
@@ -167,6 +171,10 @@ def run_desktop(
         arguments = [*sources, "--output", output, "--conflict", "copy", "--cad", provider, "--cad-prog-id", selected]
         if experimental:
             arguments.append("--allow-experimental-autocad")
+            config = desktop.choose_autocad_config()
+            if not config:
+                return 0
+            arguments.extend(["--config", config])
         exit_code = run_cli(arguments)
         desktop.show_result(exit_code)
         return exit_code

@@ -178,3 +178,71 @@ def test_busy_nested_block_read_does_not_repeat_traversal_budget(mode):
         assert document.is_noncontributing_text_insert(reference, budget=budget)
     assert reads == ["ROOT", "ROOT"]
     assert (budget.roots, budget.blocks, budget.entities) == (1, 1, 1)
+
+
+@pytest.mark.parametrize("mode", ["text", "geometry", "noncontributing"])
+def test_nested_entity_metadata_retry_does_not_repeat_traversal(mode,monkeypatch):
+    import pywintypes
+    from win32com.client.dynamic import CDispatch
+    from win32com.client.build import DispatchItem
+    from dwg_to_pdf.cad.com_document import TraversalBudget
+    from dwg_to_pdf.autocad import document as adapter
+    metadata=[];items=[];blocks=[]
+    class Ole:
+        def GetIDsOfNames(self,locale,name):
+            metadata.append(name)
+            if len(metadata)==1:
+                raise pywintypes.com_error(-2147418111,"busy metadata",None,None)
+            return 1
+        def Invoke(self,*args):return "AcDbLine"
+    dispatch=CDispatch(Ole(),DispatchItem(),"Item")
+    class Entity:
+        Handle="1";StartPoint=(0.,0.,0.);EndPoint=(10.,0.,0.)
+        @property
+        def ObjectName(self):return dispatch.ObjectName
+    entity=Entity()
+    def item(index):items.append(index);return entity
+    block=SimpleNamespace(Count=1,Item=item)
+    def reached(name):blocks.append(name);return block
+    document=AutoCADDocument(SimpleNamespace(Blocks=SimpleNamespace(Item=reached)))
+    monkeypatch.setattr(adapter.time,"sleep",lambda seconds:None)
+    reference={"block_name":"ROOT","handle":"A","point":(0.,0.),"rotation":0.,"x_scale":1.,"y_scale":1.}
+    budget=TraversalBudget(1,1,1);budget.visit_root()
+    if mode=="text":assert len(document.nested_text_snapshots(reference,budget=budget))==1
+    elif mode=="geometry":assert len(document.nested_geometry_snapshots(reference,budget=budget))==1
+    else:assert document.is_noncontributing_text_insert(reference,budget=budget)
+    assert metadata==["ObjectName","ObjectName"]
+    assert blocks==["ROOT"] and items==[0]
+    assert (budget.roots,budget.blocks,budget.entities)==(1,1,1)
+
+
+def test_direct_metadata_error_retries_only_supplied_reader(monkeypatch):
+    from dwg_to_pdf.autocad import document as adapter
+    calls=[]
+    def reader():
+        calls.append(1)
+        if len(calls)==1:raise AttributeError("Item.ObjectName")
+        return "AcDbLine"
+    monkeypatch.setattr(adapter.time,"sleep",lambda seconds:None)
+    assert AutoCADDocument(object())._read_com(reader)=="AcDbLine"
+    assert len(calls)==2
+
+
+@pytest.mark.parametrize("wrapped",[False,True])
+def test_persistent_metadata_read_keeps_existing_timeout(monkeypatch,wrapped):
+    from dwg_to_pdf.autocad import document as adapter
+    ticks=iter([0.,31.]);calls=[];clock_reads=[]
+    def clock():
+        value=next(ticks);clock_reads.append(value);return value
+    def reader():
+        calls.append(1)
+        try:raise AttributeError("Item.ObjectName")
+        except AttributeError as error:
+            if wrapped:raise AppError("E303","could not snapshot entity type") from error
+            raise
+    monkeypatch.setattr(adapter.time,"monotonic",clock)
+    monkeypatch.setattr(adapter.time,"sleep",lambda seconds:pytest.fail("must not exceed timeout"))
+    with pytest.raises(AppError if wrapped else AttributeError):
+        AutoCADDocument(object())._read_com(reader)
+    assert calls==[1]
+    assert clock_reads==[0.,31.]

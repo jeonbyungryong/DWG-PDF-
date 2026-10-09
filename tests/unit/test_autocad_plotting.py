@@ -237,3 +237,79 @@ def test_post_plot_timeout_does_not_restore_or_repeat_plot(tmp_path, monkeypatch
     assert writes == [0]
     assert len(plots) == 1
     assert not output.exists()
+
+
+@pytest.mark.parametrize("hresult", [-2147418111, -2147417846])
+def test_readiness_handles_busy_metadata_hidden_by_pywin32(monkeypatch, hresult):
+    import pywintypes
+    from win32com.client.dynamic import CDispatch
+    from win32com.client.build import DispatchItem
+    from dwg_to_pdf.autocad import readiness
+    calls = []
+    application = SimpleNamespace(GetAcadState=lambda: SimpleNamespace(IsQuiescent=True))
+    class Ole:
+        def GetIDsOfNames(self, locale, name):
+            calls.append(name)
+            if len(calls) == 1:
+                raise pywintypes.com_error(hresult, "busy metadata", None, None)
+            return 1
+        def Invoke(self, *args): return application
+    raw = CDispatch(Ole(), DispatchItem(), "Open")
+    monkeypatch.setattr(readiness.time, "sleep", lambda seconds: None)
+    readiness.wait_for_document_ready(raw)
+    assert calls == ["Application", "Application"]
+
+
+def test_plot_retries_metadata_read_then_restores_once(tmp_path, monkeypatch):
+    from dwg_to_pdf.autocad import readiness
+    queries, writes, plots = [], [], []
+    class Raw:
+        ActiveLayout = Layout()
+        @property
+        def Application(self):
+            queries.append(True)
+            if len(queries) == 1:
+                raise AttributeError("Open.Application")
+            return SimpleNamespace(GetAcadState=lambda: SimpleNamespace(IsQuiescent=True))
+        def GetVariable(self, name): return 2
+        def SetVariable(self, name, value): writes.append(value)
+        @property
+        def Plot(self): return SimpleNamespace(PlotToFile=plot)
+    def plot(path):
+        plots.append(path)
+        pdf(Path(path))
+        return True
+    monkeypatch.setattr(readiness.time, "sleep", lambda seconds: None)
+    output = tmp_path / "metadata.pdf"
+    plot_pdf(Raw(), output, Rect(Point(1, 2), Point(301, 202)), 0, ())
+    assert len(queries) == 3  # Two readiness reads, then the existing version query.
+    assert writes == [0, 2]
+    assert len(plots) == 1
+    validate_orientation(output)
+
+
+def test_persistent_metadata_error_keeps_timeout_and_never_retries_mutations(tmp_path, monkeypatch):
+    from dwg_to_pdf.autocad import readiness
+    clock = iter([0., 31.])
+    writes, plots = [], []
+    class Raw:
+        ActiveLayout = Layout()
+        @property
+        def Application(self): raise AttributeError("Open.Application")
+        def GetVariable(self, name): return 2
+        def SetVariable(self, name, value): writes.append(value)
+        @property
+        def Plot(self): return SimpleNamespace(PlotToFile=plot)
+    def plot(path):
+        plots.append(path)
+        pdf(Path(path))
+        return True
+    monkeypatch.setattr(readiness.time, "monotonic", lambda: next(clock))
+    output = tmp_path / "metadata-timeout.pdf"
+    with pytest.raises(AppError) as error:
+        plot_pdf(Raw(), output, Rect(Point(1, 2), Point(301, 202)), 0, ())
+    assert error.value.code == "E410"
+    assert "30 seconds" in str(error.value.__cause__.__cause__)
+    assert writes == [0]
+    assert len(plots) == 1
+    assert not output.exists()

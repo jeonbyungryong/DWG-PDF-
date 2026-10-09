@@ -126,3 +126,29 @@ def test_failed_com_initialization_is_not_uninitialized(monkeypatch):
     with pytest.raises(OSError): m.pick_folder("에러")
     assert native.released == []
     assert native.uninitialized == 0
+
+
+def test_config_is_one_toml_file_and_balances_resources(monkeypatch):
+    m=adapter()
+    native=Native(m,monkeypatch,defaults=0x1208)
+    native.paths=("D:/검증 설정 (A4)/autocad.toml",)
+    assert m.pick_config_file("설정 선택")==native.paths[0]
+    assert native.options==0x1848
+    assert native.filter==("TOML 설정 (*.toml)","*.toml")
+    assert native.released==[3,1]
+    assert len(native.freed)==1
+    assert native.uninitialized==1
+
+
+def test_config_cancel_returns_empty_without_leaking_com(monkeypatch):
+    m=adapter()
+    native=Native(m,monkeypatch,failure="cancel")
+    assert m.pick_config_file("설정 취소")==""
+    assert native.released==[1] and native.uninitialized==1
+
+
+def test_config_result_error_is_not_cancel(monkeypatch):
+    m=adapter()
+    native=Native(m,monkeypatch,failure=(1,20))
+    with pytest.raises(OSError): m.pick_config_file("설정 오류")
+    assert native.released==[1] and native.uninitialized==1

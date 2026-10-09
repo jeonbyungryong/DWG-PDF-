@@ -16,6 +16,8 @@ APP은 승인된 13개 축척(1:1, 1:2, 1:5, 1:10, 1:20, 1:50, 1:100, 2:1, 5:1, 
 
 EXE를 더블클릭하면 입력 DWG/폴더와 출력 폴더를 선택하는 창이 열립니다. 명령행에서는 다음과 같이 실행합니다.
 
+AutoCAD(실험적)를 선택하면 설치 선택 후 이 PC에서 검증한 용지·플로터 설정 TOML 파일을 선택합니다. 설정 선택을 취소하면 변환을 시작하지 않습니다. 다른 PC의 PC3 경로를 그대로 사용하지 말고, 해당 PC의 검증된 A4 용지 이름과 플로터 사본 경로를 사용하십시오. 잘못된 설정은 기존 CLI 검증에서 차단합니다.
+
 ```powershell
 dwg-to-pdf.exe 'D:\input' --output 'D:\output' --conflict copy
 dwg-to-pdf.exe 'D:\input\part.dwg' --output 'D:\output' --config 'D:\operator\config.toml' --profiles 'D:\operator\profiles' --template-source-root 'D:\template-source' --conflict overwrite

@@ -21,12 +21,16 @@ class AutoCADDocument(ComDocument):
         while True:
             try:
                 return super()._read_com(reader)
-            except (AppError, pywintypes.com_error) as error:
+            except (AppError, pywintypes.com_error, AttributeError) as error:
                 cause = error
                 seen = set()
                 busy = False
                 while cause is not None and id(cause) not in seen:
                     seen.add(id(cause))
+                    if isinstance(cause, AttributeError):
+                        # pywin32 can hide a busy metadata lookup in this chain.
+                        busy = True
+                        break
                     if isinstance(cause, pywintypes.com_error):
                         busy = cause.hresult in (-2147418111, -2147417846)
                         break

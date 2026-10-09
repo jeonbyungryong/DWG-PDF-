@@ -17,6 +17,9 @@ def wait_for_document_ready(raw, *, error_code: str = "E410") -> None:
         except pywintypes.com_error as exc:
             if exc.hresult not in (-2147418111, -2147417846):
                 raise
+        except AttributeError:
+            # pywin32 can hide a busy metadata lookup as AttributeError.
+            pass
         if time.monotonic() >= deadline:
             raise AppError(error_code, "AutoCAD did not become ready within 30 seconds")
         time.sleep(0.05)
