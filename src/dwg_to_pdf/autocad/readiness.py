@@ -23,5 +23,3 @@ def wait_for_document_ready(raw, *, error_code: str = "E410") -> None:
         if time.monotonic() >= deadline:
             raise AppError(error_code, "AutoCAD did not become ready within 30 seconds")
         time.sleep(0.05)
-
-
