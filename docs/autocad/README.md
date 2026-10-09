@@ -1,5 +1,9 @@
 ﻿# AutoCAD 확장 개발 허브
 
+2026-10-07 PC-A 새 AC02 frozen 후보: GstarCAD43종 및 실제GUI 파일/폴더 각7개 검증 완료. 다른 PC는 [새 EXE·ZIP 전달 안내](AC02-FROZEN-OTHER-PC-2026-10-07.md)와 [검증 결과](AC02-PC-A-FROZEN-VALIDATION-2026-10-07.md)를 따른다. 전달 브랜치는 `codex/ac02-gstar-frozen-validation`이며 이전 GUI-01 실행본과 구분한다. AutoCAD 최종 실기·MAIN 병합·정식지원은 별도다.
+
+2026-10-07 AC02 GitHub 인계: [다른 PC의 검증·이전 MAIN 복귀 안내](AC02-OTHER-PC-GITHUB-2026-10-07.md)를 따른다. 정확한 시험 SHA와 원격 복구 태그를 지정한 인계이며 타PC 수용은 대기다.
+
 2026-10-07 AC02 추가 검증과 복구: 현재 PC AutoCAD2021 소스 OFF43/ON43·일반 실행파일43종·일반 GUI7종 및 원본/사용자 CAD 보호 통과. 최신 오프라인947 PASS/4 SKIP/9 CAD 별도. 우측 하단 표제란 겹침은 사용자 수용으로 무시. 과거 GUI E203 원인 미확정. [로컬 MAIN 복구·다른 PC 인계](AC02-MAIN-ROLLBACK-2026-10-07.md)를 우선 확인한다. 공식지원·타PC 수용·GitHub 게시 완료를 뜻하지 않는다.
 
 
