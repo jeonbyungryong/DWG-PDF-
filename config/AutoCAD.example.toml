@@ -1,0 +1,25 @@
+# AutoCAD 새 PC 설정 예시. PC3 경로와 현지 A4 용지 이름을 확인한 뒤 사용하세요.
+[cad]
+provider = "autocad"
+# Existing configuration compatibility flag; desktop selection enables AutoCAD explicitly.
+allow_experimental_autocad = true
+# GUI discovers and supplies the installed ProgID. Do not guess a version here.
+
+[matching]
+auto_match_enabled = true
+use_native_extraction = true
+matching_threshold = 1.0
+minimum_score_gap = 1.0
+use_target_saved_window = false
+
+[plot]
+plotter_name = "DWG To PDF.pc3"
+media_width_mm = 297.0
+media_height_mm = 210.0
+style_sheet = "monochrome.ctb"
+# Edit to the actual absolute path of a local copy, using forward slashes.
+autocad_pc3_path = "C:/DWG-PDF/DWG-to-PDF/settings/plotter/DWG To PDF.pc3"
+# Validated on the current PC; confirm this canonical name exists on your PC.
+preferred_media_names = ["ISO_full_bleed_A4_(297.00_x_210.00_MM)"]
+fit_to_paper = true
+center_plot = true
