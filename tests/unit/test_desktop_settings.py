@@ -57,6 +57,63 @@ def test_successful_config_is_automatically_reused_without_picker(setup):
     assert cache.stat().st_mtime_ns == original_mtime
 
 
+def test_single_installation_uses_saved_config_without_extra_confirmation(setup):
+    candidate, config, _, selected, _, results, _ = setup
+    desktop.remember_autocad_config(candidate, str(config), desktop.autocad_config_snapshot(str(config)))
+    selected.confirm_experimental_autocad = lambda: pytest.fail('No experimental confirmation')
+    selected.choose_cad_candidate = lambda _: pytest.fail('Single installation is automatic')
+    selected.choose_autocad_config = lambda: pytest.fail('Saved valid config is automatic')
+    calls = []
+    assert desktop.run_desktop(lambda args: calls.append(args) or 0, ui=selected) == 0
+    assert calls[0][-2:] == ['--config', str(config)]
+    assert results == [0]
+
+
+def test_multiple_installations_use_only_uniquely_valid_saved_config(setup, monkeypatch):
+    candidate, config, _, selected, _, _, _ = setup
+    other = replace(candidate, prog_id='AutoCAD.Application.25', clsid='other', executable=Path('C:/other/acad.exe'))
+    desktop.remember_autocad_config(candidate, str(config), desktop.autocad_config_snapshot(str(config)))
+    monkeypatch.setattr(desktop, 'discover_candidates', lambda _: (other, candidate))
+    selected.choose_cad_candidate = lambda _: pytest.fail('One validated installation is automatic')
+    selected.choose_autocad_config = lambda: pytest.fail('Use validated saved config')
+    calls = []
+    assert desktop.run_desktop(lambda args: calls.append(args) or 0, ui=selected) == 0
+    assert calls[0][calls[0].index('--cad-prog-id') + 1] == 'AutoCAD.Application.24'
+
+
+@pytest.mark.parametrize('other_installation', [False, True])
+def test_saved_generic_alias_is_reused_per_installation(setup, monkeypatch, other_installation):
+    candidate, config, _, selected, _, _, _ = setup
+    alias = replace(candidate, prog_id='AutoCAD.Application')
+    desktop.remember_autocad_config(alias, str(config), desktop.autocad_config_snapshot(str(config)))
+    candidates = (candidate, alias)
+    if other_installation:
+        candidates += (replace(candidate, prog_id='AutoCAD.Application.25', clsid='other', executable=Path('C:/other/acad.exe')),)
+    monkeypatch.setattr(desktop, 'discover_candidates', lambda _: candidates)
+    selected.choose_cad_candidate = lambda _: pytest.fail('Only one installation has valid settings')
+    selected.choose_autocad_config = lambda: pytest.fail('Generic alias cache must be reused')
+    calls = []
+    assert desktop.run_desktop(lambda args: calls.append(args) or 0, ui=selected) == 0
+    assert calls[0][calls[0].index('--cad-prog-id') + 1] == 'AutoCAD.Application'
+    assert calls[0][-2:] == ['--config', str(config)]
+
+
+@pytest.mark.parametrize('saved_count', [0, 2])
+def test_ambiguous_installations_remain_cancellable(setup, monkeypatch, saved_count):
+    candidate, config, _, selected, _, results, _ = setup
+    other = replace(candidate, prog_id='AutoCAD.Application.25', clsid='other', executable=Path('C:/other/acad.exe'))
+    candidates = (candidate, other)
+    for item in candidates[:saved_count]:
+        desktop.remember_autocad_config(item, str(config), desktop.autocad_config_snapshot(str(config)))
+    monkeypatch.setattr(desktop, 'discover_candidates', lambda _: candidates)
+    prompts = []
+    selected.choose_cad_candidate = lambda items: prompts.append(items) or None
+    assert desktop.run_desktop(lambda _: pytest.fail('Cancelled selection must not start'), ui=selected) == 0
+    assert len(prompts) == 1
+    assert {item.prog_id for item in prompts[0]} == {'AutoCAD.Application.24', 'AutoCAD.Application.25'}
+    assert results == []
+
+
 @pytest.mark.parametrize('code',[1,2])
 def test_unsuccessful_conversion_does_not_remember_new_config(setup,code):
     _,_,_,selected,prompts,_,cache=setup

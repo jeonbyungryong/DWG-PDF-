@@ -2,7 +2,6 @@
 from .selection import CadCandidate, CadSelection
 from ..errors import AppError
 
-EXPERIMENTAL_WARNING = "AutoCAD 지원은 실험적이며 실제 출력/버전 호환 검증이 완료되지 않았습니다."
 
 
 def resolve_selection(config, provider, prog_id, allow_experimental: bool) -> CadSelection:

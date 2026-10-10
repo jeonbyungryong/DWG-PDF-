@@ -27,9 +27,9 @@ def test_autocad_requires_opt_in_before_start(boundary, capsys):
     assert "E222" in capsys.readouterr().err
 
 
-def test_opt_in_warning_before_start(boundary, capsys):
+def test_enabled_autocad_starts_without_obsolete_experimental_warning(boundary, capsys):
     assert cli.main([*boundary, "--allow-experimental-autocad"]) == 0
-    assert "실험적" in capsys.readouterr().err
+    assert "실험적" not in capsys.readouterr().err
 
 
 def test_ambiguous_candidate_noninteractive_rejected(boundary, monkeypatch, capsys):
