@@ -9,16 +9,15 @@ import subprocess
 from typing import Protocol
 from .cad.discovery import discover_candidates
 from .cad.selection import CadCandidate, CadSelection, ProviderId, select_candidate
-from .cad.factory import EXPERIMENTAL_WARNING
 from .errors import AppError
 from .windows_picker import pick_dwg_files, pick_folder, pick_config_file
+from .desktop_settings import autocad_config_snapshot, remembered_autocad_config, remember_autocad_config
 
 
 class DesktopUI(Protocol):
     def choose_cad_provider(self) -> ProviderId | None: ...
     def choose_cad_candidate(self, candidates: tuple[CadCandidate, ...]) -> str | None: ...
     def choose_autocad_config(self) -> str: ...
-    def confirm_experimental_autocad(self) -> bool: ...
     def choose_source_mode(self) -> str | None: ...
     def choose_files(self) -> Sequence[str]: ...
     def choose_input_folder(self) -> str: ...
@@ -51,20 +50,15 @@ class WindowsDesktopUI:
     """Dependency-free Windows launcher used when the EXE is double-clicked."""
 
     def choose_cad_provider(self) -> ProviderId | None:
-        answer = _message_box("CAD 선택", "예: GstarCAD (기본)\n아니요: AutoCAD (실험적)\n취소: 종료", 0x23)
+        answer = _message_box("CAD 선택", "예: GstarCAD (기본)\n아니요: AutoCAD\n취소: 종료", 0x23)
         return {6: "gstarcad", 7: "autocad"}.get(answer)
-
-    def confirm_experimental_autocad(self) -> bool:
-        return _message_box("AutoCAD 실험적 지원", EXPERIMENTAL_WARNING + "\n계속하시겠습니까?", 0x134) == 6
 
     def choose_autocad_config(self) -> str:
         return pick_config_file("AutoCAD 용지·플로터 설정 TOML 선택")
 
     def choose_cad_candidate(self, candidates: tuple[CadCandidate, ...]) -> str | None:
         if len(candidates) == 1:
-            candidate = candidates[0]
-            answer = _message_box("CAD 설치 선택", f"{candidate.product_name}\n{candidate.prog_id}\n{candidate.executable}\n사용하시겠습니까?", 0x21)
-            return candidate.prog_id if answer == 1 else None
+            return candidates[0].prog_id
         data = [f"{item.product_name} | {item.prog_id} | {item.executable}" for item in candidates]
         encoded = base64.b64encode(json.dumps(data, ensure_ascii=False).encode("utf-8")).decode("ascii")
         selected = _run_picker(
@@ -153,29 +147,41 @@ def run_desktop(
         provider = desktop.choose_cad_provider()
         if provider is None:
             return 0
-        experimental = provider == "autocad"
-        if experimental and not desktop.confirm_experimental_autocad():
-            return 0
+        is_autocad = provider == "autocad"
         candidates = discover_candidates(provider)
         # Validate conflicting registrations before showing one entry per installation.
         if candidates:
-            select_candidate(CadSelection(provider, candidates[0].prog_id, experimental), candidates)
+            select_candidate(CadSelection(provider, candidates[0].prog_id, is_autocad), candidates)
         else:
-            select_candidate(CadSelection(provider, None, experimental), candidates)
+            select_candidate(CadSelection(provider, None, is_autocad), candidates)
         unique = {}
+        remembered = {}
         for candidate in sorted(candidates, key=lambda item: item.prog_id.count("."), reverse=True):
-            unique.setdefault((candidate.clsid.casefold(), str(candidate.executable).casefold()), candidate)
-        selected = desktop.choose_cad_candidate(tuple(unique.values()))
+            identity = (candidate.clsid.casefold(), str(candidate.executable).casefold(), candidate.launch_arguments)
+            unique.setdefault(identity, candidate)
+            if is_autocad and identity not in remembered and remembered_autocad_config(candidate) is not None:
+                unique[identity] = candidate
+                remembered[identity] = candidate
+        installations = tuple(unique.values())
+        if len(installations) == 1:
+            selected = installations[0].prog_id
+        else:
+            selected = next(iter(remembered.values())).prog_id if len(remembered) == 1 else desktop.choose_cad_candidate(installations)
         if selected is None:
             return 0
         arguments = [*sources, "--output", output, "--conflict", "copy", "--cad", provider, "--cad-prog-id", selected]
-        if experimental:
+        if is_autocad:
             arguments.append("--allow-experimental-autocad")
-            config = desktop.choose_autocad_config()
+            candidate = select_candidate(CadSelection(provider, selected, True), candidates)
+            cached_config = remembered_autocad_config(candidate)
+            config = cached_config or desktop.choose_autocad_config()
             if not config:
                 return 0
+            selected_record = autocad_config_snapshot(config) if cached_config is None else None
             arguments.extend(["--config", config])
         exit_code = run_cli(arguments)
+        if is_autocad and exit_code == 0 and cached_config is None:
+            remember_autocad_config(candidate, config, selected_record)
         desktop.show_result(exit_code)
         return exit_code
     except (AppError, OSError, ValueError) as error:

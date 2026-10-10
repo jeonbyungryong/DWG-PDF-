@@ -1,5 +1,6 @@
 from pathlib import Path
 from types import SimpleNamespace
+import pytest
 
 from dwg_to_pdf import desktop_launcher as desktop
 from dwg_to_pdf.cad.selection import CadCandidate
@@ -22,11 +23,11 @@ def test_gui_selection_roundtrips_to_cli(monkeypatch):
     assert "--allow-experimental-autocad" in calls[0]
 
 
-def test_gui_cancellation_or_declined_experiment_never_starts(monkeypatch):
+def test_gui_provider_or_config_cancellation_never_starts(monkeypatch):
     candidate = CadCandidate("autocad", "AutoCAD.Application.25", "id", Path("C:/acad.exe"), "AutoCAD", None)
     monkeypatch.setattr(desktop, "discover_candidates", lambda provider: (candidate,), raising=False)
     calls = []
-    for selected_ui in (ui(provider=None), ui(confirm=False), ui(selected=None), ui(config="")):
+    for selected_ui in (ui(provider=None), ui(config="")):
         assert desktop.run_desktop(lambda args: calls.append(args) or 0, ui=selected_ui) == 0
     assert calls == []
 
@@ -48,9 +49,18 @@ def test_gstarcad_never_requests_autocad_config(monkeypatch):
     monkeypatch.setattr(desktop, "discover_candidates", lambda provider: (candidate,))
     selected=ui(provider="gstarcad",selected=candidate.prog_id)
     selected.choose_autocad_config=lambda: (_ for _ in ()).throw(AssertionError("must not request config"))
+    selected.choose_cad_candidate=lambda _: pytest.fail('Single GstarCAD installation is automatic')
     calls=[]
     assert desktop.run_desktop(lambda args: calls.append(args) or 0,ui=selected)==0
     assert "--config" not in calls[0]
+
+
+def test_provider_dialog_offers_autocad_without_experimental_label(monkeypatch):
+    shown = []
+    monkeypatch.setattr(desktop, '_message_box', lambda title, message, flags: shown.append(message) or 7)
+    assert desktop.WindowsDesktopUI().choose_cad_provider() == 'autocad'
+    assert 'AutoCAD' in shown[0]
+    assert '실험적' not in shown[0]
 
 
 def test_invalid_selected_config_is_rejected_by_cli_before_cad(monkeypatch,tmp_path,capsys):

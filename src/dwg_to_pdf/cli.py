@@ -15,7 +15,7 @@ from .result_presenter import build_result_report
 from .runtime_paths import default_config_path, default_profiles_path
 from .cad.discovery import discover_candidates
 from .cad.selection import select_candidate
-from .cad.factory import create_session, resolve_selection, EXPERIMENTAL_WARNING
+from .cad.factory import create_session, resolve_selection
 from .cad.diagnostics import diagnostic_scope
 
 # Keep --help and preflight import-safe in a frozen validation bundle. COM and
@@ -168,8 +168,6 @@ def main(argv: Sequence[str] | None = None) -> int:
         return 2
 
     service_type, session_type, jobs = _conversion_dependencies()
-    if candidate.provider == "autocad":
-        print(EXPERIMENTAL_WARNING, file=sys.stderr)
 
     def session_factory():
         return session_type(candidate)

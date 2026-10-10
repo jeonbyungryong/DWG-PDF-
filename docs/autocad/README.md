@@ -1,6 +1,14 @@
-﻿# AutoCAD 확장 개발 허브
+# AutoCAD 확장 개발 허브
 
-2026-10-09 최신 후속: [AC04 조사·통합·배포 판단](AC04-INTEGRATION-2026-10-09.md), [AC03 현재 PC 검증](AC03-READINESS-2026-10-09.md)을 먼저 확인한다. AutoCAD 수정 후보의 CLI43종·GUI각7·취소4·소스3시험 통과. 과거 DBMOD17→21 원인은 미확정이며 최신 GstarCAD 실기는 사용자 요청으로 연기했다. 사용자 요청에 따라 소스 통합과 검증용 prerelease를 진행하며 정식 stable Release·공식지원은 보류한다. 실제 원격 결과는 관리 이슈#1 AC04 인계를 따른다.
+2026-10-10 최종 배포 승인: 사용자가 현재 PC AutoCAD 최종 통과와 GitHub 정식 Release·배포를 승인했다. [최종 배포 기록](../releases/2026-10-10-autocad-final.md), [새 PC 설치 안내](../INSTALL-KO.md)를 우선한다. 기존 문서의 정식 배포 HOLD/승인 대기는 이 후속 승인으로 갱신되며 GstarCAD 실기 연기와 미확정 과거 원인은 유지한다.
+
+2026-10-10 최신: [AC09 공통 GUI 절차](AC09-STANDARD-GUI-2026-10-10.md). 사용자 현재 PC AutoCAD 개발완료 승인과 GUI 흐름 승인에 따라 실험적 표시·추가 확인을 제거하고 단일 설치/유효 설정을 자동 적용했다. 986 PASS/13 SKIP, 새 frozen 실행본 자체 점검·실제 탐색기 바로가기 파일7종/폴더7종·PDF/원본/복구 검증을 기록한다. GstarCAD 실기는 사용자 요청으로 연기했다. 아래 AC08의 사용자 승인 대기 표기는 이 후속 승인 기록으로 갱신된다.
+
+2026-10-10 최신 후속: [AC08 기본 바로가기 자동 설정 검증](AC08-EXPLORER-AUTO-CONFIG-2026-10-10.md). 사용자 TOML 재선택 보고를 실제 탐색기 실행에서 재현했다. Codex의 AppData 가상화로 일반 사용자 캐시가 없었던 배포 문제를 복구했고, 원본 기본 바로가기 파일7종·완전 종료 후 폴더7종 모두 TOML 선택 없이 변환·완료창·PDF 검증 PASS. 제품 EXE·설정·PC3·바로가기 해시 유지. 사용자 새 후보 재수용·GstarCAD·다른 PC·MAIN 승인·정식 배포 게이트는 유지한다.
+
+2026-10-09 이전 GUI 후속: [AC07 AutoCAD 설정 자동 적용](AC07-AUTO-CONFIG-2026-10-09.md). 이전 검증본의 사용자 실사용 수용 후 매번 TOML 선택을 생략하도록 개발했다. 당시979 PASS/13 SKIP, 로컬 새 실행본 준비. 사전 설정 전달 문제의 복구와 실제 GUI 검증은 위 AC08을 따른다.
+
+2026-10-09 이전 후속: [AC04 조사·통합·배포 판단](AC04-INTEGRATION-2026-10-09.md), [AC03 현재 PC 검증](AC03-READINESS-2026-10-09.md). AutoCAD 수정 후보의 CLI43종·GUI각7·취소4·소스3시험 통과. 과거 DBMOD17→21 원인은 미확정이며 최신 GstarCAD 실기는 사용자 요청으로 연기했다. 사용자 요청에 따라 소스 통합과 검증용 prerelease를 진행하며 정식 stable Release·공식지원은 보류한다. 실제 원격 결과는 관리 이슈#1 AC04 인계를 따른다.
 
 2026-10-07 PC-A 새 AC02 frozen 후보: GstarCAD43종 및 실제GUI 파일/폴더 각7개 검증 완료. 다른 PC는 [새 EXE·ZIP 전달 안내](AC02-FROZEN-OTHER-PC-2026-10-07.md)와 [검증 결과](AC02-PC-A-FROZEN-VALIDATION-2026-10-07.md)를 따른다. 전달 브랜치는 `codex/ac02-gstar-frozen-validation`이며 이전 GUI-01 실행본과 구분한다. AutoCAD 최종 실기·MAIN 병합·정식지원은 별도다.
 
