@@ -132,3 +132,5 @@ def test_fresh_gui_prepares_once_then_reuses_successful_cache(setup):
 ## 실행 상태 — 2026-10-10
 
 PART1 commit2a26507, PART2 commit2279280. 전체1003PASS/13SKIP42.45초; 최종 집중54PASS2.92초. 최초 현지 설정 생성/정확한 소유 CAD 종료 확인은 진행했으나 실제 변환이 PC3 뷰어 자동 열기 후 E421로 실패했다. 추가 이전설정 시험 E203도 별도 조사 중이다. [REV2 최소 보완 제안](../specs/2026-10-10-autocad-initial-setup-rev2.md) 승인 후 해당 계약만 수정한다. frozen GUI/ZIP/독립 최종 검토/MAIN/정식 배포는 아직 미완료.
+
+원래 예외를 계측한 이전 설정 재실행은 실제 PDF 변환 PASS·원본15파일 SHA/mtime 보존·소유 CAD 잔류 없음이다. E203은 이번에는 재현되지 않아 최초 원인 미확정으로 기록하고 공유 세션을 수정하지 않는다. 최초 기본 PC3 자동 준비의 E421 실패와 구분한다.

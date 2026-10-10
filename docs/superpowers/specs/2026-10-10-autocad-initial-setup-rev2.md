@@ -8,7 +8,7 @@
 - 그 설정으로 실제 변환했을 때 PDF가 Acrobat에 자동으로 열렸고 임시 파일 정리 E421로 실패했다. 전체 실기 PASS가 아니다.
 - 기본 PC3 원본/자동 사본 SHA256은 `cdf9040f4e69c9189845e854f57b5b4eb1d29e354ec95cabd095e683215dd553`. 이전 현재 PC 검증 PC3는 `25951a9d0fe38910dc52f665ade57fa83500b82c4796656b135f705c8f5b8eb0`.
 - 두 파일은 길이·checksum 검사를 통과하며, 압축 해제한 설정의 차이는 `View_New_File`의 TRUE→FALSE 하나다. 이전 실기용 사본도 이 변경으로 준비되었다.
-- 이후 이전 설정으로 한 추가 시험은 문서 열기 E203으로 중단했다. 이번 A/B 실기 성공으로 기록하지 않는다. 원인 계측을 별도로 진행하고 공유 세션을 추측으로 수정하지 않는다.
+- 이후 이전 설정으로 한 첫 추가 시험은 문서 열기 E203으로 중단했다. 원래 예외 계측을 추가해 재실행하니 E203은 재현되지 않았고, 동일 도면의 변환이 성공했다. PDF297.039×209.903mm·단일 페이지·비공백, TOML/PC3/승인 DWG15파일 SHA/mtime 보존, 소유 CAD 잔류 없음 확인. 이 성공은 이전 검증 PC3의 비교 시험이며 새 자동 설정의 성공으로 기록하지 않는다. E203의 최초 원인은 미확정이며 공유 세션을 추측으로 수정하지 않는다.
 
 Autodesk는 PC3 custom properties의 “Open in PDF viewer when done” 옵션이 출력 PDF의 뷰어 자동 열기를 제어함을 설명한다. [공식 안내](https://www.autodesk.com/support/technical/article/caas/sfdcarticles/sfdcarticles/PDF-does-not-open-automatically-in-viewer.html). 이번 파일 잠금과 옵션의 관계는 위 현지 관찰 및 이전 사본 비교에 근거한다.
 
