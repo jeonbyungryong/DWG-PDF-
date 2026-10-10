@@ -41,11 +41,11 @@
 - Produces: `prepare_autocad_config(candidate: CadCandidate) -> str` — 현지 검증·생성을 마친 TOML의 절대 경로. 오류는 기존 `AppError` 코드로 전달한다.
 - Internal: `_inspect_plotter(candidate: CadCandidate) -> tuple[Path, str, str]` — PC3 원본 절대 경로, 조회 전후 일치한 SHA256, 실측 A4 이름. `_write_config(pc3_source: Path, pc3_sha256: str, media: str, candidate: CadCandidate) -> str` — 고유 사용자 폴더에 사본·TOML을 생성하고 재파싱한다.
 
-- [ ] 정상 생성, PC3/CTB 누락, 비-A4/NaN/복수 A4, 복수 PC3, 소유권 실패, 쓰기 오류, 원본 PC3 변경, 한국어/공백 경로, 기존 파일 보존 시험을 먼저 작성한다.
-- [ ] `pytest tests/unit/test_autocad_initial_setup.py -q --basetemp=<fresh>`로 RED를 확인한다. 실패는 미구현 계약 때문이어야 한다.
-- [ ] 명세4의 규칙을 구현한다. 실제 조회는 승인 프로파일의 해시 검증과 임시 사본 경계에서만 수행한다. JSON 문자열 인코딩으로 TOML 경로·용지 이름을 안전하게 작성한다.
-- [ ] 테스트에서 생성 결과를 실제 `load_config()`로 확인한다: provider/autocad, PC3 사본 절대 경로, 검증된 preferred media 하나, 고정 정책값. 원본·기존 설정 바이트 유지와 실패 시 생성 중 파일 정리를 검사한다.
-- [ ] 집중 GREEN을 확인하고 PART1 파일만 의미 단위로 커밋한다.
+- [x] 정상 생성, PC3/CTB 누락, 비-A4/NaN/복수 A4, 복수 PC3, 소유권 실패, 쓰기 오류, 원본 PC3 변경, 한국어/공백 경로, 기존 파일 보존 시험을 먼저 작성한다.
+- [x] `pytest tests/unit/test_autocad_initial_setup.py -q --basetemp=<fresh>`로 RED를 확인한다. 실패는 미구현 계약 때문이어야 한다.
+- [x] 명세4의 규칙을 구현한다. 실제 조회는 승인 프로파일의 해시 검증과 임시 사본 경계에서만 수행한다. JSON 문자열 인코딩으로 TOML 경로·용지 이름을 안전하게 작성한다.
+- [x] 테스트에서 생성 결과를 실제 `load_config()`로 확인한다: provider/autocad, PC3 사본 절대 경로, 검증된 preferred media 하나, 고정 정책값. 원본·기존 설정 바이트 유지와 실패 시 생성 중 파일 정리를 검사한다.
+- [x] 집중 GREEN을 확인하고 PART1 파일만 의미 단위로 커밋한다.
 
 정상 생성 시험의 핵심 assertion (`candidate`, `pc3_source`, `media`는 검증된 모의 조회 fixture):
 
@@ -82,11 +82,11 @@ def test_prepare_config_roundtrips_fixed_policy(candidate, pc3_source, media):
 - Consumes: PART1 `prepare_autocad_config(candidate) -> str`, 기존 캐시 조회·snapshot·성공 후 기억 API.
 - Produces: 기존 `run_desktop(run_cli, ui=...) -> int` 계약 유지. CLI에는 기존 `--config <path>`를 전달한다.
 
-- [ ] 최초 실행에서 생성 함수를 한 번 호출하고 TOML picker를 호출하지 않는 시험을 먼저 작성한다. 재실행·별칭·복수 설치에서 유효 캐시는 생성 함수를 호출하지 않아야 한다.
-- [ ] 초기 준비 실패/취소는 CLI를 시작하지 않는지, GstarCAD는 준비 함수와 TOML picker를 호출하지 않는지 RED로 확인한다.
-- [ ] 기존 `cached_config or choose_autocad_config()`를 `cached_config or prepare_autocad_config(candidate)`로 연결한다. 사용하지 않는 AutoCAD TOML picker 계약·호출은 제거한다. 공통 입력/CAD/결과 UI는 유지한다.
-- [ ] 기존 전체 성공 후 기억과 전후 파일 지문 검증을 유지한다. exit1/2, 저장 실패, 변경/삭제/손상 설정의 시험은 '재선택' 대신 '다음 초기 준비'를 검증하도록 수정한다. CLI 수동 `--config`의 유효/불량 설정 회귀는 유지한다.
-- [ ] `pytest tests/unit/test_autocad_initial_setup.py tests/unit/test_desktop_settings.py tests/unit/test_cad_desktop.py tests/unit/test_desktop_launcher.py -q --basetemp=<fresh>` GREEN 후 PART2 파일만 커밋한다.
+- [x] 최초 실행에서 생성 함수를 한 번 호출하고 TOML picker를 호출하지 않는 시험을 먼저 작성한다. 재실행·별칭·복수 설치에서 유효 캐시는 생성 함수를 호출하지 않아야 한다.
+- [x] 초기 준비 실패/취소는 CLI를 시작하지 않는지, GstarCAD는 준비 함수와 TOML picker를 호출하지 않는지 RED로 확인한다.
+- [x] 기존 `cached_config or choose_autocad_config()`를 `cached_config or prepare_autocad_config(candidate)`로 연결한다. 사용하지 않는 AutoCAD TOML picker 계약·호출은 제거한다. 공통 입력/CAD/결과 UI는 유지한다.
+- [x] 기존 전체 성공 후 기억과 전후 파일 지문 검증을 유지한다. exit1/2, 저장 실패, 변경/삭제/손상 설정의 시험은 '재선택' 대신 '다음 초기 준비'를 검증하도록 수정한다. CLI 수동 `--config`의 유효/불량 설정 회귀는 유지한다.
+- [x] `pytest tests/unit/test_autocad_initial_setup.py tests/unit/test_desktop_settings.py tests/unit/test_cad_desktop.py tests/unit/test_desktop_launcher.py -q --basetemp=<fresh>` GREEN 후 PART2 파일만 커밋한다.
 
 GUI 정상 시험은 기존 UI fixture의 TOML picker를 `pytest.fail("No TOML picker")`로 바꾸고, 준비 함수를 `generated_config` 반환 및 호출 기록으로 대체한다:
 
@@ -111,7 +111,7 @@ def test_fresh_gui_prepares_once_then_reuses_successful_cache(setup):
 
 **Interfaces:** 기존 PyInstaller spec·승인 번들 assets·검증 도구와 이전 Release/백업. CLI `--self-check`, `--list-cad` 계약 유지.
 
-- [ ] 전체 `pytest -q -ra --basetemp=<fresh>`를 실행하고 PASS/SKIP/NOT_RUN을 실제 원인별로 기록한다. baseline986/13을 새 결과로 재사용하지 않는다.
+- [x] 전체 `pytest -q -ra --basetemp=<fresh>`를 실행하고 PASS/SKIP/NOT_RUN을 실제 원인별로 기록한다. baseline986/13을 새 결과로 재사용하지 않는다.
 - [ ] 사전 API 시험의 종료 확인 실패를 먼저 분리 조사한다. 제품 종료 정책은 추측으로 수정하지 않는다. 소유 프로세스의 정확한 조회/동기화 핸들 대기와 읽기 전용 재확인으로 준비 세션 종료를 입증한다.
 - [ ] 실제 AutoCAD에서 별도 새 사용자 저장소 조건의 초기 준비를 수행하고 PC3·TOML 지문, 임시 기준 DWG 보존, 세션 종료를 확인한다. 그 설정으로 대표 도면의 실제 PDF를 확인한다.
 - [ ] 기존 spec·의존성으로 새 frozen 후보를 만든다. ZIP 전체 해시/CRC, 추출 self-check·설치 조회, 템플릿13종 해시를 검사한다.
@@ -128,3 +128,7 @@ def test_fresh_gui_prepares_once_then_reuses_successful_cache(setup):
 ## 문서 자체 검토
 
 명세3→PART2, 명세4→PART1/PART2, 명세6→PART3에 대응한다. Review Focus5항목의 시험을 해당 PART에 넣었다. 초기 API 시험 전체 PASS나 타PC 검증 완료를 주장하지 않는다. 제품 구현·배포 교체는 승인 전 미착수다.
+
+## 실행 상태 — 2026-10-10
+
+PART1 commit2a26507, PART2 commit2279280. 전체1003PASS/13SKIP42.45초; 최종 집중54PASS2.92초. 최초 현지 설정 생성/정확한 소유 CAD 종료 확인은 진행했으나 실제 변환이 PC3 뷰어 자동 열기 후 E421로 실패했다. 추가 이전설정 시험 E203도 별도 조사 중이다. [REV2 최소 보완 제안](../specs/2026-10-10-autocad-initial-setup-rev2.md) 승인 후 해당 계약만 수정한다. frozen GUI/ZIP/독립 최종 검토/MAIN/정식 배포는 아직 미완료.
