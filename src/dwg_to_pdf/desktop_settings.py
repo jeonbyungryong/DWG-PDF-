@@ -83,7 +83,7 @@ def remember_autocad_config(candidate: CadCandidate, config_path: str, expected_
             json.dump(data, stream, ensure_ascii=False, indent=2)
         temporary.replace(path)
     except (AppError, OSError, ValueError):
-        print("설정 기억에 실패했습니다. 다음 실행에서 설정을 다시 선택합니다.", file=sys.stderr)
+        print("설정 기억에 실패했습니다. 다음 실행에서 설정을 자동 준비합니다.", file=sys.stderr)
     finally:
         if temporary is not None:
             try:

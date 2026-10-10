@@ -10,14 +10,14 @@ from typing import Protocol
 from .cad.discovery import discover_candidates
 from .cad.selection import CadCandidate, CadSelection, ProviderId, select_candidate
 from .errors import AppError
-from .windows_picker import pick_dwg_files, pick_folder, pick_config_file
+from .windows_picker import pick_dwg_files, pick_folder
 from .desktop_settings import autocad_config_snapshot, remembered_autocad_config, remember_autocad_config
+from .autocad.initial_setup import prepare_autocad_config
 
 
 class DesktopUI(Protocol):
     def choose_cad_provider(self) -> ProviderId | None: ...
     def choose_cad_candidate(self, candidates: tuple[CadCandidate, ...]) -> str | None: ...
-    def choose_autocad_config(self) -> str: ...
     def choose_source_mode(self) -> str | None: ...
     def choose_files(self) -> Sequence[str]: ...
     def choose_input_folder(self) -> str: ...
@@ -52,9 +52,6 @@ class WindowsDesktopUI:
     def choose_cad_provider(self) -> ProviderId | None:
         answer = _message_box("CAD 선택", "예: GstarCAD (기본)\n아니요: AutoCAD\n취소: 종료", 0x23)
         return {6: "gstarcad", 7: "autocad"}.get(answer)
-
-    def choose_autocad_config(self) -> str:
-        return pick_config_file("AutoCAD 용지·플로터 설정 TOML 선택")
 
     def choose_cad_candidate(self, candidates: tuple[CadCandidate, ...]) -> str | None:
         if len(candidates) == 1:
@@ -174,9 +171,7 @@ def run_desktop(
             arguments.append("--allow-experimental-autocad")
             candidate = select_candidate(CadSelection(provider, selected, True), candidates)
             cached_config = remembered_autocad_config(candidate)
-            config = cached_config or desktop.choose_autocad_config()
-            if not config:
-                return 0
+            config = cached_config or prepare_autocad_config(candidate)
             selected_record = autocad_config_snapshot(config) if cached_config is None else None
             arguments.extend(["--config", config])
         exit_code = run_cli(arguments)

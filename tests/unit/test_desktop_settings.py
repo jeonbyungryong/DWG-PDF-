@@ -7,6 +7,7 @@ import pytest
 
 from dwg_to_pdf import desktop_launcher as desktop
 from dwg_to_pdf.cad.selection import CadCandidate
+from dwg_to_pdf.errors import AppError
 
 
 @pytest.fixture
@@ -33,11 +34,12 @@ style_sheet="monochrome.ctb"
 autocad_pc3_path=''' + json.dumps(pc3.as_posix(), ensure_ascii=False) + '\n', encoding='utf-8')
     prompts=[]
     results=[]
+    monkeypatch.setattr(desktop, 'prepare_autocad_config', lambda item:prompts.append(True) or str(config), raising=False)
     selected=SimpleNamespace(
         choose_source_mode=lambda:'folder', choose_input_folder=lambda:'C:/input',
         choose_output_folder=lambda:'C:/output', choose_cad_provider=lambda:'autocad',
         confirm_experimental_autocad=lambda:True, choose_cad_candidate=lambda candidates:candidates[0].prog_id,
-        choose_autocad_config=lambda:prompts.append(True) or str(config),
+        choose_autocad_config=lambda:pytest.fail('TOML picker must never open'),
         show_result=results.append, close=lambda:None)
     cache=tmp_path / 'user settings/DWG-to-PDF/autocad-settings.json'
     return candidate, config, pc3, selected, prompts, results, cache
@@ -58,7 +60,7 @@ def test_successful_config_is_automatically_reused_without_picker(setup):
 
 
 def test_single_installation_uses_saved_config_without_extra_confirmation(setup):
-    candidate, config, _, selected, _, results, _ = setup
+    candidate, config, _, selected, prompts, results, _ = setup
     desktop.remember_autocad_config(candidate, str(config), desktop.autocad_config_snapshot(str(config)))
     selected.confirm_experimental_autocad = lambda: pytest.fail('No experimental confirmation')
     selected.choose_cad_candidate = lambda _: pytest.fail('Single installation is automatic')
@@ -67,10 +69,11 @@ def test_single_installation_uses_saved_config_without_extra_confirmation(setup)
     assert desktop.run_desktop(lambda args: calls.append(args) or 0, ui=selected) == 0
     assert calls[0][-2:] == ['--config', str(config)]
     assert results == [0]
+    assert prompts == []
 
 
 def test_multiple_installations_use_only_uniquely_valid_saved_config(setup, monkeypatch):
-    candidate, config, _, selected, _, _, _ = setup
+    candidate, config, _, selected, prompts, _, _ = setup
     other = replace(candidate, prog_id='AutoCAD.Application.25', clsid='other', executable=Path('C:/other/acad.exe'))
     desktop.remember_autocad_config(candidate, str(config), desktop.autocad_config_snapshot(str(config)))
     monkeypatch.setattr(desktop, 'discover_candidates', lambda _: (other, candidate))
@@ -79,11 +82,12 @@ def test_multiple_installations_use_only_uniquely_valid_saved_config(setup, monk
     calls = []
     assert desktop.run_desktop(lambda args: calls.append(args) or 0, ui=selected) == 0
     assert calls[0][calls[0].index('--cad-prog-id') + 1] == 'AutoCAD.Application.24'
+    assert prompts == []
 
 
 @pytest.mark.parametrize('other_installation', [False, True])
 def test_saved_generic_alias_is_reused_per_installation(setup, monkeypatch, other_installation):
-    candidate, config, _, selected, _, _, _ = setup
+    candidate, config, _, selected, prompts, _, _ = setup
     alias = replace(candidate, prog_id='AutoCAD.Application')
     desktop.remember_autocad_config(alias, str(config), desktop.autocad_config_snapshot(str(config)))
     candidates = (candidate, alias)
@@ -96,6 +100,7 @@ def test_saved_generic_alias_is_reused_per_installation(setup, monkeypatch, othe
     assert desktop.run_desktop(lambda args: calls.append(args) or 0, ui=selected) == 0
     assert calls[0][calls[0].index('--cad-prog-id') + 1] == 'AutoCAD.Application'
     assert calls[0][-2:] == ['--config', str(config)]
+    assert prompts == []
 
 
 @pytest.mark.parametrize('saved_count', [0, 2])
@@ -124,7 +129,7 @@ def test_unsuccessful_conversion_does_not_remember_new_config(setup,code):
 
 
 @pytest.mark.parametrize('change',['config_changed','config_deleted','pc3_changed','pc3_deleted','installation_changed','version_changed','cache_corrupt','cache_schema'])
-def test_changed_or_invalid_cached_setting_requests_selection(setup,monkeypatch,change):
+def test_changed_or_invalid_cached_setting_prepares_again(setup,monkeypatch,change):
     candidate,config,pc3,selected,prompts,_,cache=setup
     assert desktop.run_desktop(lambda _:0,ui=selected)==0
     assert cache.is_file()
@@ -138,15 +143,21 @@ def test_changed_or_invalid_cached_setting_requests_selection(setup,monkeypatch,
         monkeypatch.setattr(desktop,'discover_candidates',lambda _: (replace(candidate,reported_version='24.1'),))
     elif change=='cache_corrupt':cache.write_text('bad{',encoding='utf-8')
     else:cache.write_text('{"version":1,"installations":[]}',encoding='utf-8')
-    selected.choose_autocad_config=lambda:prompts.append(True) or ''
-    assert desktop.run_desktop(lambda _:pytest.fail('Cancellation must not start CAD'),ui=selected)==0
+    def fail_prepare(item):
+        prompts.append(True)
+        raise AppError('E210', 'environment is unavailable')
+    monkeypatch.setattr(desktop, 'prepare_autocad_config', fail_prepare)
+    assert desktop.run_desktop(lambda _:pytest.fail('Failed preparation must not start conversion'),ui=selected)==2
     assert prompts==[True,True]
 
 
-def test_cancelled_config_is_not_remembered(setup):
-    _,_,_,selected,_,_,cache=setup
-    selected.choose_autocad_config=lambda:''
-    assert desktop.run_desktop(lambda _:pytest.fail('must not run'),ui=selected)==0
+def test_preparation_failure_is_not_remembered(setup,monkeypatch):
+    _,_,_,selected,_,results,cache=setup
+    def fail_prepare(item):
+        raise AppError('E210', 'plotter unavailable')
+    monkeypatch.setattr(desktop, 'prepare_autocad_config', fail_prepare)
+    assert desktop.run_desktop(lambda _:pytest.fail('must not run'),ui=selected)==2
+    assert results==[2]
     assert not cache.exists()
 
 
@@ -171,4 +182,7 @@ def test_unwritable_cache_does_not_turn_success_into_conversion_failure(setup,ca
     cache.parent.parent.write_text('blocked directory',encoding='utf-8')
     assert desktop.run_desktop(lambda _:0,ui=selected)==0
     assert results==[0]
-    assert '다음 실행' in capsys.readouterr().err
+    error=capsys.readouterr().err
+    assert '다음 실행' in error and '자동' in error
+    assert '선택' not in error
+    assert desktop.run_desktop(lambda _:0,ui=selected)==0
